@@ -1,3 +1,5 @@
+import numpy as np
+
 class imDetector(object):
     def __init__(self):
         self.preprocessor = []

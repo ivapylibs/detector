@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from roipoly import RoiPoly
 
-from appearance import appearance
+from appearance import appearance   # IS THIS CORRECT STILL?
 
 class tModel(object):
     def __init__(self, mean, R, T, tau, vectorize):

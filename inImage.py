@@ -33,9 +33,8 @@ class image(object):
 
   def measure(self, I):
     if (~isempty(self.preprocessor))
-      Ip = self.processor.pre(I)
+      self.Ip = self.processor.apply(I)
 
-      self.Ip = self.processor.post(Ip);
 
   def correct(self):
   

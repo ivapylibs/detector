@@ -17,18 +17,24 @@
 #!  Tab is set to 4 spaces with conversion to spaces.
 #
 #========================== detector/appearance ==========================
+import _init_paths
+from inImage import image # Is this right? I want detector.inImage and to invoke that way
 
-import detector # Is this right? I want detector.inImage and to invoke that way
+import numpy as np
 
 # @classf detector.fgmodel
-class appearance(detector.inImage):
+class appearance(image):
 
+  def __init__(self, appMod, fgIm):
 
-  def __init__(self, appMod):
-
-    super(detector.fgmodel.appearance, self).__init__() # IS CORRECT?
+    super(appearance, self).__init__() # IS CORRECT?
     self._appMod = appMod       #< The appearance model.
+    self.fgIm = fgIm
 
+  def getForeGround(self):
+    return self.fgIm
 
+  def getBackground(self):
+    return np.max(self.fgIm) - self.fgIm
 #
 #========================== detector/appearance ==========================

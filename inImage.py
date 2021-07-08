@@ -20,27 +20,28 @@
 
 import numpy as np
 
-
-
 # @classf detector
 class image(object):
-  def __init__(self):
-    self.processor = []
+  def __init__(self, processor=None):
+    if not processor:
+      self.processor = []
+    else:
+      self.processor = processor
+
     self.Ip = []
 
   def predict(self):
-    
+    raise NotImplementedError
 
   def measure(self, I):
-    if (~isempty(self.preprocessor))
+    if any(self.processor):
       self.Ip = self.processor.apply(I)
 
-
   def correct(self):
-  
+    raise NotImplementedError
 
   def adapt(self):
- 
+    raise NotImplementedError
 
   def process(self, I):
     self.predict()

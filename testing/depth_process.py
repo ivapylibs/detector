@@ -1,3 +1,18 @@
+"""
+
+Contains preprocess function for the depth frame. 
+Used to process the depth frame videos for the testing
+
+@author: Yiye Chen          yychen2019@gatech.edu
+@date: 07/08/2021
+
+TODO:(Due to my limited experience working with the depth info, below needs discussion)
+    1. Consider moving the preprocess function to the camera node if such preprocess is necessary for all down stream tasks
+    2. Preprocess function needs improvement? 
+
+"""
+
+
 import numpy as np
 import cv2
 

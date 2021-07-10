@@ -1,89 +1,100 @@
+#============================= depth_process =============================
 """
 
-Contains preprocess function for the depth frame. 
-Used to process the depth frame videos for the testing
+  @brief    Contains preprocess function for the depth frame.  Used to
+            process the depth frame videos for the testing
 
-@author: Yiye Chen          yychen2019@gatech.edu
-@date: 07/08/2021
-
-TODO:(Due to my limited experience working with the depth info, below needs discussion)
-    1. Consider moving the preprocess function to the camera node if such preprocess is necessary for all down stream tasks
-    2. Preprocess function needs improvement? 
+  @author   Yiye Chen          yychen2019@gatech.edu
+  @date     2021/07/08
 
 """
+# @quit
+#============================= depth_process =============================
 
-
+import improcessor
 import numpy as np
 import cv2
+import copy
 
-def clip(depth_frame):
-    # clip. remove the smallest and the largest 5% value
-    N = depth_frame.flatten().size
-    sorted_values = np.sort(depth_frame.flatten()) 
-    th_low = sorted_values[int(N*.05)]
-    th_high = sorted_values[int(N*.95)]
-    depth_frame[depth_frame < th_low] = th_low
-    depth_frame[depth_frame > th_high] = th_high
-    return depth_frame
+  
 
-def scale(depth_frame):
-    # scale to 0 - 255
-    min_val = depth_frame.min() 
-    max_val = depth_frame.max()
-    depth_frame = (depth_frame - min_val) / max_val * 255
-    return depth_frame.astype(np.uint8)
+#------------------------------- to_uint8 ------------------------------
+#
+#   Convert numpy array to uint8 format.
+#
+def to_uint8(npImg)
+    return npImg.asType(np.uint8)
 
-def preprocess(depth_frame):
-    """
-    preprocess a single frame
-    """
-    depth_frame = clip(depth_frame) 
-    depth_frame = scale(depth_frame)
-    return depth_frame
-
+#-------------------------- save_three_frames --------------------------
+G
+# Pick three frames from the sequence.
+#
 def save_three_frames(depth_frames, name, format):
     # extract 3 frames & save out (raw)
+
     N, H, W = depth_frames_raw.shape
     frame_id_1 = int(1/4 * N)
     frame_id_2 = int(2/4 * N)
     frame_id_3 = int(3/4 * N)
 
     for idx, frame_id in enumerate([frame_id_1, frame_id_2, frame_id_3]):
-        if format == "npz":
-            np.savez(name+"_{}.npz".format(idx),
-                depth_frames=depth_frames_raw[frame_id, :, :])
-        elif format == "png":
-            cv2.imwrite(name+"_{}.png".format(idx),
-                depth_frames_proc[frame_id, :, :].astype(np.uint8)) 
+      if format == "npz":
+        np.savez(name+"_{}.npz".format(idx),
+                 depth_frames=depth_frames_raw[frame_id, :, :])
+      elif format == "png":
+        cv2.imwrite(name+"_{}.png".format(idx),
+                    depth_frames_proc[frame_id, :, :].astype(np.uint8)) 
             
 
-
+#--------------------------------- main --------------------------------
+#
+#
 if __name__ == "__main__":
-    # load depth data
-    depth_frames_raw = np.load("depth_raw.npz")["depth_frames"] # (Num_frames, H, W)
-    N, H, W = depth_frames_raw.shape
+  # Define preprocessing pipeline on depth data for writing.
+  #
+  preprocess = improcessor.basic(\
+                  improcessor.basic.clipTails,(0.05,),\
+                  improcessor.basic.scale, (np.array([0, 255]),),\
+                  to_uint8, ())
 
-    # preprocess and show and save
-    video_writer = cv2.VideoWriter(
-        "depth_proc.avi", 
-        cv2.VideoWriter_fourcc(*'XVID'),
-        20.0, (W, H), 0
-    )
-    import copy
-    depth_frames_proc = copy.deepcopy(depth_frames_raw).astype(np.uint8)
-    for idx in range(depth_frames_raw.shape[0]):
-        # preprocess
-        depth_frame = preprocess(depth_frames_raw[idx, :, :])
-        depth_frames_proc[idx, :, :] = depth_frame
-        # save
-        video_writer.write(depth_frame)
-        # show
-        cv2.imshow("Display the depth images", depth_frame)    
-        if cv2.waitKey(1) == ord('q'):
-            break
+  # Load depth data
+  #
+  depth_frames_raw = np.load("data/depth_raw.npz")["depth_frames"] 
+  N, H, W = depth_frames_raw.shape                  # (Num_frames, H, W)
+
+  # For saving the video as uint8.
+  #
+  video_writer = cv2.VideoWriter("data/depth_proc.avi", 
+                                 cv2.VideoWriter_fourcc(*'XVID'),
+                                 20.0, (W, H), 0)
+  depth_frames_proc = copy.deepcopy(depth_frames_raw).astype(np.uint8)
 
 
-    # save 3 frames out
-    save_three_frames(depth_frames_proc, name="depth_proc_single", format="png")
+  # For loop generates a video of uint8 data for image sequence testing.
+  #
+  for idx in range(depth_frames_raw.shape[0]):
+
+    # pre-process
+    #
+    depth_frame = preprocess.apply(depth_frames_raw[idx, :, :])
+    depth_frames_proc[idx, :, :] = depth_frame
+
+    # save
+    #
+    video_writer.write(depth_frame)
+       
+    # show
+    #
+    cv2.imshow("Display the depth images", depth_frame)    
+    if cv2.waitKey(1) == ord('q'):
+      break
+
+  # Save 3 frames out of entire sequence for single image testing.
+  #
+  save_three_frames(depth_frames_proc,\
+                    name="data/depth_proc_single",format="png")
 
 
+
+#
+#============================= depth_process =============================

@@ -49,7 +49,8 @@ fpath = os.path.realpath(__file__)
 cpath = fpath.rsplit('/', 1)[0]
 
 # Load depth data
-depth_frames_raw = np.load(cpath+"/data/depth_raw.npz")["depth_frames"]
+# npz file may be corrupted by git lfs , See https://stackoverflow.com/a/65414582/5269146
+depth_frames_raw = np.load(cpath+"/data/depth_raw.npz",allow_pickle=True,fix_imports=True,encoding='latin1')["depth_frames"]
 N = depth_frames_raw.shape[0]
 
 Tlo, Thi = get_hist(depth_frames_raw)

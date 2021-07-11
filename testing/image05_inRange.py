@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-#============================ image04_inRange ============================
+#============================ image05_inRange ============================
 #
 # @brief    Code to test out the simple image detector for a fairly
 #           contrived scenario: threshold a grayscale image.
@@ -8,10 +8,10 @@
 # depth limits to establish a detection depth zone. The depth image sequence
 # is obtained from a depth sensor and saved to a file.
 #
-#============================ image04_inRange ============================
+#============================ image05_inRange ============================
 
 # 
-# @file     image04_inRange.m
+# @file     image05_inRange.m
 #
 # @author   Patricio A. Vela,   pvela@gatech.edu
 #           Yunzhi Lin,         yunzhi.lin@gatech.edu
@@ -23,7 +23,7 @@
 #!  Tab is set to 4 spaces with conversion to spaces.
 #
 # @quitf
-#============================ image04_inRange ============================
+#============================ image05_inRange ============================
 
 #==[0] Prep the environment. From most basic to current implementation.
 #
@@ -90,4 +90,4 @@ cap.release()
 cv2.destroyAllWindows()
 
 #
-#============================ image04_inRange ============================
+#============================ image05_inRange ============================

@@ -39,9 +39,9 @@ def get_hist(depth_frames_raw):
   depth_frame = depth_frames_raw.flatten()
   N = depth_frame.size
   sorted_values = np.sort(depth_frame)
-  th_low = sorted_values[int(N * .05)]
-  th_high = sorted_values[int(N * .95)]
-  return th_low,th_high
+  Tlo = sorted_values[int(N * .05)]
+  Thi = sorted_values[int(N * .95)]
+  return Tlo, Thi
 
 #==[1] Create a simple image that can be thresholded. Define threshold
 #
@@ -54,8 +54,10 @@ N = depth_frames_raw.shape[0]
 
 Tlo, Thi = get_hist(depth_frames_raw)
 depth_frames_proc = np.asarray(depth_frames_raw).astype('uint8')
-preprocess = improcessor.basic(improcessor.basic.clip, (np.array([Tlo, Thi]),),
-                  improcessor.basic.scale, (np.array([0, 255]),), improcessor.basic.to_uint8,(),
+preprocess = improcessor.basic(
+                  improcessor.basic.clip, (np.array([Tlo, Thi]),),
+                  improcessor.basic.scale, (np.array([0, 255]),),
+                  improcessor.basic.to_uint8,(),
                   )
 
 for idx in range(N):

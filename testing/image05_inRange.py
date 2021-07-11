@@ -4,7 +4,8 @@
 # @brief    Code to test out the simple image detector for a fairly
 #           contrived scenario: threshold a grayscale image. The depth
 #           image sequence is from a depth sensor and preprocessed to
-#           a video file.
+#           a video file. Current result is not good as the source video has
+#           not been updated yet.
 #
 #============================ image05_inRange ============================
 
@@ -46,7 +47,7 @@ cap = cv2.VideoCapture(cpath+'/data/depth_proc.avi')
 #
 
 improc = improcessor.basic(cv2.cvtColor, (cv2.COLOR_BGR2GRAY,),\
-                           cv2.inRange,(30, 255,))
+                           cv2.inRange,(30, 120,))
 binDet = detector.inImage(improc)
 
 

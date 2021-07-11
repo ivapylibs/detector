@@ -1,16 +1,15 @@
 #!/usr/bin/python3
-#============================ image04_inRange ============================
+#============================ image06_inRange ============================
 #
 # @brief    Code to test out the simple image detector for a fairly
-#           contrived scenario: threshold a grayscale image. The depth image
-#           is from a depth sensor and saved to a .npz file. We put the
-#           preprocesing code in the testing file for now.
+#           contrived scenario: threshold a grayscale image. The depth
+#           image sequence is from a depth sensor and saved to a .npz file.
+#           We put the preprocesing code in the testing file for now.
 #
-#
-#============================ image04_inRange ============================
+#============================ image06_inRange ============================
 
 # 
-# @file     image04_inRange.m
+# @file     image05_inRange.m
 #
 # @author   Patricio A. Vela,   pvela@gatech.edu
 #           Yunzhi Lin,         yunzhi.lin@gatech.edu
@@ -22,13 +21,15 @@
 #!  Tab is set to 4 spaces with conversion to spaces.
 #
 # @quitf
-#============================ image04_inRange ============================
+#============================ image06_inRange ============================
 
 #==[0] Prep the environment. From most basic to current implementation.
 #
-
+import operator
 import numpy as np
+
 import cv2
+
 import improcessor.basic as improcessor
 import detector.inImage as detector
 import os
@@ -62,9 +63,6 @@ for idx in range(N):
   depth_frame = preprocess.apply(depth_frames_raw[idx, :, :])
   depth_frames_proc[idx, :, :] = depth_frame
 
-# Pick up one of the frames with a hand hovering on the tabletop
-Image = depth_frames_proc[45]
-
 # @todo
 # Need the camera pose to transform the image to a top-down view to have a better result
 
@@ -78,13 +76,14 @@ binDet = detector.inImage(improc)
 
 #==[3] Apply and visualize.
 #
-binDet.process(Image)
-
-#==[4] Visualize the output
-#
 print("Creating window: should see a hand mask (white region).")
-cv2.imshow('Output',binDet.Ip.astype(np.uint8))
-cv2.waitKey()
+for idx in range(N):
+  binDet.process(depth_frames_proc[idx, :, :])
+  cv2.imshow('Output',binDet.Ip.astype(np.uint8))
+
+  # Press Q on keyboard to exit
+  if cv2.waitKey(25) & 0xFF == ord('q'):
+    break
 
 #
-#============================ image04_inRange ============================
+#============================ image06_inRange ============================

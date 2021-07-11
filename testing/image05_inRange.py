@@ -2,11 +2,9 @@
 #============================ image05_inRange ============================
 #
 # @brief    Code to test out the simple image detector for a fairly
-#           contrived scenario: threshold a grayscale image.
-#
-# Upgrades earlier test scripts to use a depth image plus upper and lower
-# depth limits to establish a detection depth zone. The depth image sequence
-# is obtained from a depth sensor and saved to a file.
+#           contrived scenario: threshold a grayscale image. The depth
+#           image sequence is from a depth sensor and preprocessed to
+#           a video file.
 #
 #============================ image05_inRange ============================
 
@@ -35,13 +33,6 @@ import cv2
 import improcessor.basic as improcessor
 import detector.inImage as detector
 import os
-
-# @todo
-# YUNZHI, MODIFY TO APPLY TO A LOADED RAW DEPTH IMAGE IN THE data
-# DIRECTORY.  AIM TO LOAD THE npz VERSION AND NOT THE png VERSION SINCE
-# THAT ONE INVOLVED SOME CLIPPPING AND SCALING. BETTER TO USE THE ORIGINAL
-# DATA SINCE THAT IS WHAT WE WILL BE USING.
-#
 
 #==[1] Create a video sequence that can be thresholded.
 #
@@ -75,7 +66,7 @@ while(cap.isOpened()):
 
     cv2.imshow('Demo', binDet.Ip)
 
-    # Press Q on keyboard to  exit
+    # Press Q on keyboard to exit
     if cv2.waitKey(25) & 0xFF == ord('q'):
       break
 

@@ -28,6 +28,7 @@ from roipoly import RoiPoly
 import warnings
 from appearance import appearance
 
+# Struct for tModel
 class TModel(object):
     def __init__(self, mean=None, R=None, T=None, tau=None, vectorize=None):
         self.mean =mean
@@ -40,48 +41,11 @@ class TModel(object):
         c_trans = np.abs(np.matmul(self.R, c) + np.repeat(np.expand_dims(self.T, -1), 3, -1))
         return np.all(c_trans < np.repeat(np.expand_dims(self.tau, -1), 3, -1), axis=0)
 
+# Struct for mData
 class MData(object):
     def __init__(self, pix, data):
         self.pix = pix
         self.data = data
-
-def overhead_calib_targetNeon(nData, tCol=180):
-    if isinstance(nData, np.array):
-        if self.preprocessor.size == 0:
-            raise Exception('Nothing to process.')
-    else:
-        raise Exception('wrong type for preprocessor')
-
-    mean = np.mean(nData, -1)
-
-    mi = np.argmin(mean)
-    mv = mean[mi]
-
-    eChan = mean > 200
-    eChan = eChan.astype(int)
-
-    isNeon = np.sum(eChan) == 2
-    isNeon = isNeon & (mv < tCol)
-
-    R = np.array([[0, 1 / np.sqrt(2), 1 / np.sqrt(2)], \
-                  [1, 0, 0], \
-                  [0, -1 / np.sqrt(2), 1 / np.sqrt(2)]])
-    T = np.matmul(-R, np.array([mv, 240, 240]).T)
-    tau = np.array([20 * np.sqrt(2), 45, 20]).T
-
-    if isNeon:
-        if mi == 2:
-            R = R.transpose(2, 0, 1)
-        elif mi == 3:
-            R = R.transpose(1, 2, 0)
-    else:
-        raise Exception('Color not neon. Should extremize only two of three color channels')
-
-    vectorize = True
-
-    tModel = tModel(mean, R, T, tau, vectorize)
-
-    return tModel
 
 class targetNeon(appearance):
 
@@ -169,10 +133,9 @@ class targetNeon(appearance):
 
         # if mi == 0,    % RGB is (low, high, high) = cyan. Already sorted.
         if mi == 1: # RGB is (high, low, high) = magenta.
-            tModel.R = np.roll( tModel.R, 1, axis=1)
+            tModel.R = np.roll(tModel.R, 1, axis=1)
         elif mi == 2: # RGB is (high, high, low) = yellow (not the best).
-            tModel.R = np.roll( tModel.R, 2, axis=1)
-
+            tModel.R = np.roll(tModel.R, 2, axis=1)
 
         if not isNeon:
             warnings.warn('Color not neon. Should extremize only two of three color channels')

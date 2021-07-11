@@ -21,7 +21,8 @@
 import numpy as np
 
 # @classf detector
-class image(object):
+class inImage(object):
+
   def __init__(self, processor=None):
     if not processor:
       self.processor = []
@@ -31,17 +32,19 @@ class image(object):
     self.Ip = []
 
   def predict(self):
-    raise NotImplementedError
+    pass
 
   def measure(self, I):
     if self.processor:
       self.Ip = self.processor.apply(I)
+    else:
+      raise Exception('Processor has not been initialized yet')
 
   def correct(self):
-    raise NotImplementedError
+    pass
 
   def adapt(self):
-    raise NotImplementedError
+    pass
 
   def process(self, I):
     self.predict()

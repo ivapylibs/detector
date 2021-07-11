@@ -30,16 +30,18 @@ from appearance import appearance
 
 # Struct for tModel
 class TModel(object):
-    def __init__(self, mean=None, R=None, T=None, tau=None, vectorize=None):
+    def __init__(self, mean=None, R=None, T=None, tau=None, classify=None, vectorize=None):
         self.mean =mean
         self.R = R
         self.T = T
         self.tau = tau
+        self.classify = classify
         self.vectorize = vectorize
 
-    def classify(self, c):
-        c_trans = np.abs(np.matmul(self.R, c) + np.repeat(np.expand_dims(self.T, -1), 3, -1))
-        return np.all(c_trans < np.repeat(np.expand_dims(self.tau, -1), 3, -1), axis=0)
+    # @todo Need double check on Ruinian's implementation
+    # def classify(self, c):
+    #     c_trans = np.abs(np.matmul(self.R, c) + np.repeat(np.expand_dims(self.T, -1), 3, -1))
+    #     return np.all(c_trans < np.repeat(np.expand_dims(self.tau, -1), 3, -1), axis=0)
 
 # Struct for mData
 class MData(object):

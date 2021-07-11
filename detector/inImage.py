@@ -34,7 +34,7 @@ class image(object):
     raise NotImplementedError
 
   def measure(self, I):
-    if any(self.processor):
+    if self.processor:
       self.Ip = self.processor.apply(I)
 
   def correct(self):

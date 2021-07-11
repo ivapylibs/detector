@@ -10,16 +10,17 @@
 # @file     appearance.m
 #
 # @author   Patricio A. Vela,   pvela@gatech.edu
+#           Yunzhi Lin,             yunzhi.lin@gatech.edu
 # @date     2021/07/03 [created]
+#           2021/07/10 [modified]
 #
 #!NOTE:
 #!  Indent is set to 2 spaces.
 #!  Tab is set to 4 spaces with conversion to spaces.
 #
 #========================== detector/appearance ==========================
-import _init_paths
-from inImage import image # Is this right? I want detector.inImage and to invoke that way
 
+from detector.inImage import image
 import numpy as np
 
 # @classf detector.fgmodel
@@ -27,14 +28,30 @@ class appearance(image):
 
   def __init__(self, appMod, fgIm):
 
-    super(appearance, self).__init__() # IS CORRECT?
+    super(appearance, self).__init__()
     self._appMod = appMod       #< The appearance model.
     self.fgIm = fgIm
 
+  # =========================== getForeground ===========================
+  #
+  # @brief  Get the foregound class as binary image.
+  #
+  # @param[out] fgI     Binary foreground image.
+  #
   def getForeGround(self):
-    return self.fgIm
+    assert np.array_equal(self.fgIm, self.fgIm.astype(bool))
+    fgI = self.fgIm
+    return fgI
 
+  # =========================== getBackground ===========================
+  #
+  # @brief  Get the backgound class as binary image.
+  #
+  # @param[out] bgI     Binary background image.
+  #
   def getBackground(self):
-    return np.max(self.fgIm) - self.fgIm
+    assert np.array_equal(self.fgIm, self.fgIm.astype(bool))
+    bgI = ~np.array(self.fgIm).astype('bool')
+    return bgI
 #
 #========================== detector/appearance ==========================

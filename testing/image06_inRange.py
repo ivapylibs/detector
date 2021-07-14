@@ -34,15 +34,6 @@ import improcessor.basic as improcessor
 import detector.inImage as detector
 import os
 
-# Get the bound (0.05, 0.95) for the image sequence
-def get_hist(depth_frames_raw):
-  depth_frame = depth_frames_raw.flatten()
-  N = depth_frame.size
-  sorted_values = np.sort(depth_frame)
-  Tlo = sorted_values[int(N * .05)]
-  Thi = sorted_values[int(N * .95)]
-  return Tlo, Thi
-
 #==[1] Create a simple image that can be thresholded. Define threshold
 #
 fpath = os.path.realpath(__file__)
@@ -53,35 +44,19 @@ cpath = fpath.rsplit('/', 1)[0]
 depth_frames_raw = np.load(cpath+"/data/depth_raw.npz",allow_pickle=True,fix_imports=True,encoding='latin1')["depth_frames"]
 N = depth_frames_raw.shape[0]
 
-Tlo, Thi = get_hist(depth_frames_raw)
-depth_frames_proc = np.asarray(depth_frames_raw).astype('uint8')
-preprocess = improcessor.basic(
-                  improcessor.basic.clip, (np.array([Tlo, Thi]),),
-                  improcessor.basic.scale, (np.array([0, 255]),),
-                  improcessor.basic.to_uint8,(),
-                  )
-
-for idx in range(N):
-  # preprocess
-  depth_frame = preprocess.apply(depth_frames_raw[idx, :, :])
-  depth_frames_proc[idx, :, :] = depth_frame
-
-# @todo
-# Need the camera pose to transform the image to a top-down view to have a better result
-
 #==[2] Instantiate inImage detector with an image processor that does
 #      the thresholding.
 #
 
-improc = improcessor.basic(cv2.inRange,(30,120,))
+improc = improcessor.basic(cv2.inRange,(0.4,0.7,))
 binDet = detector.inImage(improc)
 
 
 #==[3] Apply and visualize.
 #
-print("Creating window: should see a hand mask (white region).")
+print("Creating window: should see a noisy hand mask (white region).")
 for idx in range(N):
-  binDet.process(depth_frames_proc[idx, :, :])
+  binDet.process(depth_frames_raw[idx, :, :])
   cv2.imshow('Output',binDet.Ip.astype(np.uint8))
 
   # Press Q on keyboard to exit

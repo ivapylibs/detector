@@ -21,12 +21,12 @@ tPath = os.path.dirname(fPath)
 dPath = os.path.join(tPath, 'data')
 
 img_train = cv2.imread(
-    os.path.join(dPath, "glove_0.png")
+    os.path.join(dPath, "glove_1.png")
 )
 
 
 img_test = cv2.imread(
-    os.path.join(dPath, "glove_0.png")
+    os.path.join(dPath, "glove_2.png")
 )
 
 # ======= [2] build the detector instance

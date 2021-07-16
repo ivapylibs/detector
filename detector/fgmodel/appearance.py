@@ -20,11 +20,11 @@
 #
 #========================== detector/appearance ==========================
 
-from detector.inImage import image
+from detector.inImage import inImage
 import numpy as np
 
 # @classf detector.fgmodel
-class appearance(image):
+class appearance(inImage):
 
   def __init__(self, appMod, fgIm):
 

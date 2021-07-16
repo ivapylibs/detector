@@ -28,6 +28,10 @@
 """
 # =========================== fgmodel/targetSG ==========================
 
+from detector.fgmodel.appearance import appearance
+import numpy as np
+
+
 class tModel_SG():
     """
     The target model class storing the statistics of the target color
@@ -50,9 +54,11 @@ class targetSG(appearance):
     The target color is modeled as a single-Guassian distribution
     """
     def __init__(self):
+        super().__init__(None, None)
         self.foo = None
     
     def measure(self, I):
+        self.fgIm = np.ones_like(I, dtype=np.bool)
         return None
 
     def saveMod(self, filename):
@@ -77,8 +83,16 @@ class targetSG(appearance):
     
     @staticmethod
     def _calibImage(img):
+        """
+        calibrate and return the target model given an image
+        """
         return None
 
     @staticmethod 
-    def buildSimple():
-        return None
+    def buildImage(img):
+        """
+        Return a target SG detector instance given an image.
+        The user will be asked to select the target area from teh image
+        """
+        det = targetSG()
+        return det 

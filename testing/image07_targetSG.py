@@ -3,6 +3,9 @@
 """
     @brief:         Code to test out the single-Gaussian-color-modeling-based 
                     foreground detector. 
+
+    @ author:   Yiye        yychen2019@gatech.edu
+    @ date:     07/16/2021
 """
 # ============================ image07_targetSG ==============================
 

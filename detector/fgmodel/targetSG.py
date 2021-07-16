@@ -78,11 +78,31 @@ class targetSG(appearance):
         return None
 
     @staticmethod
-    def _calibSimple():
+    def _calibSimple(nData):
         """
         calibrate the target model given a set of target pixels 
+        @brief  Given a set of data, calibrate the target using the
+           Gaussian model from data that is of the same color.
+
+        Recovers a classification model based on collected data. 
+        This method assumes that all data has been collected and organized,
+        and is drawn from the same target color distribution. The output variables
+        are structures with the results of the estimation process for the
+        target model. The model class and teh populated fields are:
+
+        tModel (type: tModel_SG):
+            self.mu     - The estimated Gaussian mean from the target color samples
+            self.sig    - The estimated Gaussian covariance matrix from the target color samples
+        
+        @param[in]  nData       (3, N)
+        @param[out] tModel
         """
-        return None
+
+        tModel= tModel_SG()
+        tModel.mu = np.mean(nData, axis=1)
+        tModel.sig = np.cov(nData, rowvar=False)
+
+        return tModel 
     
     @staticmethod
     def buildSimple():
@@ -169,7 +189,7 @@ class targetSG(appearance):
             "data": dat 
         }
 
-        tModel = tModel_SG()
+        tModel = targetSG._calibSimple(dat) 
         return tModel, mData
 
     @staticmethod 

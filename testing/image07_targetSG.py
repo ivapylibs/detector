@@ -27,7 +27,7 @@ img_test = cv2.imread(
 )
 
 # ======= [2] build the detector instance
-SGDetector = targetSG.buildImage(img_train)
+SGDetector = targetSG.buildFromImage(img_train)
 
 # ======= [3] test on teh test image and show the result
 SGDetector.process(img_test)

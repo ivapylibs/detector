@@ -28,8 +28,9 @@
 """
 # =========================== fgmodel/targetSG ==========================
 
-from detector.fgmodel.appearance import appearance
 import numpy as np
+
+from detector.fgmodel.appearance import appearance
 
 
 class tModel_SG():
@@ -40,11 +41,12 @@ class tModel_SG():
         self.mu = None
         self.sig = None
         self.sigEignVec = None
+        self.sigEignVal = None
 
-        self.has_Diag = False
+        self.has_Eign = False
 
-    def getCovEign(self):
-        self.has_diag = True
+    def getSigEign(self):
+        self.has_Eign = True
         return None
     
 
@@ -53,8 +55,13 @@ class targetSG(appearance):
     The single-Gaussian based target detection class.
     The target color is modeled as a single-Guassian distribution
     """
-    def __init__(self):
-        super().__init__(None, None)
+    def __init__(self, tModel=None):
+        # sanity check 
+        if tModel is not None:
+            assert isinstance(tModel, tModel_SG), \
+                "The targetSG class requires a target model of the type tModel_SG. Now getting the type: {}".format(type(tModel))
+
+        super().__init__(tModel, None)
         self.foo = None
     
     def measure(self, I):
@@ -82,17 +89,25 @@ class targetSG(appearance):
         return None
     
     @staticmethod
-    def _calibImage(img):
+    def _calibFromImage(img, nPoly=1, fh=None, *args, **kwargs):
         """
         calibrate and return the target model given an image
         """
-        return None
+        tModel = tModel_SG()
+        return tModel 
 
     @staticmethod 
-    def buildImage(img):
+    def buildFromImage(img, *args, **kwargs):
         """
         Return a target SG detector instance given an image.
         The user will be asked to select the target area from teh image
+
+        @param[in]  img                 The image to be calibrated on
+        @param[in]  nPoly(optional)     The number of polygon target areas planning to draw. Default is 1
+        @param[in]  fh(optional)        The figure handle for displaying the image to draw ROI
         """
-        det = targetSG()
+
+        # if kwargs contains nPoly or fh, they will automatically be parsed out
+        tModel = targetSG._calibFromImage(img, *args, **kwargs)
+        det = targetSG(tModel)
         return det 

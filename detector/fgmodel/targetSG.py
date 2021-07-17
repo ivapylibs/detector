@@ -43,14 +43,27 @@ class tModel_SG():
     def __init__(self):
         self.mu = None
         self.sig = None
-        self.sigEignVec = None
+        self.sigEignVec = None #row vec
         self.sigEignVal = None
 
         self.has_Eign = False
 
     def getSigEign(self):
+        self.sigEignVal, self.sigEignVec = np.linalg.eig(self.sig)
         self.has_Eign = True
-        return None
+    
+    def classify(self, nData, th=30):
+        """
+        @param[in]  nData       (d, N)
+        """
+        T = self.mu
+        R = self.sigEignVec.T #orthonormal
+        nData_trans = R @ (nData - T[:, None])
+        mask = np.all(
+            np.abs(nData_trans) < th * self.sigEignVal[-1, None],
+            axis = 0
+        )
+        return mask 
     
 
 class targetSG(appearance):
@@ -58,18 +71,25 @@ class targetSG(appearance):
     The single-Gaussian based target detection class.
     The target color is modeled as a single-Guassian distribution
     """
-    def __init__(self, tModel=None):
-        # sanity check 
-        if tModel is not None:
-            assert isinstance(tModel, tModel_SG), \
-                "The targetSG class requires a target model of the type tModel_SG. Now getting the type: {}".format(type(tModel))
+    def __init__(self, tModel: tModel_SG):
 
         super().__init__(tModel, None)
-        self.foo = None
     
     def measure(self, I):
-        self.fgIm = np.ones_like(I, dtype=np.bool)
-        return None
+        # TODO: from the way appearance init inImage, it seems that self.processor will never be instantiated?
+        if self.processor != []:
+            pI = self.processor.apply(I)
+        else:
+            pI = I
+        pI = np.array(pI)
+
+        if not self._appMod.has_Eign:
+            self._appMod.getSigEign()
+
+        # For now only implement the vectorize version
+        imDat = pI.reshape(-1, pI.shape[-1]).T
+        mask_vec = self._appMod.classify(imDat)
+        self.fgIm = mask_vec.reshape(pI.shape[:2])
 
     def saveMod(self, filename):
         return None
@@ -99,8 +119,13 @@ class targetSG(appearance):
         """
 
         tModel= tModel_SG()
+        # Max log-likelihood estimation
         tModel.mu = np.mean(nData, axis=1)
-        tModel.sig = np.cov(nData, rowvar=False)
+        delta = (nData - tModel.mu.reshape(-1, 1))
+        tModel.sig = np.mean(
+            delta[:, None, :] * delta[None, :, :],
+            axis=2
+        )
 
         return tModel 
     

@@ -20,6 +20,11 @@
 
 import numpy as np
 
+
+@dataclass
+class detectorState:
+  x: Any = []
+
 # @classf detector
 class inImage(object):
 
@@ -52,6 +57,9 @@ class inImage(object):
     self.correct()
     self.adapt()
 
+  def getState(self)
+    state = detectorState(self.Ip)
+    return state
 
 #
 #=========================== detector/inImage ============================

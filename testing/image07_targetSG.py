@@ -37,4 +37,6 @@ SGDetector.process(img_test)
 fgmask = SGDetector.getForeGround()
 cv2.imshow("The test image", img_test[:, :, ::-1])
 cv2.imshow("The FG detection result", fgmask.astype(np.uint8)*255)
+
+print("Press any key to exit:")
 cv2.waitKey()

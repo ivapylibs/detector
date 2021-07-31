@@ -32,27 +32,34 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 from roipoly import RoiPoly
+from dataclasses import dataclass
 
 from detector.fgmodel.appearance import appearance
+from improcessor.basic import basic
 
+@dataclass
+class Params():
+    det_th: int or float = 30 
+    processor: basic = None
 
 class tModel_SG():
     """
     The target model class storing the statistics of the target color
     """
-    def __init__(self):
+    def __init__(self, th=30):
         self.mu = None
         self.sig = None
         self.sigEignVec = None #row vec
         self.sigEignVal = None
 
         self.has_Eign = False
+        self.th = th
 
     def getSigEign(self):
         self.sigEignVal, self.sigEignVec = np.linalg.eig(self.sig)
         self.has_Eign = True
     
-    def classify(self, nData, th=30):
+    def classify(self, nData):
         """
         @param[in]  nData       (d, N)
         """
@@ -60,7 +67,7 @@ class tModel_SG():
         R = self.sigEignVec.T #orthonormal
         nData_trans = R @ (nData - T[:, None])
         mask = np.all(
-            np.abs(nData_trans) < th * self.sigEignVal[-1, None],
+            np.abs(nData_trans) < self.th * self.sigEignVal[-1, None],
             axis = 0
         )
         return mask 
@@ -71,14 +78,21 @@ class targetSG(appearance):
     The single-Gaussian based target detection class.
     The target color is modeled as a single-Guassian distribution
     """
-    def __init__(self, tModel: tModel_SG):
+    def __init__(self, tModel: tModel_SG, params:Params=Params()):
 
         super().__init__(tModel, None)
-    
+        self.params = params
+        if self.params.det_th is not None:
+            self.update_th(self.params.det_th)
+
+    def update_th(self, val):
+        self.params.det_th = val
+        self._appMod.th = val
+
     def measure(self, I):
         # TODO: from the way appearance init inImage, it seems that self.processor will never be instantiated?
-        if self.processor != []:
-            pI = self.processor.apply(I)
+        if self.params.processor != None:
+            pI = self.params.processor.apply(I)
         else:
             pI = I
         pI = np.array(pI)
@@ -218,7 +232,7 @@ class targetSG(appearance):
         return tModel, mData
 
     @staticmethod 
-    def buildFromImage(img, *args, **kwargs):
+    def buildFromImage(img, params:Params=Params(), *args, **kwargs):
         """
         @brief  Instantiate a single-Gaussian color target model from image selections
 
@@ -229,5 +243,5 @@ class targetSG(appearance):
 
         # if kwargs contains nPoly or fh, they will automatically be parsed out
         tModel, mData = targetSG._calibFromImage(img, *args, **kwargs)
-        det = targetSG(tModel)
+        det = targetSG(tModel, params)
         return det 

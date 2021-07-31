@@ -20,7 +20,7 @@
 #
 #========================== detector/appearance ==========================
 
-from detector.inImage import inImage
+from detector.inImage import inImage, detectorState
 import numpy as np
 
 # @classf detector.fgmodel
@@ -58,7 +58,7 @@ class appearance(inImage):
   #
   # @brief      Returns the detection mask.
   #
-  def getState(self)
+  def getState(self):
     state = detectorState(self.fgIm)
     return state
 #

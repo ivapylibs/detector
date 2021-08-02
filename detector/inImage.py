@@ -31,6 +31,13 @@ class inImage(object):
 
     self.Ip = []
 
+  #============================== getState ==============================
+  #
+  # @brief      Return the state
+  #
+  def getState(self):
+    return self.Ip
+
   def predict(self):
     pass
 

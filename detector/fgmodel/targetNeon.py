@@ -31,7 +31,7 @@ from appearance import appearance
 # Struct for tModel
 class TModel(object):
     def __init__(self, mean=None, R=None, T=None, tau=None, classify=None, vectorize=None):
-        self.mean =mean
+        self.mean = mean
         self.R = R
         self.T = T
         self.tau = tau

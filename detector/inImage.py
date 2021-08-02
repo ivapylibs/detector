@@ -20,6 +20,13 @@
 
 import numpy as np
 
+from dataclasses import dataclass
+
+
+@dataclass
+class detectorState:
+  x: any = None
+
 # @classf detector
 class inImage(object):
 
@@ -59,6 +66,9 @@ class inImage(object):
     self.correct()
     self.adapt()
 
+  def getState(self):
+    state = detectorState(self.Ip)
+    return state
 
 #
 #=========================== detector/inImage ============================

@@ -104,3 +104,8 @@ ENV/
 .vscode
 .idea
 .run
+
+# data
+testing/data/depth_raw.avi
+testing/data/bgTrain*.npz
+

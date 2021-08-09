@@ -39,6 +39,10 @@ from improcessor.basic import basic
 
 @dataclass
 class Params():
+    """
+    @param[in]  det_th          Det_th times the eigenvalue will serve as the threshold
+    @param[in]  processor       An instance of the improcessor.basic. The preprocessor before the detection
+    """
     det_th: int or float = 30 
     processor: basic = None
 

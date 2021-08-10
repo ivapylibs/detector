@@ -57,7 +57,7 @@ binDet = detector.inImage(improc)
 print("Creating window: should see a noisy hand mask (white region).")
 for idx in range(N):
   binDet.process(depth_frames_raw[idx, :, :])
-  cv2.imshow('Output',binDet.Ip.astype(np.uint8))
+  cv2.imshow('Output',binDet.getState().x.astype(np.uint8))
 
   # Press Q on keyboard to exit
   if cv2.waitKey(25) & 0xFF == ord('q'):

@@ -53,7 +53,7 @@ binDet.process(image)
 #==[4] Visualize the output
 #
 print("Creating window: should see some true values (two adjacent boxes).")
-cv2.imshow('Output',255*binDet.Ip.astype(np.uint8))
+cv2.imshow('Output',255*binDet.getState().x.astype(np.uint8))
 cv2.waitKey()
 
 #

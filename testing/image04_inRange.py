@@ -62,7 +62,7 @@ binDet.process(Image)
 #==[4] Visualize the output
 #
 print("Creating window: should see a noisy hand mask (white region).")
-cv2.imshow('Output',binDet.Ip.astype(np.uint8))
+cv2.imshow('Output',binDet.getState().x.astype(np.uint8))
 cv2.waitKey()
 
 #

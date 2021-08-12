@@ -51,7 +51,7 @@ binDet.process(image)
 #==[4] Print the output
 #
 print("\nShould see some True values: two adjacent boxes.\n")
-print(binDet.Ip.transpose())
+print(binDet.getState().x.transpose())
 print("")
 
 #

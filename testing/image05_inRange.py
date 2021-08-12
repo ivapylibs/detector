@@ -65,7 +65,7 @@ while(cap.isOpened()):
     binDet.measure(frame)
     # Display the resulting frame
 
-    cv2.imshow('Demo', binDet.Ip)
+    cv2.imshow('Demo', binDet.getState().x)
 
     # Press Q on keyboard to exit
     if cv2.waitKey(25) & 0xFF == ord('q'):

@@ -21,7 +21,7 @@
 import numpy as np
 
 from dataclasses import dataclass
-
+from improcessor.basic import basic
 
 @dataclass
 class detectorState:
@@ -31,18 +31,18 @@ class detectorState:
 class inImage(object):
 
   def __init__(self, processor=None):
-    if not processor:
-      self.processor = []
-    else:
+    if isinstance(processor, basic):
       self.processor = processor
+    else:
+      self.processor = None
 
-    self.Ip = []
+    self.Ip = None
 
   def predict(self):
     pass
 
   def measure(self, I):
-    if self.processor:
+    if self.processor is not None:
       self.Ip = self.processor.apply(I)
     else:
       raise Exception('Processor has not been initialized yet')

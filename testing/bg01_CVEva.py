@@ -33,9 +33,9 @@ tPath = os.path.dirname(fPath)
 dPath = os.path.join(tPath, 'data/large')
 
 # train data. Requires two training images:
-emTable = plt.imread(os.path.join(dPath, "empty_table_big_0.png"))
-gloveCali = plt.imread(os.path.join(dPath, "human_puzzle_big_0.png")) 
-puzzle = plt.imread(os.path.join(dPath, "puzzle_big_0.png"))
+emTable = cv2.imread(os.path.join(dPath, "empty_table_big_0.png"))[:, :, ::-1]
+gloveCali = cv2.imread(os.path.join(dPath, "human_puzzle_big_0.png"))[:,:,::-1]
+puzzle = cv2.imread(os.path.join(dPath, "puzzle_big_0.png"))[:,:,::-1]
 
 
 # ======= [2] build the evaluater
@@ -61,10 +61,20 @@ class BgEva():
         return self.metric(self.gt_bg_mask, mask)
 
     def get_gt(self, img):
-        pass
+        self.gt_puzzle_mask = self.get_puzzle_mask(img)
+        self.gt_hand_mask = self.get_hand_mask(img)
 
+        self.gt_bg_mask = np.ones_like(img, dtype=np.bool)
+        self.gt_bg_mask[self.gt_puzzle_mask==1] = 0
+        self.gt_bg_mask[self.gt_hand_mask==1] = 0
+    
     def get_puzzle_mask(self, img):
-        pass
+        img_diff = np.abs(self.puzzle.astype(np.float) - self.emTable.astype(np.float))
+        img_diff = np.mean(img_diff, axis=2) 
+        mask = img_diff > 20
+        plt.figure()
+        plt.imshow(mask, cmap="gray")
+        return img_diff > 50.
 
     def get_hand_mask(self, img):
         pass
@@ -73,6 +83,14 @@ class BgEva():
         pass
     
     def visualize(self, img):
+        """
+        visualize those imgs: emTable, puzzle, gt_puzzle_mask,
+        """
+        fh, axes = plt.subplots(1, 3, figsize=(15, 5))
+        axes[0].imshow(self.emTable)
+        axes[1].imshow(self.puzzle)
+        axes[2].imshow(self.gt_puzzle_mask)
+
         pass
 
 
@@ -85,5 +103,8 @@ evaluator = BgEva(emTable, gloveCali, puzzle)
 test_img = plt.imread(os.path.join(dPath, "human_puzzle_big_1.png"))
 pred_mask = detector(test_img)
 print(evaluator.evaluate(test_img, pred_mask))
+evaluator.visualize(test_img)
+
+plt.show()
 
 

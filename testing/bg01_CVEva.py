@@ -71,10 +71,7 @@ class BgEva():
     def get_puzzle_mask(self, img):
         img_diff = np.abs(self.puzzle.astype(np.float) - self.emTable.astype(np.float))
         img_diff = np.mean(img_diff, axis=2) 
-        mask = img_diff > 20
-        plt.figure()
-        plt.imshow(mask, cmap="gray")
-        return img_diff > 50.
+        return img_diff > 20.
 
     def get_hand_mask(self, img):
         pass
@@ -87,9 +84,15 @@ class BgEva():
         visualize those imgs: emTable, puzzle, gt_puzzle_mask,
         """
         fh, axes = plt.subplots(1, 3, figsize=(15, 5))
+
+        axes[0].set_title("The empty table image")
         axes[0].imshow(self.emTable)
+        
+        axes[1].set_title("The puzzle image")
         axes[1].imshow(self.puzzle)
-        axes[2].imshow(self.gt_puzzle_mask)
+
+        axes[2].set_title("The puzzle mask")
+        axes[2].imshow(self.gt_puzzle_mask, cmap="gray")
 
         pass
 

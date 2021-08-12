@@ -105,7 +105,6 @@ ENV/
 .idea
 .run
 
-# data
-testing/data/depth_raw.avi
+# useless data
 testing/data/bgTrain*.npz
 

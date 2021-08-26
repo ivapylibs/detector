@@ -30,7 +30,7 @@ for i in range(5):
 # ==== [2] Prepare the bg modeler
 bg_params = BG.Params_cv(
     history=300,
-    varThreshold=100.,
+    varThreshold=50.,
     detectShadows=True,
     ShadowThreshold=0.55,
 )

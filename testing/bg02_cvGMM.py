@@ -30,6 +30,7 @@ for i in range(5):
 # ==== [2] Prepare the bg modeler
 bg_params = BG.Params_cv(
     history=300,
+    NMixtures=5,
     varThreshold=50.,
     detectShadows=True,
     ShadowThreshold=0.55,
@@ -50,6 +51,8 @@ while(bg_pure.isOpened() and ret):
     if ret:
         bg_extractor.process(frame)
 
+print(bg_extractor.get("NMixtures"))
+
 # ==== [4] Test on the test data
 bg_extractor.doAdapt = False
 ret=True
@@ -67,4 +70,5 @@ for test_file in bg_test_files:
     axes[2].imshow(fgMask, cmap='gray')
     axes[2].set_title("The foreground")
 
+    print(bg_extractor.get("NMixtures"))
 plt.show()

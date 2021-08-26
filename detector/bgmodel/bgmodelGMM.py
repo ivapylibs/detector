@@ -132,11 +132,13 @@ class Params_cv:
 
     For the following parameters, check the opencv 
     @param  history             The number of the history frames to use for the GMM model parameter calculation
+    @param  NMixtures
     @param  varThreshold        
     @param  detectShadow
     @param  adapt_rate
     """
     history: int = 300
+    NMixtures: int = 5
     varThreshold: float = 50.
     detectShadows: bool = True
     ShadowThreshold: float = 0.5
@@ -163,6 +165,7 @@ class bgmodelGMM_cv(inImage):
             detectShadows=params.detectShadows # it doesn't seem to be helpful
         )
         self.set("ShadowThreshold", params.ShadowThreshold)
+        self.set("NMixtures", params.NMixtures)
 
         # parameters for apply
         self.doAdapt = True

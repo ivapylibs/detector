@@ -129,16 +129,23 @@ class bgmodelGMM(inImage):
 class Params_cv:
     """
     The parameters for the bgmodelGMM_cv
+
+    For the following parameters, check the opencv 
+    @param  history             The number of the history frames to use for the GMM model parameter calculation
+    @param  varThreshold        
     """
     history: int = 300
-    varThreshold: float=100.
+    varThreshold: float=50.
     detectShadows= True
-    adapt_rate=0.1
+    adapt_rate=-1 # it will automatically choose the learning rate
 
 class bgmodelGMM_cv(inImage):
     """
     The GMM Background Substraction method MOG2 based on the OpenCV
     It comes with the shadow detection feature
+
+    The detection algorithm will first use the GMM to detect a potential foreground mask,
+    each pixel of which will be checked for the color distort and the intensity decay. 
     """
     def __init__(self, params: Params_cv):
         # The shadow detection methods from the following paper:
@@ -152,24 +159,19 @@ class bgmodelGMM_cv(inImage):
         )
         super().__init__()
 
-        self.adapt_rate = params.adapt_rate
-        self.fgI = None
         self.doAdapt = True
+        self.adapt_rate = params.adapt_rate
+
+        # for storing the result
+        self.detResult = None
+        self.shadow_mask = None
+        self.fg_mask = None
 
     def measure(self, I):
         """
         Apply the GMM and get the fgI mask
         """
-        #self.fgI = np.zeros_like(I[:, :, 0], dtype=bool)
-        #return None 
-        if self.doAdapt:
-            self.fgI = self.bgSubstractor.apply(I, learningRate=self.adapt_rate)
-        else:
-            self.fgI = self.bgSubstractor.apply(I, learningRate=0)
 
-    def compProbs(self):
-        return None
-    
     def correct(self, fg):
         """
         Update the existing model parameters
@@ -189,23 +191,70 @@ class bgmodelGMM_cv(inImage):
         return None 
 
     def process(self, img):
-        self.measure(img)
-        return None
+        # It seems that the opencv's apply will do everything in the process
+        if self.doAdapt:
+            self.fg_mask = self.bgSubstractor.apply(img, learningRate=self.adapt_rate)
+        else:
+            self.fg_mask = self.bgSubstractor.apply(img, learningRate=0)
 
     def set(self, fname, fval):
-        return None
+        """
+        Check the following link for what you can set:
+        https://docs.opencv.org/3.4/d7/d7b/classcv_1_1BackgroundSubtractorMOG2.html#acdb85152b349d70561fecc4554ad76e6
+
+        @param[in]  fname           The name of the parameter to set. will invoke set+fname for the opencv MOG2
+        @param[in]  fval            The value to set
+
+        example:
+
+        det = bgmodelGMM_cv()
+        det.set(History, 200)   # will invode setHistory(200) function from the link
+        """
+        eval(
+            "self.bgSubstractor.set"+fname+"(" + str(fval) + ")"
+        )
+
     
     def get(self, fname):
-        return None 
+        """
+        Check the following link for what you can set:
+        https://docs.opencv.org/3.4/d7/d7b/classcv_1_1BackgroundSubtractorMOG2.html#acdb85152b349d70561fecc4554ad76e6
+
+        @param[in]  fname           The name of the parameter to set. will invoke set+fname for the opencv MOG2
+
+        example:
+
+        det = bgmodelGMM_cv()
+        det.get(History)   # will invode getHistory() function from the link
+        """
+
+        fval = eval(
+            "self.bgSubstractor.get"+fname+"()"
+        )
+        return fval
 
     def getstate(self):
         return None 
+
+    def getDetectResult(self):
+        """
+        Get the detection result, including the foreground and the shadow
+        The foreground pixels' value will be 255, wherease the shadow pixels' will be 127. So the shadows will look like shadow(darker)
+        """
+        return self.detResult
     
     def getForeground(self):
         """
         Get the current foreground estimate
         """
-        return self.fgI
+        return self.fg_mask
+
+    def getShadow(self):
+        """
+        Get the detected shadow mask
+        """
+        return self.shadow_mask
+
     
     def getProbs(self):
         """

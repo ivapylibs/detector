@@ -133,11 +133,14 @@ class Params_cv:
     For the following parameters, check the opencv 
     @param  history             The number of the history frames to use for the GMM model parameter calculation
     @param  varThreshold        
+    @param  detectShadow
+    @param  adapt_rate
     """
     history: int = 300
-    varThreshold: float=50.
-    detectShadows= True
-    adapt_rate=-1 # it will automatically choose the learning rate
+    varThreshold: float = 50.
+    detectShadows: bool = True
+    ShadowThreshold: float = 0.5
+    adapt_rate: float = -1 # it will automatically choose the learning rate
 
 class bgmodelGMM_cv(inImage):
     """
@@ -148,6 +151,8 @@ class bgmodelGMM_cv(inImage):
     each pixel of which will be checked for the color distort and the intensity decay. 
     """
     def __init__(self, params: Params_cv):
+
+        super().__init__()
         # The shadow detection methods from the following paper:
         # http://personal.ee.surrey.ac.uk/Personal/R.Bowden/publications/avbs01/avbs01.pdf
         # The source code:
@@ -157,8 +162,9 @@ class bgmodelGMM_cv(inImage):
             varThreshold=params.varThreshold,
             detectShadows=params.detectShadows # it doesn't seem to be helpful
         )
-        super().__init__()
+        self.set("ShadowThreshold", params.ShadowThreshold)
 
+        # parameters for apply
         self.doAdapt = True
         self.adapt_rate = params.adapt_rate
 
@@ -171,31 +177,36 @@ class bgmodelGMM_cv(inImage):
         """
         Apply the GMM and get the fgI mask
         """
+        pass
 
     def correct(self, fg):
         """
         Update the existing model parameters
         """
-        return None 
+        pass
     
     def adapt(self):
         """
         Create new model
         """
-        return None
+        pass
 
     def detectFG(self):
         """
         Apply post-process to the fg mask?
         """
-        return None 
+        pass
 
     def process(self, img):
         # It seems that the opencv's apply will do everything in the process
         if self.doAdapt:
-            self.fg_mask = self.bgSubstractor.apply(img, learningRate=self.adapt_rate)
+            self.detResult = self.bgSubstractor.apply(img, learningRate=self.adapt_rate)
+            self.fg_mask = (self.detResult == 255)
+            self.shadow_mask = (self.detResult == 127)
         else:
-            self.fg_mask = self.bgSubstractor.apply(img, learningRate=0)
+            self.detResult = self.bgSubstractor.apply(img, learningRate=0)
+            self.fg_mask = (self.detResult == 255)
+            self.shadow_mask = (self.detResult == 127)
 
     def set(self, fname, fval):
         """
@@ -234,7 +245,7 @@ class bgmodelGMM_cv(inImage):
         return fval
 
     def getstate(self):
-        return None 
+        pass
 
     def getDetectResult(self):
         """
@@ -260,6 +271,7 @@ class bgmodelGMM_cv(inImage):
         """
         Get the current probability and the generating model
         """
+        pass
         prI = None
         idI = None
         return prI, idI

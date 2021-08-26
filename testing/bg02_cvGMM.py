@@ -2,6 +2,8 @@
 # ============================ image08_bgGMM_cv ==============================
 """
     @brief:         Experiment with the Opencv GMM-based background substraction methods.
+                    It tests the Opencv's Shadow detection algorithm trained on 
+                    non-shadow training images (pure background)
 
     @author:    Yiye        yychen2019@gatech.edu
     @date:      07/23/2021
@@ -26,7 +28,12 @@ for i in range(5):
     bg_test_files.append(test_file)
 
 # ==== [2] Prepare the bg modeler
-bg_params = BG.Params_cv()
+bg_params = BG.Params_cv(
+    history=300,
+    varThreshold=100.,
+    detectShadows=True,
+    ShadowThreshold=0.55,
+)
 bg_extractor = BG.bgmodelGMM_cv(params=bg_params)
 
 # test the set and get
@@ -35,7 +42,7 @@ bg_extractor.set("History", hist)
 assert bg_extractor.get("History") == hist
 print("The set and the get function are tested. They are functional")
 
-# ==== [3] Learn the parameters
+# ==== [3] Learn the GMM parameters
 bg_extractor.doAdapt = True
 ret=True
 while(bg_pure.isOpened() and ret):
@@ -50,10 +57,14 @@ for test_file in bg_test_files:
     test_img = cv2.imread(test_file)[:,:,::-1]
     bg_extractor.process(test_img)
     fgMask = bg_extractor.getForeground()
+    detResult = bg_extractor.getDetectResult() 
     
     fig, axes = plt.subplots(1, 3, figsize=(15, 5))
     axes[0].imshow(test_img)
-    axes[1].imshow(test_img) #TODO: opencv bg substractor can provide shadow detection result. show it
+    axes[0].set_title("The test image")
+    axes[1].imshow(detResult, cmap='gray') 
+    axes[1].set_title("The detected Foreground(white) and Shadow(gray)")
     axes[2].imshow(fgMask, cmap='gray')
+    axes[2].set_title("The foreground")
 
 plt.show()

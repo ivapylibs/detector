@@ -106,5 +106,4 @@ ENV/
 .run
 
 # useless data
-testing/data/bgTrain*.npz
-
+testing/figs

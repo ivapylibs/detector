@@ -53,26 +53,107 @@
 """
 #=============================== bgmodelGMM ==============================
 
-from detector.inImage import inImage
 import numpy as np
 import cv2
+from dataclasses import dataclass
+
+from detector.inImage import inImage
 
 class bgmodelGMM(inImage):
+    """
+    Translation of the ivaMatlib/bgmodelGMM
+    """
     def __init__(self, K, **kwargs):
-        self.bgSubstractor = cv2.createBackgroundSubtractorMOG2(
-            history=300,
-            varThreshold=100,
-            detectShadows=True # it doesn't seem to be helpful
-        )
-        #self.bgSubstractor=cv2.createBackgroundSubtractorMOG
         super().__init__()
 
         self.fgI = None
-        if 'adapt_rate' in kwargs.keys():
-            self.adapt_rate = kwargs['adapt_rate']
-        else:
-            self.adapt_rate = -1 # The algorithm will automatically determine the lr
 
+        self.doAdapt = True
+
+    def measure(self, I):
+        """
+        Apply the GMM and get the fgI mask
+        """
+        pass
+
+    def compProbs(self):
+        return None
+    
+    def correct(self, fg):
+        """
+        Update the existing model parameters
+        """
+        return None 
+    
+    def adapt(self):
+        """
+        Create new model
+        """
+        return None
+
+    def detectFG(self):
+        """
+        Apply post-process to the fg mask?
+        """
+        return None 
+
+    def process(self, img):
+        self.measure(img)
+        return None
+
+    def set(self, fname, fval):
+        return None
+    
+    def get(self, fname):
+        return None 
+
+    def getstate(self):
+        return None 
+    
+    def getForeground(self):
+        """
+        Get the current foreground estimate
+        """
+        return self.fgI
+    
+    def getProbs(self):
+        """
+        Get the current probability and the generating model
+        """
+        prI = None
+        idI = None
+        return prI, idI
+
+
+@dataclass
+class Params_cv:
+    """
+    The parameters for the bgmodelGMM_cv
+    """
+    history: int = 300
+    varThreshold: float=100.
+    detectShadows= True
+    adapt_rate=0.1
+
+class bgmodelGMM_cv(inImage):
+    """
+    The GMM Background Substraction method MOG2 based on the OpenCV
+    It comes with the shadow detection feature
+    """
+    def __init__(self, params: Params_cv):
+        # The shadow detection methods from the following paper:
+        # http://personal.ee.surrey.ac.uk/Personal/R.Bowden/publications/avbs01/avbs01.pdf
+        # The source code:
+        # https://github.com/opencv/opencv/blob/master/modules/video/src/bgfg_gaussmix2.cpp#L477-L520
+        self.bgSubstractor = cv2.createBackgroundSubtractorMOG2(
+            history=params.history,
+            varThreshold=params.varThreshold,
+            detectShadows=params.detectShadows # it doesn't seem to be helpful
+        )
+        super().__init__()
+
+        self.adapt_rate = params.adapt_rate
+        self.fgI = None
         self.doAdapt = True
 
     def measure(self, I):

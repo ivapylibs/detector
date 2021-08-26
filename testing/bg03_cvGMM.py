@@ -31,7 +31,7 @@ for i in range(5):
 bg_params = BG.Params_cv(
     history=300,
     NMixtures=5,
-    varThreshold=50.,
+    varThreshold=30.,
     detectShadows=True,
     ShadowThreshold=0.55,
 )
@@ -67,5 +67,7 @@ for test_file in bg_test_files:
     axes[1].set_title("The detected Foreground(white) and Shadow(gray)")
     axes[2].imshow(fgMask, cmap='gray')
     axes[2].set_title("The foreground")
+
+# TODO: occlude the human hand mask
 
 plt.show()

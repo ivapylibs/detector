@@ -262,6 +262,12 @@ class bgmodelGMM_cv(inImage):
         Get the current foreground estimate
         """
         return self.fg_mask
+    
+    def getBackground(self):
+        """
+        Get the current background mask
+        """
+        return ~self.fg_mask
 
     def getShadow(self):
         """

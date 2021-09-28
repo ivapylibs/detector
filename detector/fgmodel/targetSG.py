@@ -36,6 +36,7 @@ from dataclasses import dataclass
 
 from detector.fgmodel.appearance import appearance
 from improcessor.basic import basic
+from improcessor.mask import mask as maskproc
 
 @dataclass
 class Params():
@@ -249,3 +250,95 @@ class targetSG(appearance):
         tModel, mData = targetSG._calibFromImage(img, *args, **kwargs)
         det = targetSG(tModel, params)
         return det 
+
+    @staticmethod
+    def _calibImgDiff(bgImg, fgImg, vis=False, ax=None, th=15):
+        """Use the image difference to automatically extract the foreground region.
+        The extracted foreground region will be used to estimate the target color statistics
+
+        The image difference will requires a background image and an image of the foreground
+        object placed on the same background scene.
+
+        Args:
+            bgImg (np.ndarray): The background image
+            fgImg (np.ndarray): The foreground object image
+            vis (bool, optional): If true, will visualize the extracted foreground region
+            ax (matplotlib.axes.Axes, optional): The axis for visualizing the extracted foreground region. Defaults to None, which means will create a new figure
+
+        Returns:
+            tModel [type]: The calibrated color model
+            mData [type]: The target color data used for calibration
+        """
+        # get the target foreground mask using the image differece
+        targetMask = targetSG.get_fg_imgDiff(bgImg, fgImg, th=th)
+
+        # prepare the data
+        vals = fgImg.reshape(-1, fgImg.shape[2])
+        vals = vals[targetMask.reshape(-1) == 1, :]
+        rowIds, colIds = np.where(targetMask == 1) # this and np.ndarray.reshape are all column-first
+
+        pix = np.vstack((rowIds, colIds)) 
+        dat = vals.T
+
+        # calibrate
+        mData = {
+            "pix": pix,
+            "data": dat 
+        }
+        tModel = targetSG._calibSimple(dat) 
+
+        # visualize
+        if vis:
+            if ax is None:
+                plt.figure()
+                ax = plt.gca()
+            ax.imshow(fgImg * targetMask[:,:, np.newaxis]) 
+            ax.set_title("The target color")
+
+        return tModel, mData            
+
+            
+    @staticmethod
+    def get_fg_imgDiff(bgImg, fgImg, th):
+        """ Use the image difference to get the foreground mask
+
+        Args:
+            bgImg (np.ndarray, (H,W,3)): The background image
+            fgImg (np.ndarray, (H, W, 3)): The foreground image
+            th (int): The threshold for the image difference map
+
+        Returns:
+            mask [np.ndarray, (H, W)]: The foreground mask
+        """
+        imgDiff = np.abs(
+            np.mean(bgImg, axis=2) - np.mean(fgImg, axis=2)
+        )
+        mask = imgDiff > th
+
+        # get the largest connected componets and perform erosion
+        postproc = maskproc(
+            maskproc.getLargestCC, (),
+            maskproc.erode, (np.ones((5,5), dtype=bool),)
+        )
+        mask = postproc.apply(mask)
+        
+        return mask
+
+    @staticmethod 
+    def buildImgDiff(bgImg, fgImg, vis=False, ax=None, params:Params = Params()):
+        """[summary]
+
+        Args:
+        
+            bgImg (np.ndarray): The background image
+            fgImg (np.ndarray): The foreground object image
+            vis (bool, optional): If true, will visualize the extracted foreground region
+            ax (matplotlib.axes.Axes, optional): The axis for visualizing the extracted foreground region. Defaults to None, which means will create a new figure
+            params (Params, optional): [description]. Defaults to Params().
+
+        Returns:
+            det [targetSG.targetSG]: A targetSG instance
+        """
+        tModel, mData = targetSG._calibImgDiff(bgImg, fgImg, vis=vis, ax=ax)
+        det = targetSG(tModel, params)
+        return det

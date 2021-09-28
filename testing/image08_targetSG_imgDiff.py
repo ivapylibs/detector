@@ -1,13 +1,14 @@
 #!/usr/bin/python3
-# ============================ image07_targetSG ==============================
+# ============================ image08_targetSG_imgDiff ==============================
 """
     @brief:         Code to test out the single-Gaussian-color-modeling-based 
-                    foreground detector. 
+                    foreground detector, where the foreground color statistics 
+                    is obtained by the image difference method
 
     @ author:   Yiye        yychen2019@gatech.edu
-    @ date:     07/16/2021
+    @ date:     09/26/2021
 """
-# ============================ image07_targetSG ==============================
+# ============================ image08_targetSG_imgDiff ==============================
 
 # ====== [1] setup the environment. Read the data
 import os
@@ -19,6 +20,10 @@ from detector.fgmodel.targetSG import targetSG
 fPath = os.path.realpath(__file__)
 tPath = os.path.dirname(fPath)
 dPath = os.path.join(tPath, 'data/FG_glove')
+
+img_bg = cv2.imread(
+    os.path.join(dPath, "empty_table_0.png")
+)[:,:, ::-1]
 
 img_train = cv2.imread(
     os.path.join(dPath, "glove_1.png")

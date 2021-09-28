@@ -293,6 +293,7 @@ class targetSG(appearance):
                 plt.figure()
                 ax = plt.gca()
             ax.imshow(fgImg * targetMask[:,:, np.newaxis]) 
+            #ax.imshow(targetMask)
             ax.set_title("The target color")
 
         return tModel, mData            
@@ -313,16 +314,16 @@ class targetSG(appearance):
         imgDiff = np.abs(
             np.mean(bgImg, axis=2) - np.mean(fgImg, axis=2)
         )
-        mask = imgDiff > th
+        mask = (imgDiff > th)
 
         # get the largest connected componets and perform erosion
         postproc = maskproc(
             maskproc.getLargestCC, (),
-            maskproc.erode, (np.ones((5,5), dtype=bool),)
+            maskproc.erode, (np.ones((50,50), dtype=bool),)
         )
         mask = postproc.apply(mask)
         
-        return mask
+        return mask 
 
     @staticmethod 
     def buildImgDiff(bgImg, fgImg, vis=False, ax=None, params:Params = Params()):

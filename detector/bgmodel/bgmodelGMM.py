@@ -168,7 +168,7 @@ class bgmodelGMM_cv(inImage):
         self.set("NMixtures", params.NMixtures)
 
         # parameters for apply
-        self.doAdapt = True
+        self.doAdapt = False    # default is false. Will be set to True during calibration
         self.adapt_rate = params.adapt_rate
 
         # for storing the result

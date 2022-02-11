@@ -27,6 +27,12 @@ modified).
 
 
 
+## Run the unit tests
+
+Please first download the presaved data into the ```REPO_ROOT/testing/data``` from the Dropbox [link](https://www.dropbox.com/sh/l5o65khrzt4amrp/AAD9f-VshrQ8s7XNAWTUSz__a?dl=0)
+
+
+
 ## Dependencies
 
 Requires the installation of the following python packages:

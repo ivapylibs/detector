@@ -107,3 +107,4 @@ ENV/
 
 # useless data
 testing/figs
+testing/data

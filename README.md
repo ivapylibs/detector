@@ -32,6 +32,7 @@ modified).
 Requires the installation of the following python packages:
 
 - ```numpy```
+- ```opencv-contrib-python```
 - ```matplotlib```
 - ```roipoly```
 

@@ -1,4 +1,0 @@
-depth_raw.npz filter=lfs diff=lfs merge=lfs -text
-depth_raw_single_0.npz filter=lfs diff=lfs merge=lfs -text
-depth_raw_single_1.npz filter=lfs diff=lfs merge=lfs -text
-depth_raw_single_2.npz filter=lfs diff=lfs merge=lfs -text

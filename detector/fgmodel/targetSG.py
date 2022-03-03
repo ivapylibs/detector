@@ -83,7 +83,14 @@ class targetSG(appearance):
     The single-Gaussian based target detection class.
     The target color is modeled as a single-Guassian distribution
     """
-    def __init__(self, tModel: tModel_SG, params:Params=Params()):
+    def __init__(self, tModel: tModel_SG=tModel_SG(), params:Params=Params()):
+        """The targetSG constructor
+
+        Args:
+            tModel (tModel_SG, optional): The target model class storing the single Gaussian model statistics.\
+                 Defaults to tModel_SG(), which is an empty model and requires further calibration.
+            params (Params, optional): Additional parameters stored as the targetSG.Params instance. Defaults to Params().
+        """
 
         super().__init__(tModel, None)
         self.params = params
@@ -109,6 +116,18 @@ class targetSG(appearance):
         imDat = pI.reshape(-1, pI.shape[-1]).T
         mask_vec = self._appMod.classify(imDat)
         self.fgIm = mask_vec.reshape(pI.shape[:2])
+    
+    def calibrate(self, mode="ImgDiff", *args):
+        """Calibrate the stored app model
+
+        This permit re-calibrate the stored appearance model, which might be uninitialized or outdated
+        Now will simply update 
+        """
+        # TODO: recalibrate of the model. 
+        assert mode in ["Simple", "ImgDiff", "FromImg"]
+
+        tModel = None
+        self._appMod = tModel
 
     def saveMod(self, filename):
         return None

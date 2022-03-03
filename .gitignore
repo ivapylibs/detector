@@ -105,7 +105,6 @@ ENV/
 .idea
 .run
 
-# useless data
+# testing data
 testing/figs
-
 testing/data

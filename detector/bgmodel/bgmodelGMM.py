@@ -157,7 +157,7 @@ class bgmodelGMM_cv(inImage):
         super().__init__()
         # The shadow detection methods from the following paper:
         # http://personal.ee.surrey.ac.uk/Personal/R.Bowden/publications/avbs01/avbs01.pdf
-        # The source code:
+        # The source code for shadow detection:
         # https://github.com/opencv/opencv/blob/master/modules/video/src/bgfg_gaussmix2.cpp#L477-L520
         self.bgSubstractor = cv2.createBackgroundSubtractorMOG2(
             history=params.history,
@@ -284,3 +284,14 @@ class bgmodelGMM_cv(inImage):
         prI = None
         idI = None
         return prI, idI
+    
+    def getBackgroundImg(self):
+        """
+        Get the background image in RGB, based on the background GMM model.
+        The image will be the weighted mean of the Gaussians' means, according to the source code:
+        https://github.com/opencv/opencv/blob/master/modules/video/src/bgfg_gaussmix2.cpp#L887-L927
+
+        Returns:
+            bgImg (H, W, 3):    The back
+        """
+        return self.bgSubstractor.getBackgroundImage()[:,:,::-1]

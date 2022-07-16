@@ -117,7 +117,7 @@ class targetSG(appearance):
         mask_vec = self._appMod.classify(imDat)
         self.fgIm = mask_vec.reshape(pI.shape[:2])
     
-    def calibrate(self, mode="ImgDiff" , *args):
+    def calibrate(self, mode="ImgDiff", *args):
         """Calibrate the stored app model
 
         This permit re-calibrate the stored appearance model, which might be uninitialized or outdated
@@ -125,7 +125,7 @@ class targetSG(appearance):
         """
         # TODO: recalibrate of the model. 
         assert mode in ["Simple", "ImgDiff", "FromImg"]
-        raise NotImplementedError
+
         tModel = None
         self._appMod = tModel
 

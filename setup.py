@@ -4,5 +4,5 @@ setup(name='detector',
       description='Classes implementing detection based processing pipelines.', 
       author='IVALab',
       packages=['detector'],
-      install_requires=['numpy', 'matplotlib', "roipoly"]
-)
+      install_requires=['roipoly', 'numpy', 'dataclasses', 'matplotlib', 'scipy', 'opencv-contrib-python']
+      )

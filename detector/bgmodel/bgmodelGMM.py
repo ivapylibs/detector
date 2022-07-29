@@ -292,6 +292,6 @@ class bgmodelGMM_cv(inImage):
         https://github.com/opencv/opencv/blob/master/modules/video/src/bgfg_gaussmix2.cpp#L887-L927
 
         Returns:
-            bgImg (H, W, 3):    The back
+            bgImg (H, W, 3):    The background image in RGB
         """
         return self.bgSubstractor.getBackgroundImage()[:,:,::-1]

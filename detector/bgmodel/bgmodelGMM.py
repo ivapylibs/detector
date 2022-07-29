@@ -1,7 +1,8 @@
-# ============================== bgmodelGMM ==============================
+#=============================== bgmodelGMM ==============================
 """
-  function bgh = bgmodelGMM(mu, sigma, parms)
+  @class bgmodelGMM
 
+  bgmodelGMM(mu, sigma, parms)
 
   Implements a background modeling foreground detector using a Gaussian 
   mixture model.  This model involves two parts, one is an estimator,
@@ -11,19 +12,19 @@
   on the change detector.
 
   Inputs:
-    mu 		- the means of the Gaussian models.
-    sigma 		- the variance of the Gaussian models.
-    weights	- the weights of the Gaussian models.
-    parms		- [optional] structure with parameters specified.
+    mu          - the means of the Gaussian models.
+    sigma       - the variance of the Gaussian models.
+    weights     - the weights of the Gaussian models.
+    parms       - [optional] structure with parameters specified.
 
   Fields of the parms structure:
-    sigma		- Initial variance to use if sigma is empty.
-    thresh		- Threshold for determining foreground.
-    alpha		- Update rate for mean and variance.
-    rho		- Update rate for weights.
-    cnctd_thrsh	- Connected component threshold size for false blob removal.
-    se3		- structuring element for morphological operations. 
-    improcessor	- Image processor interface object for performing
+    sigma       - Initial variance to use if sigma is empty.
+    thresh      - Threshold for determining foreground.
+    alpha       - Update rate for mean and variance.
+    rho         - Update rate for weights.
+    cnctd_thrsh - Connected component threshold size for false blob removal.
+    se3	        - structuring element for morphological operations. 
+    improcessor - Image processor interface object for performing
 					  pre-, mid-, and post-processing of signal.
 
 		A note on the improcessor.  If the basic version is used, then
@@ -32,20 +33,18 @@
 		rather than the default operations.  The mid-processor can be used
 		to test out different options for cleaning up the binary data.
 
-  Output:
-    bgh		- handle to interface object.
 """
-# =============================== bgmodelGMM ==============================
+#=============================== bgmodelGMM ==============================
 """
 
-  Name:		bgmodelGMM.m
+  Name:		    bgmodelGMM.m
 
   Author:		Gbolabo Ogunmakin, 		gogunmakin3@gatech.edu
 				Patricio A. Vela,		pvela@gatech.edu
                 Yiye Chen (py),         yychen2019@gatech.edu
 
-  Created: 	2011/01/31 		(original: bg_model.m)
-  Modified:	2013/01/20 
+  Created: 	    2011/01/31 		(original: bg_model.m)
+  Modified:	    2013/01/20 
   Translated to python: 2021/07/22
 
   Notes:
@@ -62,6 +61,7 @@ from detector.inImage import inImage
 class bgmodelGMM(inImage):
     """
     Translation of the ivaMatlib/bgmodelGMM
+    NOTE: Not implemented.
     """
     def __init__(self, K, **kwargs):
         super().__init__()
@@ -124,33 +124,46 @@ class bgmodelGMM(inImage):
         idI = None
         return prI, idI
 
+#============================= bgmodelGMM_cv =============================
+"""
+  @class bgmodelGMM_cv
+
+  Wrapper for the OpenCV Gaussian mixture model foreground detection
+  implementation.  This model involves two parts, one is an estimator,
+  and the other is a change detector.  The estimator is a static
+  prediction observer on the mean and variance with fixed udpate gains.
+  The change detector is threshold-based.  
+
+"""
+#=============================== bgmodelGMM ==============================
 
 @dataclass
 class Params_cv:
     """
     The parameters for the bgmodelGMM_cv
 
-    For the following parameters, check the opencv 
-    @param  history             The number of the history frames to use for the GMM model parameter calculation
-    @param  NMixtures
-    @param  varThreshold        
-    @param  detectShadow
-    @param  adapt_rate
+    For mored detail on the parameters, check OpenCV documentation.
+    @param  history         @< Number of frames to use for model estimation
+    @param  NMixtures       @< Number of mixtures
+    @param  varThreshold    @< Variance threshold for detection.
+    @param  detectShadow    @< Boolean: detect shadows or not.
+    @param  adapt_rate      @< Adaptation rate.
     """
-    history: int = 300
-    NMixtures: int = 5
-    varThreshold: float = 50.
-    detectShadows: bool = True
-    ShadowThreshold: float = 0.5
-    adapt_rate: float = -1 # it will automatically choose the learning rate
+    history:    int = 300
+    NMixtures:  int = 5
+    varThreshold:       float = 50.
+    detectShadows:      bool = True
+    ShadowThreshold:    float = 0.5
+    adapt_rate:         float = -1      # will automatically choose rate
 
 class bgmodelGMM_cv(inImage):
     """
-    The GMM Background Substraction method MOG2 based on the OpenCV
-    It comes with the shadow detection feature
+    GMM Background Substraction method MOG2 based on the OpenCV.
+    Include shadow detection feature.
 
-    The detection algorithm will first use the GMM to detect a potential foreground mask,
-    each pixel of which will be checked for the color distort and the intensity decay. 
+    The detection algorithm will first use the GMM to detect a potential
+    foreground mask, each pixel of which will be checked for the color
+    distort and the intensity decay. 
     """
     def __init__(self, params: Params_cv):
 
@@ -162,19 +175,20 @@ class bgmodelGMM_cv(inImage):
         self.bgSubstractor = cv2.createBackgroundSubtractorMOG2(
             history=params.history,
             varThreshold=params.varThreshold,
-            detectShadows=params.detectShadows # it doesn't seem to be helpful
+            detectShadows=params.detectShadows 
+            # Shadow detection doesn't seem to be helpful.
         )
         self.set("ShadowThreshold", params.ShadowThreshold)
         self.set("NMixtures", params.NMixtures)
 
         # parameters for apply
-        self.doAdapt = False    # default is false. Will be set to True during calibration
+        self.doAdapt = False    # default false. Set to True during calibration
         self.adapt_rate = params.adapt_rate
 
         # for storing the result
-        self.detResult = None
-        self.shadow_mask = None
-        self.fg_mask = None
+        self.detResult      = None
+        self.shadow_mask    = None
+        self.fg_mask        = None
 
     def measure(self, I):
         """

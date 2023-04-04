@@ -3,7 +3,7 @@ import numpy as np
 from detector.fgmodel.targetMagenta import targetMagenta
 
 if __name__=='__main__':
-    img_test = cv2.imread('../data/img.png')[:, :, ::-1]
+    img_test = cv2.imread('data/img.png')[:, :, ::-1]
 
     magentaDetector = targetMagenta.build_model(25)
 

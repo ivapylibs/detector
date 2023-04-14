@@ -51,6 +51,11 @@ while(bg_pure.isOpened() and ret):
     if ret:
         bg_extractor.process(frame)
 
+bg_img = bg_extractor.getBackgroundImg()
+plt.figure()
+plt.title("The background image")
+plt.imshow(bg_img)
+
 # ==== [4] Test on the test data
 bg_extractor.doAdapt = False
 ret=True

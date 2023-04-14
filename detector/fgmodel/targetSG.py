@@ -291,6 +291,14 @@ class targetSG(appearance):
         # get the target foreground mask using the image differece
         targetMask = targetSG.get_fg_imgDiff(bgImg, fgImg, th=th)
 
+        # # visualize for debug
+        # from camera.utils.display import display_images_cv
+        # import cv2
+        # targetImg = targetMask[:,:, np.newaxis].astype(np.uint8) * fgImg 
+        # display_images_cv([targetImg[:, :, ::-1]], ratio=0.5, window_name="The target color")
+        # cv2.waitKey()
+        # exit()
+
         # prepare the data
         vals = fgImg.reshape(-1, fgImg.shape[2])
         vals = vals[targetMask.reshape(-1) == 1, :]

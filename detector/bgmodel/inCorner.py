@@ -27,7 +27,12 @@ import numpy as np
 from detector.inImage import inImage
 
 # Struct for tModel
-class PlanarModel(object):
+class SurfaceCutModel(object):
+
+    def __init__(self):
+      pass
+
+class PlanarModel(SurfaceCutModel):
     '''!
       @brief    Specification data class that describes the planar cut classifier
                 and its functional properties.
@@ -61,6 +66,42 @@ class PlanarModel(object):
         theModel.vectorize = isVectorized
 
         return theModel
+
+class SphericalModel(SurfaceCutModel):
+    '''!
+      @brief    Specification data class that describes the planar cut classifier
+                and its functional properties.
+    '''
+    def __init__(self, c=None, r = 0, tau = 0, classify=None, vectorize=True):
+        self.c = c
+        self.r = r
+        self.tau = tau
+        self.classify = classify
+        self.vectorize = vectorize
+
+    @staticmethod
+    def build_model(c, r, tau, isVectorized=True):
+        '''!
+        @brief  Build a model given the arguments as specifications.
+
+        @param[in]  c               Origin or center of region.
+        @param[in]  r               Separating boundary offset (radius of sphere).
+        @param[in]  tau             Threshold/one-side margin.
+        @param[in]  isVectorized    Boolean: operation should be vectorized or not.
+                                    Default is True.
+        '''
+
+        theModel = SphericalModel(c, r, tau)
+
+        if (theModel.r == 0):
+          theModel.classify = lambda c: np.linalg.norm(np.subtract(c,theModel.c), axis=0) < theModel.tau
+        else:
+          theModel.classify = lambda c: np.linalg.norm(np.subtract(c,theModel.c), axis=0) - theModel.r < theModel.tau
+
+        theModel.vectorize = isVectorized
+
+        return theModel
+
 
 class inCorner(inImage):
 
@@ -157,6 +198,28 @@ class inCorner(inImage):
                                                 # Dist should be negative.
 
         blackBG = PlanarModel.build_model(n, dist, tau, isVectorized)
+        return blackBG
+
+    #======================== build_spherical_blackBG ========================
+    #
+    @staticmethod
+    def build_spherical_blackBG(dist, tau, isVectorized = True):
+        '''!
+        @brief  Build a black color-based background model. The assumption is that
+                the background colors are in the black corner of the color cube
+                and can be split from the foreground colors using a spherical
+                cutting surface.  The center is set to be the origin.
+
+        The good news about this kind of model is that it does not matter whether
+        the image is RGB (typical) or BGR (OpenCV type).  The corner region containing 
+        black is still around (0,0,0).
+
+        @param[in]  dist    Locate of separating boundary. 
+        @param[in]  tau     The threshold / margin to apply.
+        '''
+
+        c = np.array([[0], [0], [0]])
+        blackBG = SphericalModel.build_model(c, dist, tau, isVectorized)
         return blackBG
 
     #========================== build_model_whiteBG ==========================

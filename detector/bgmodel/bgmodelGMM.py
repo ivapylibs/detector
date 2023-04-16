@@ -190,6 +190,11 @@ class bgmodelGMM_cv(inImage):
         self.shadow_mask    = None
         self.fg_mask        = None
 
+        self.bgSubstractor.setVarMin(25.0)
+        self.bgSubstractor.setVarMax(10000.0)
+        self.bgSubstractor.setVarInit(40.0)
+
+
     def measure(self, I):
         """
         Apply the GMM and get the fgI mask

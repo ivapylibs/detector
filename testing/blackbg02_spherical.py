@@ -7,12 +7,14 @@ import detector.bgmodel.inCorner as bgdet
 if __name__=='__main__':
     #filename = 'data/workspace_no_pieces_Color.png'
     #filename = 'data/workspace_with_pieces_dinosaur_Color.png'
-    #filename = 'workspace_arm_no_pieces_Color_Color.png'
+    #filename = 'data/workspace_arm_no_pieces_Color_Color.png'
     filename = 'data/workspace_with_arm_pieces_dinosaur_Color_Color.png'
     #filename = 'data/img.png'
     img_test = cv2.imread(filename)
 
-    bgModel = bgdet.inCorner.build_spherical_blackBG(100^2, 0)
+    inShad = 0
+    tRad = 100 - 20*inShad      # No shadows = 100. In shadows = 80.
+    bgModel = bgdet.inCorner.build_spherical_blackBG(tRad^2, 0)
     bgDetector = bgdet.inCorner()
     bgDetector.set_model(bgModel)
 

@@ -44,6 +44,15 @@ class PlanarModel(SurfaceCutModel):
         self.classify = classify
         self.vectorize = vectorize
 
+    def adjustThreshold(self, ntau):
+        self.tau = ntau
+
+        if (self.d == 0):
+          self.classify = lambda c: self.n @ c > self.tau
+        else:
+          self.classify = lambda c: self.n @ c + self.d < self.tau
+
+
     @staticmethod
     def build_model(n, d, tau, isVectorized=True):
         '''!

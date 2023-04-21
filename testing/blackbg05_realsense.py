@@ -109,7 +109,24 @@ try:
 
         cv2.namedWindow('Masked Image', cv2.WINDOW_AUTOSIZE)
         cv2.imshow('Masked Image', fgI)
-        cv2.waitKey(1)
+        val = cv2.waitKey(1)
+        if val >= 0:
+            if (val == 81) or (val == 44):    # left arrow or left angle bracket.
+                bgModel.adjustThreshold( bgModel.tau - 1 )
+                bgDetector.set_model(bgModel)
+            elif (val == 83) or (val == 46):  # right arrow or right angle bracket.
+                bgModel.adjustThreshold( bgModel.tau + 1 )
+                bgDetector.set_model(bgModel)
+            if (val == 82) or (val == 91):    # left arrow or left angle bracket.
+                bgModel.adjustThreshold( bgModel.tau - 10 )
+                bgDetector.set_model(bgModel)
+            elif (val == 84) or (val == 93):  # right arrow or right angle bracket.
+                bgModel.adjustThreshold( bgModel.tau + 10 )
+                bgDetector.set_model(bgModel)
+            elif (val == 113):
+                print("Offset = "), print(bgModel.d)
+                print("Threshold = "), print(bgModel.tau)
+                break
 
 finally:
     # Stop streaming

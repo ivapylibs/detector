@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 # ============================ image08_bgGMM_cv ==============================
 """
     @brief:         Experiment with the Opencv GMM-based background substraction methods.

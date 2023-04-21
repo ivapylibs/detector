@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 # ============================ image08_targetSG_imgDiff ==============================
 """
     @brief:         Code to test out the single-Gaussian-color-modeling-based 

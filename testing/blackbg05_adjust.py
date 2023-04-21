@@ -1,22 +1,17 @@
-#=============================== blackbg04_realsense ===============================
+#================================= blackbg05_adjust ================================
 '''!
-@brief  Simple code to open Realsense viewer, snag color imagery and apply the
-        planar black background background estimation model. Visualize in window.
+@brief  Code to use Realsense camera to snag color imagery and apply the planar
+        black background background estimation model with option to adjust threshold.
 
-  Works for D435i or equivalent RGB-D camera from Intel Realsense line.  The
-  code demonstrates a couple of things.  First how to use the realsense in python to 
-  snag imagery.  Second, how to setup the realsense configuration by loading a
-  pre-existing JSON file. Lastly, it applies the black background detector model
-  to segment out parts of the scene that are considered to be "background."  In
-  this case, the premise is that the camera looks down at a black mat that defines
-  the operational workspace associated to the task.  Anything in the mat area that is
-  not black is an object of interest.
+  Works for D435i or equivalent RGB-D camera from Intel Realsense line.  Extends 
+  blackbg04 to have a user modified threshold, controlled through increment keyboard
+  commands.
 '''
-#=============================== blackbg04_realsense ===============================
+#================================= blackbg05_adjust ================================
 '''!
 
 @author Patricio A. Vela,   pvela@gatech.edu
-@date   2023/04/20
+@date   2023/04/21
 
 '''
 # NOTE: Formatted for 100 column view. Using 4 space indent.
@@ -27,7 +22,7 @@
 ## License: Apache 2.0. See LICENSE file in root directory.
 ## Copyright(c) 2015-2017 Intel Corporation. All Rights Reserved.
 #
-#=============================== blackbg04_realsense ===============================
+#================================= blackbg05_adjust ================================
 
 
 import pyrealsense2 as rs
@@ -133,4 +128,4 @@ finally:
     pipeline.stop()
 
 #
-#=============================== blackbg04_realsense ===============================
+#================================= blackbg05_adjust ================================

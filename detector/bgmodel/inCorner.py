@@ -64,7 +64,7 @@ class PlanarModel(SurfaceCutModel):
 
     def adjustThreshold(self, ntau):
         self.tau = ntau
-        self._genLambdafunctions()
+        self._genLambdaFunctions()
 
     @staticmethod
     def build_model(n, d, tau, isVectorized=True):

@@ -40,15 +40,25 @@
 #
 # Version   1.0
 #
-# Notes:    set tabstop = 4, indent = 2, 80 columns.
+# Notes:    set tabstop = 4, indent = 2, 85 columns.
 #
 #================================ Gaussian ===============================
 
 from yacs.config import CfgNode
+from dataclasses import dataclass
 import numpy as np
 
 from detector.inImage import inImage
 
+@dataclass
+class SGMstate:
+  bgIm  : np.ndarray
+
+@dataclass
+class SGMdebug:
+  mu    : np.ndarray
+  sigma : np.ndarray
+  errIm : np.ndarray
 
 
 class CfgSGM(CfgNode):
@@ -67,7 +77,7 @@ class CfgSGM(CfgNode):
   def __init__(self, init_dict=None, key_list=None, new_allowed=True):
 
     if (init_dict == None):
-      init_dict = CfgD435.get_default_settings()
+      init_dict = CfgSGM.get_default_settings()
 
     super().__init__(init_dict, key_list, new_allowed)
 
@@ -86,47 +96,134 @@ class CfgSGM(CfgNode):
                               default settings.
     '''
 
-  default_dict = dict(tauSigma = 3.5, minSigma = 50, alpha = 0.05, 
-    init = dict( sigma = 20 )  )
-  return default_dict
+    default_dict = dict(tauSigma = 3.5, minSigma = 50.0, alpha = 0.05, \
+                        adaptall = False,
+                        init = dict( sigma = 20.0 , imsize = None)  )
+    return default_dict
 
+  #========================== builtForLearning =========================
+  #
+  #
+  @staticmethod
+  def builtForLearning():
+    learnCfg = CfgSGM();
+    learnCfg.alpha = 0.10
+    learnCfg.minSigma = 4.0
+    return learnCfg
 
+  #========================== builtForDepth435 =========================
+  #
+  #
+  @staticmethod
+  def builtForDepth435():
+    depth_dict = dict(tauSigma = 1.0, minSigma = 0.0004, alpha = 0.05, \
+                        adaptall = False,
+                        init = dict( sigma = 0.0002 , imsize = None)  )
+    learnCfg = CfgSGM(depth_dict);
+    return learnCfg
 
+#================================ Gaussian ===============================
 
 class Gaussian(inImage):
 
-  #============================== Gaussian =============================
+  #========================= Gaussian/__init__ =========================
   #
   #
-  def __init__(self, processor = None, bgMod = None, bgCfg):
+  def __init__(self, bgCfg = None, processor = None, bgMod = None):
     '''!
     @brief  Constructor for single Gaussian model background detector.
     
     @param[in]  bgMod   The model or parameters for the detector.
     @param[in]  bgCfg   The model or parameters for the detector.
     '''
-    super(inCorner, self).__init__(processor)
+    super(Gaussian, self).__init__(processor)
 
-    # @todo Fix. What does this mean?
-    self.bgModel = bgMod
+    # First, set the configuration member field.
+    if bgCfg is None:
+      self.config = CfgSGM()
+    else:
+      self.config = bgCfg
 
-    # @todo Add in bgCFG
-    if  bgCfG not None:
-      self.config = bgCfG
-    else
-      self.config = CfGSGM.get_default_settings()
+    # Set all runtime member variables and working memory.
+    self.imsize = self.config.init.imsize
 
-    # @todo Fix me.
+    # Background model.
+    self.mu     = None
+    self.sigma  = None
 
-  def set(self):
-    pass
+    # Last measurement.
+    self.measI = None
 
-  def get(self):
-    pass
+    # Working memory.
+    self.errI  = None
+    self.sqeI  = None
+    self.nrmE  = None
+    self.maxE  = None
+    self.bgI   = None
 
+    # Check for image processor routine.
+    self.improcessor = processor
+
+    # If background model passed in, set it.
+    if bgMod is not None:
+      self.mu    = bgMod.mu
+      self.sigma = bgMod.sigma
+
+
+  #============================= _setsize_ =============================
+  #
+  def _setsize_(self, imsize):
+
+    if (np.size(imsize) == 2):
+      self.imsize = np.append(imsize, [1])
+    else:
+      self.imsize = imsize;
+
+    self._preallocate_()
+
+  #=========================== _preallocate_ ===========================
+  #
+  def _preallocate_(self):
+    '''!
+    @brief  Image size known, so instantiate memory for working variables.
+    '''
+
+    if self.imsize is None:
+      return
+    
+    bigShape = ( np.prod(self.imsize[0:2]), self.imsize[2] )
+    linShape = ( np.prod(self.imsize[0:2]), 1 )
+
+    self.measI = np.zeros( bigShape )
+    self.errI  = np.zeros( bigShape )
+    self.sqeI  = np.zeros( bigShape )
+    self.nrmE  = np.zeros( bigShape ) 
+    self.maxE  = np.zeros( linShape ) 
+    self.bgI   = np.zeros( linShape , dtype=bool) 
+
+    self.sigma = np.full( bigShape , self.config.init.sigma )
+  
+  #============================== predict ==============================
+  #
   def predict(self):
+    '''!
+    @brief  Predictive model of measurement.
+
+    In standard schemes, the expectation is that the background model
+    is static (a constant state model).  Thus, the default prediction is no
+    update.
+    '''
+
     pass
 
+  #============================== measure ==============================
+  #
+  # @todo   Need to se NumExpr library for faster numerical expression evaluation.
+  #         See [here](https://github.com/pydata/numexpr).
+  #
+  # Currently using numpy routines for in-place computation so that memory
+  # allocation can be avoided.
+  #
   def measure(self, I):
     '''!
     @brief    Takes image and generates the detection result.
@@ -135,61 +232,199 @@ class Gaussian(inImage):
     '''
     if self.improcessor is not None: 
       I = self.improcessor.pre(I)
-  
-    pI = reshape( I, [prod(imsize(1:2)), imsize(3)] );
-    sqeI = ((mu - pI).^2)./sigma;
-    errI = max(sqeI, [], 2);
-  
-    bgI  = reshape( errI < bgp.SigmaT, imsize(1:2) );
+    
+    if self.imsize is None:
+        self._setsize_(np.array(np.shape(I)))
+
+    self.measI = np.array(I, dtype=float, copy=True)
+    self.measI = np.reshape(self.measI, 
+                            np.append(np.prod(self.imsize[0:2]), self.imsize[2]) )
+
+    if self.mu is None:
+      self.mu = self.measI.copy()
+      
+    # sqeI = (mu - measI).^2 / sigma  (in Matlab paraphrasing).
+    # Apply operations wih broadcasting to avoid memory re-allocation.
+    # Store outcomes since they get used in the adapt routine.
+    np.subtract( self.mu, self.measI, out=self.errI )
+    np.square  ( self.errI , out=self.sqeI )
+    np.divide  ( self.sqeI , self.sigma, out=self.nrmE )
+
+    # Find max error across dimensions if there are more than 1,
+    # as would occur for an RGB image.
+    #
+    if (self.imsize[2] > 1):
+      np.amax( self.nrmE, axis=1, out=self.maxE )
+    else:
+      np.copyto(self.maxE, self.nrmE )
+
+    np.less( self.maxE, self.config.tauSigma, out=self.bgI )
   
     if self.improcessor is not None:
-      bgI = bgp.improcessor.post(bgI)
+      self.bgI = bgp.improcessor.post(self.bgI)
   
 
+  #============================== correct ==============================
+  #
   def correct(self):
+    '''!
+    @brief  Generate a correction to the model.
+
+    In standard schemes, there are no corrections to the estimates.  The
+    classification result is presumed to be correct.  Corrections would
+    imply some sort of temporal regularization.  Spatial regularization
+    is usually done through image-based mid-processing.
+    '''
+
     pass
 
 
+  #=============================== adapt ===============================
+  #
   def adapt(self):
+    '''!
+    @brief  Update the Gaussian model based on recent measurement.
 
-    # MATLAB CODE:
+    In this case, the mean and the variance are updated.  Depending on
+    the run-time options, all means/variances will be updated or only
+    those classified as background.  The latter avoids adapting to
+    foreground elements while still permitting slow change of the 
+    background model.  
 
-    fginds = find(~bgI);                          % Get foreground pixels.
+    Usually, during the model estimation phase (assuming an empty scene
+    with background elements only) adaptation of all pixels should occur.
+    During deployment, if adaptation is to be performed, then it is usually
+    best to not apply model updating to foreground elements, which are
+    interpreted as fast change elements of the scene.  
+    '''
+
+    if self.config.alpha == 0:
+        return
+
+    if not self.config.adaptall:                # Get foreground pixels.
+      fginds   = np.nonzero(~self.bgI);                          
+      oldmu    = self.mu[fginds,:];             # Save current values. 
+      oldsigma = self.sigma[fginds,:];
+
+    # Update mean and variance. @todo NEED TO FIX.
+    # mu = (1 - alpha) mu + alpha * y = mu - alpha*(mu - y)
+    #
+    np.subtract( self.mu    , self.config.alpha*self.errI, out=self.mu    )
+
+    # sigma = (1 - alpha) sigma + alpha * (mu - y)^2
+    #
+    np.multiply( self.sigma , (1-self.config.alpha), out=self.sigma )
+    np.multiply( self.sqeI  , self.config.alpha    , out=self.sqeI  )
+    np.add( self.sigma, self.sqeI , out=self.sigma )
+
+    # Impose min sigma constraint.
+    np.maximum(self.sigma, self.config.minSigma, out=self.sigma)
   
-    oldmu    = mu(fginds,:);                      % Save their old values.
-    oldsigma = sigma(fginds,:);
-  
-    mu    = (1-bgp.alpha)*mu + bgp.alpha*pI;      % Update mean and sigma.
-    sigma = (1-bgp.alpha)*sigma + bgp.alpha*(pI-mu).^2;
-    for ii=1:size(sigma,2)                        % Impose min sigma constraint.
-      sigma(:,ii) = max(sigma(:,ii), bgp.minSigma(ii));
-  
-    mu(fginds,:) = oldmu;                         % Revert foreground estimates
-    sigma(fginds,:) = oldsigma;                   % to their old values.
+    if not self.config.adaptall:                # Revert foreground values.
+      self.mu[fginds,:]    = oldmu      
+      self.sigma[fginds,:] = oldsigma
 
-
+  #============================== process ==============================
+  #
   def process(self, I):
+    '''!
+    @brief  Given a new measurement, apply entire BG modeling pipeline.
+
+    @param[in]  I   New image measurement.
+    '''
   
-    self.predict();
-    self.measure(I);
-    self.correct();
-    self.adapt();
+    self.predict()
+    self.measure(I)
+    self.correct()
+    self.adapt()
 
-emptystate
-emptydebug
-getstate
-getdebug
-displayState
-displayDebug
-info
-save    # Save given file.
-saveTo  # Save given HDF5 pointer. Puts in root.
-saveCfG # Save to YAML file.
+  #============================= emptyState ============================
+  #
+  def emptyState(self):
 
-STATIC FUNCTIONS
-load
-loadFrom
+    eState = SGMstate
+    return eState
 
+  #============================= emptyDebug ============================
+  #
+  def emptyDebug(self):
+
+    eDebug = SGMdebug
+    return eDebug
+
+  #============================== getState =============================
+  #
+  def getState(self):
+
+    cState = SGMstate(bgIm = self.bgI.reshape(self.imsize[0:2]))
+    return cState
+
+  #============================== getDebug =============================
+  #
+  def getDebug(self):
+
+    cDebug = SGMdebug(mu = self.mu.reshape(self.imsize), 
+                      sigma = self.sigma.reshape(self.imsize), 
+                      errIm = self.maxE.reshape(self.imsize[0:2]))
+    return cDebug
+
+  #=========================== displayState ============================
+  #
+  def displayState(self):
+    pass
+
+  #=========================== displayDebug ============================
+  #
+  def displayState(self):
+    pass
+
+  #================================ set ================================
+  #
+  def set(self):
+    pass
+
+  #================================ get ================================
+  #
+  def get(self):
+    pass
+
+  #================================ info ===============================
+  #
+  def info(self):
+    #tinfo.name = mfilename;
+    #tinfo.version = '0.1;';
+    #tinfo.date = datestr(now,'yyyy/mm/dd');
+    #tinfo.time = datestr(now,'HH:MM:SS');
+    #tinfo.trackparms = bgp;
+    pass
+
+  #================================ save ===============================
+  #
+  def save(self, fileName):    # Save given file.
+    pass
+
+  #=============================== saveTo ==============================
+  #
+  def saveTo(self, fPtr):    # Save given HDF5 pointer. Puts in root.
+    pass
+
+  #============================== saveCfg ============================== 
+  #
+  def saveCfG(self, outFile): # Save to YAML file.
+    pas
+
+
+  #================================ load ===============================
+  #
+  @staticmethod
+  def load(fileName):
+    pass
+
+  #============================== loadFrom =============================
+  #
+  @staticmethod
+  def loadFrom(fileName):
+    pass
 
 
 #

@@ -1,4 +1,4 @@
-# =========================== fgmodel/targetSG ==========================
+#============================ fgmodel/targetSG ===========================
 """
  @class    fgmodel.targetSG
 
@@ -6,17 +6,19 @@
             based on the single Gaussian RGB color modeling
 
 
- The target pixels are assumed to have similar RGB value, and is modeled as a
- single Guassian distribution.  It then transform the
- distribution into a Gaussian with uncorrelated components by
- diagonalizing the covariance matrix. The fg detection is done by
- thresholding each component independently in the transformed color space(tilt):
+ Target object pixels are assumed to have similar RGB value, modeled by a
+ single Guassian distribution.  Test images are transformed, per the model,
+ into a Gaussian with uncorrelated components by diagonalizing the covariance
+ matrix. Foreground detection is done by thresholding each component
+ independently in the transformed color space(tilt):
+
        |color_tilt_i - mu_tilt_i| < tau * cov_tilt_i, for all i=1,2,3
- tau can be user-input
+
+ tau is a parameter.
 
  The interface is adapted from the fgmodel/targetNeon.
 """
-# =========================== fgmodel/targetSG ==========================
+#============================ fgmodel/targetSG ===========================
 """
  @file     targetSG.m
 
@@ -26,7 +28,7 @@
 
  @classf   fgmodel
 """
-# =========================== fgmodel/targetSG ==========================
+#============================ fgmodel/targetSG ===========================
 
 import numpy as np
 import matplotlib
@@ -41,7 +43,7 @@ from improcessor.mask import mask as maskproc
 @dataclass
 class Params():
     """
-    @param[in]  det_th          Det_th times the eigenvalue will serve as the threshold
+    @param[in]  det_th          Det threshold as a factor (of the eigenvalue/variance).
     @param[in]  processor       An instance of the improcessor.basic. The preprocessor before the detection
     """
     det_th: int or float = 30 
@@ -52,7 +54,7 @@ class tModel_SG():
     The target model class storing the statistics of the target color
     """
     def __init__(self, th=30):
-        self.mu = None
+        self.mu  = None
         self.sig = None
         self.sigEignVec = None #row vec
         self.sigEignVal = None
@@ -113,8 +115,8 @@ class targetSG(appearance):
             self._appMod.getSigEign()
 
         # For now only implement the vectorize version
-        imDat = pI.reshape(-1, pI.shape[-1]).T
-        mask_vec = self._appMod.classify(imDat)
+        imDat     = pI.reshape(-1, pI.shape[-1]).T
+        mask_vec  = self._appMod.classify(imDat)
         self.fgIm = mask_vec.reshape(pI.shape[:2])
     
     def calibrate(self, mode="ImgDiff", *args):
@@ -140,13 +142,13 @@ class targetSG(appearance):
         """
         calibrate the target model given a set of target pixels 
         @brief  Given a set of data, calibrate the target using the
-           Gaussian model from data that is of the same color.
+                Gaussian model from data that is of the same color.
 
         Recovers a classification model based on collected data. 
         This method assumes that all data has been collected and organized,
         and is drawn from the same target color distribution. The output variables
         are structures with the results of the estimation process for the
-        target model. The model class and teh populated fields are:
+        target model. The model class and the populated fields are:
 
         tModel (type: tModel_SG):
             self.mu     - The estimated Gaussian mean from the target color samples
@@ -370,3 +372,6 @@ class targetSG(appearance):
         tModel, mData = targetSG._calibImgDiff(bgImg, fgImg, vis=vis, ax=ax)
         det = targetSG(tModel, params)
         return det
+
+#
+#============================ fgmodel/targetSG ===========================

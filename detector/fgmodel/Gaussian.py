@@ -115,11 +115,11 @@ class CfgSGT(CfgNode):
     learnCfg.minSigma = 200.0
     return learnCfg
 
-  #============================= builtForRed ===========================
+  #=========================== builtForRedGlove ==========================
   #
   #
   @staticmethod
-  def builtForRed():
+  def builtForRedGlove():
     learnCfg = CfgSGT();
     learnCfg.alpha = 0.10
     learnCfg.minSigma = [600, 50, 150]

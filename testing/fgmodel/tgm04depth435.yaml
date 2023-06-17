@@ -4,14 +4,14 @@ camera:
     file:  'depth435.json'  
     ros:   ''
   depth:
-    use:    False
+    use:    True
     res:    [848, 480]
     fps:    30
   color:
     use:    True
     res:    [1920, 1080]
     fps:    30
-  align:    False
+  align:    True
   ros:
     enable:     False
     depth:

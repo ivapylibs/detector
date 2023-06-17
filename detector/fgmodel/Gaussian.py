@@ -122,7 +122,7 @@ class CfgSGT(CfgNode):
   def builtForRedGlove():
     learnCfg = CfgSGT();
     learnCfg.alpha = 0.10
-    learnCfg.minSigma = [600, 50, 150]
+    learnCfg.minSigma = [900, 100, 150]
     return learnCfg
 
   #========================== builtForDepth435 =========================
@@ -207,7 +207,14 @@ class Gaussian(inImage):
       return
     
     bigShape = ( np.prod(self.imsize[0:2]), self.imsize[2] )
-    linShape = ( np.prod(self.imsize[0:2]) )
+    if (self.imsize[2] > 1):                    
+      linShape = ( np.prod(self.imsize[0:2]) )
+    else:
+      linShape = ( np.prod(self.imsize[0:2]), 1 )
+
+    # @todo Figure out the deal with if statement above.  My python-fu is limited.
+    #       Not sure how to deal with matrices of same size but somehow not
+    #       broadcastable.  Matlab wouldn't be triggering this kind of error.
 
     self.measI = np.zeros( bigShape )
     self.errI  = np.zeros( bigShape )
@@ -286,7 +293,7 @@ class Gaussian(inImage):
 
     np.less( self.maxE, self.config.tauSigma, out=self.fgI )
     if M is not None:
-      np.logical_and( self.fgI, M ,  out=self.fgI )
+      np.logical_and( self.fgI, np.ndarray.flatten(M) ,  out=self.fgI )
   
     if self.improcessor is not None:
       self.bgI = bgp.improcessor.post(self.bgI)
@@ -340,7 +347,8 @@ class Gaussian(inImage):
     # mu    = (1 - alpha) mu + alpha * newmu     = mu     + alpha*(newmu - mu)
     # sigma = (1 - alpha) sigma + alpha * newsig = sigma  + alpha*(newsign - sigma)
     #
-    print(np.shape(self.measI), ' and ', np.shape(self.fgI))
+    #DEBUG
+    #print(np.shape(self.measI), ' and ', np.shape(self.fgI))
 
     if (self.imsize[2] > 1):
       newVals = self.measI[self.fgI,:]
@@ -351,9 +359,10 @@ class Gaussian(inImage):
       newMu   = np.mean(newVals)
       newSig  = np.var(newVals)
      
-    print(np.size(newVals))
-    print(np.shape(newVals))
-    print(np.shape(self.mu))
+    #DEBUG
+    #print(np.size(newVals))
+    #print(np.shape(newVals))
+    #print(np.shape(self.mu))
     if (np.size(newVals) > 0):
       self.mu    = self.mu    + self.config.alpha*(newMu - self.mu)
       self.sigma = self.sigma + self.config.alpha*(newSig - self.sigma)

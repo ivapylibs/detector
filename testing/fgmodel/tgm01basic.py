@@ -24,8 +24,10 @@ import camera.utils.display as display
 
 mv = 15.0;
 bgModP = SGM.SGMdebug(mu = np.array([mv]), sigma = np.array([10.0]))
+bgConf = SGM.CfgSGT.builtForLearning()
+bgConf.minSigma = 5;
 
-fgModel = SGM.Gaussian( SGM.CfgSGT.builtForLearning(), None, bgModP )
+fgModel = SGM.Gaussian( bgConf, None, bgModP )
 
 for ii in range(210):
   I = np.random.normal(0, 1, (50, 50))

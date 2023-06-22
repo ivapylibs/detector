@@ -1,0 +1,16 @@
+alpha: 0.1
+init:
+  imsize: null
+  mu:
+  - 130.0
+  - 10.0
+  - 50.0
+  sigma:
+  - 650.0
+  - 150.0
+  - 250.0
+minSigma:
+- 900
+- 100
+- 150
+tauSigma: 4.0

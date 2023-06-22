@@ -6,13 +6,25 @@
 Move from double-sided Gaussian foreground detection to the one-sided version.
 The approach makes sense for depth cameras look "down" towards a workspace
 and the having tall-ish objects placed on it.
+
+
+Execution:
+----------
+Assumes availability of Intel Realsense D435 camera or equivalent.
+
+Operates in two phases.  First phase is "model estimation"/learning and
+second phase is application of model for detection.  Press 'q' to go from
+first phase to second, then to quit.
 """
-#=============================== test02_align ==============================
+#============================== pws02depth435 ==============================
 #
 # @author         Patricio A. Vela,       pvela@gatech.edu
 # @date           2023/05/26              [created]
 #
-#=============================== test02_align ==============================
+#
+# NOTE: indent is 4 spaces with conversion. 85 columns.
+#
+#============================== pws02depth435 ==============================
 
 import cv2
 import camera.utils.display as display
@@ -39,9 +51,8 @@ while(True):
     bgD = bgModel.getDebug()
 
     bgIm = cv2.cvtColor(bgS.bgIm.astype(np.uint8)*255, cv2.COLOR_GRAY2BGR)
-
     display.display_rgb_dep_cv(bgIm, bgD.mu, ratio=0.5, \
-                   window_name="Camera signals. (color-scaled depth). Press \'q\' to exit")
+                   window_name="RGB+Depth signals. Press \'q\' to exit")
 
     opKey = cv2.waitKey(1)
     if opKey == ord('q'):
@@ -64,14 +75,16 @@ while(True):
 
     print("Counting foreground pixels.", np.count_nonzero(bgS.bgIm))
 
-    print("Max error and threshold are: ", np.amax(bgModel.maxE), bgModel.config.tauSigma, np.amax(bgModel.nrmE))
+    print("Max error and threshold are: ", np.amax(bgModel.maxE), 
+                                           bgModel.config.tauSigma, 
+                                           np.amax(bgModel.nrmE))
     print("Max/min depth are:", np.amax(bgModel.measI), np.amin(bgModel.measI))
     display.display_rgb_dep_cv(bgIm, dep, ratio=0.5, \
-                   window_name="Camera signals. (color-scaled depth). Press \'q\' to exit")
+                   window_name="RGB+Depth signals. Press \'q\' to exit")
 
     opKey = cv2.waitKey(1)
     if opKey == ord('q'):
         break
 
 #
-#=============================== test02_align ==============================
+#============================== pws02depth435 ==============================

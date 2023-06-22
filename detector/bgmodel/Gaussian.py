@@ -96,9 +96,9 @@ class CfgSGM(CfgNode):
                               default settings.
     '''
 
-    default_dict = dict(tauSigma = 3.5, minSigma = 50.0, alpha = 0.05, \
+    default_dict = dict(tauSigma = 3.5, minSigma = [50.0], alpha = 0.05, \
                         adaptall = False,
-                        init = dict( sigma = 20.0 , imsize = None)  )
+                        init = dict( sigma = [20.0] , imsize = None)  )
     return default_dict
 
   #========================== builtForLearning =========================
@@ -108,7 +108,7 @@ class CfgSGM(CfgNode):
   def builtForLearning():
     learnCfg = CfgSGM();
     learnCfg.alpha = 0.10
-    learnCfg.minSigma = 4.0
+    learnCfg.minSigma = [4.0]
     return learnCfg
 
   #========================== builtForDepth435 =========================
@@ -116,9 +116,9 @@ class CfgSGM(CfgNode):
   #
   @staticmethod
   def builtForDepth435():
-    depth_dict = dict(tauSigma = 1.0, minSigma = 0.0004, alpha = 0.05, \
+    depth_dict = dict(tauSigma = 1.0, minSigma = [0.0004], alpha = 0.05, \
                         adaptall = False,
-                        init = dict( sigma = 0.0002 , imsize = None)  )
+                        init = dict( sigma = [0.0002] , imsize = None)  )
     learnCfg = CfgSGM(depth_dict);
     return learnCfg
 

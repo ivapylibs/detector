@@ -17,6 +17,13 @@ a little bit permissive and capture too much.  For Puzzlebot, the idea
 is to also incorporate depth information to remove false positives
 from the puzzle pieces.
 
+Execution:
+----------
+Running this script loads the stored image and then processes it.  There
+is nothing required. The ''data'' directory has a second glove image
+in it. Replacing the "1" in the filename with a "2" will apply foreground
+segmentation to that image instead. Both work decently.
+
 '''
 #============================== tgm02glove =============================
 #
@@ -35,33 +42,24 @@ import cv2
 
 import camera.utils.display as display
 
-
-Itest = cv2.imread("../data/glove_1.png")[:, :, ::-1]
-
+#==[1] Create an instance of a single Gaussian foreground detector
+#       
 fgModP = SGM.SGMdebug(mu = np.array([130.0,10.0,50.0]), 
                       sigma = 2*np.array([650.0,150.0,250.0]) )
-
 fgModel = SGM.Gaussian( SGM.CfgSGT.builtForRedGlove(), None, fgModP )
 
+
+#==[2] Apply to image data and display outcomes.  Prints the mean and sigma
+#       values. Displays the segmentation.
+#
+Itest = cv2.imread("../data/glove_1.png")[:, :, ::-1]
 fgModel.process(Itest)
 
-#  print("---------------------------------------------")
-#  print("Measuement top-left), Mean, Variance of model: ",
-#        I[0,0], fgModel.mu, fgModel.sigma[0])
-#  #print("Error, Squared Error, errMax", fgModel.errI[0][0], fgModel.sqeI[0][0]/fgModel.config.alpha, fgModel.maxE[0][0])
-#  print("Max error and threshold are: ", np.amax(fgModel.maxE), fgModel.config.tauSigma, np.amax(fgModel.nrmE))
-#
-#  print("Counting foreground pixels.", 
-#        np.count_nonzero(fgModel.fgI))
-#  #I = np.ones((50,50))
-
 fgs = fgModel.getState()
-#print(bgs.bgIm[10:30,25:45])
 
 print('Mean is:' , fgModel.mu)
 print('Var  is:' , fgModel.sigma)
-fgIm = cv2.cvtColor(fgs.fgIm.astype(np.uint8)*255, cv2.COLOR_GRAY2BGR)
-display.display_rgb_cv(fgIm, ratio=1)
+display.binary_cv(fgs.fgIm, ratio=1)
 cv2.waitKey();
 
 #

@@ -8,7 +8,6 @@
   operating paradigm that ddecorrelates the input image data.  While
   the implementation is most likely better than this one,
 
-  no doubt going to be 
   No doubt this implementation exists in some form within the OpenCV or
   BGS libraries, but getting a clean, simple interface from these libraries
   is actually not as easy as implementing from existing Matlab code.
@@ -65,6 +64,12 @@ class SGMdebug:
   sigma : np.ndarray
 
 
+#
+#-------------------------------------------------------------------------
+#====================== Gaussian Configuration Node ======================
+#-------------------------------------------------------------------------
+#
+
 class CfgSGT(CfgNode):
   '''!
   @brief  Configuration setting specifier for Gaussian BG model.
@@ -100,9 +105,8 @@ class CfgSGT(CfgNode):
                               default settings.
     '''
 
-    default_dict = dict(tauSigma = 4.0, minSigma = 50.0, alpha = 0.05, \
-                        adaptall = False,
-                        init = dict( sigma = 20.0 , imsize = None)  )
+    default_dict = dict(tauSigma = 4.0, minSigma = [50.0], alpha = 0.05, \
+                        init = dict( sigma = [20.0] , mu = None)  )
     return default_dict
 
   #========================== builtForLearning =========================
@@ -112,7 +116,7 @@ class CfgSGT(CfgNode):
   def builtForLearning():
     learnCfg = CfgSGT();
     learnCfg.alpha = 0.10
-    learnCfg.minSigma = 200.0
+    learnCfg.minSigma = [200.0]
     return learnCfg
 
   #=========================== builtForRedGlove ==========================
@@ -122,7 +126,9 @@ class CfgSGT(CfgNode):
   def builtForRedGlove():
     learnCfg = CfgSGT();
     learnCfg.alpha = 0.10
-    learnCfg.minSigma = [900, 100, 150]
+    learnCfg.minSigma = [900.0, 100.0, 150.0]
+    learnCfg.init.mu  = [130.0, 10.0, 50.0]
+    learnCfg.init.sigma = [1200.0, 150.0, 350.0]
     return learnCfg
 
   #========================== builtForDepth435 =========================
@@ -131,12 +137,15 @@ class CfgSGT(CfgNode):
   @staticmethod
   def builtForDepth435():
     depth_dict = dict(tauSigma = 1.0, minSigma = 0.0004, alpha = 0.05, \
-                        adaptall = False,
-                        init = dict( sigma = 0.0002 , imsize = None)  )
+                        init = dict( sigma = [0.0002] , mu = None)  )
     learnCfg = CfgSGT(depth_dict);
     return learnCfg
 
+#
+#-------------------------------------------------------------------------
 #================================ Gaussian ===============================
+#-------------------------------------------------------------------------
+#
 
 class Gaussian(inImage):
 
@@ -159,11 +168,20 @@ class Gaussian(inImage):
       self.config = bgCfg
 
     # Set all runtime member variables and working memory.
-    self.imsize = self.config.init.imsize
+    self.imsize = None
 
-    # Foreground model.
-    self.mu     = None
-    self.sigma  = None
+    # Foreground model.  
+    # Apply YAML/config defaults if available.
+    # Providing a foreground model in fgMode overrides these values.
+    if self.config.init.mu is not None:
+      self.mu = np.array(self.config.init.mu)
+    else:
+      self.mu     = None
+
+    if self.config.init.sigma is not None:
+      self.sigma  = np.array(self.config.init.sigma)
+    else:
+      self.sigma = None
 
     # Last measurement.
     self.measI = None
@@ -337,6 +355,7 @@ class Gaussian(inImage):
         return
 
     # MOST LIKELY NOT NECESSARY FOR FG MODEL. DELETE SHORTLY.
+    # DELETED
     #if not self.config.adaptall:                # Get foreground pixels.
     #  fginds   = np.nonzero(~self.bgI);                          
     #  oldmu    = self.mu[fginds,:];             # Save current values. 
@@ -431,7 +450,6 @@ class Gaussian(inImage):
 
     cDebug = SGMdebug(mu = self.mu.reshape(self.imsize), 
                       sigma = self.sigma.reshape(self.imsize) ) 
-                      #errIm = self.maxE.reshape(self.imsize[0:2]))
     return cDebug
 
   #=========================== displayState ============================
@@ -474,24 +492,43 @@ class Gaussian(inImage):
   def saveTo(self, fPtr):    # Save given HDF5 pointer. Puts in root.
     pass
 
-  #============================== saveCfg ============================== 
+  #============================= saveConfig ==============================
   #
-  def saveCfG(self, outFile): # Save to YAML file.
-    pas
+  #
+  def saveConfig(self, outFile): 
+    '''!
+    @brief  Save current instance to a configuration file.
+    '''
+
+    self.config.init.mu    = self.mu.tolist()
+    self.config.init.sigma = self.sigma.tolist()
+
+    with open(outFile,'w') as file:
+      file.write(self.config.dump())
+      file.close()
 
 
-  #================================ load ===============================
+  #=========================== loadFromConfig ==========================
+  #
   #
   @staticmethod
-  def load(fileName):
-    pass
+  def loadFromConfig(fileName):
+    '''!
+    @brief  Instantiate from stored configuration file (YAML).
+    '''
 
-  #============================== loadFrom =============================
-  #
-  @staticmethod
-  def loadFrom(fileName):
-    pass
+    theSetup = CfgSGT()
+    theSetup.merge_from_file(fileName)
+    fgDetector = Gaussian(theSetup)
+    return fgDetector
 
+# DELETE AT SOME POINT. HAS NO FUNCTION.
+#  #============================== loadFrom =============================
+#  #
+#  @staticmethod
+#  def loadFrom(fileName):
+#    pass
+#
 
 #
 #================================ Gaussian ===============================

@@ -3,10 +3,21 @@
 """
 @brief          Real-time implementation of red glove segmentation.
 
-Expands on the tgm02 script by applying to image sequence.  There are two
-phases of operation.  The first does a little model updating until the
-`q` key is pressed.  The second freezes the glove target model and performs
-color-based detection.  Hitting `q` again quits the routine.
+Expands on the ''tgm02glove'' script by applying to image sequence. The image
+sequence is obtained from a (presumed available) Intel Realsense D435 camera,
+or any other camera compatible with the D435 camera interface (in principle).
+
+
+Execution:
+----------
+Requires user input.
+
+There are two phases of operation.  The first does a little model updating
+until the `q` key is pressed.  The second freezes the glove target model and
+performs color-based detection.  Hitting `q` again quits the routine.
+
+Assumes availability of an Intel Realsense D435 (or compatible) stream.
+
 """
 #============================== tgm03depth435 ==============================
 #
@@ -23,7 +34,7 @@ import numpy as np
 import detector.fgmodel.Gaussian as SGM 
 
 
-#--[0]  Setup the camera and the red glove target model.
+#==[0]  Setup the camera and the red glove target model.
 #       Use hard coded glove configuration.
 #
 d435_configs = d435.CfgD435()
@@ -35,7 +46,7 @@ fgModP  = SGM.SGMdebug(mu = np.array([150.0,2.0,30.0]),
                       sigma = np.array([1100.0,250.0,250.0]) )
 fgModel = SGM.Gaussian( SGM.CfgSGT.builtForRedGlove(), None, fgModP )
 
-#--[1] Run the red glove detector with model updating until `q` pressed.
+#==[1] Run the red glove detector with model updating until `q` pressed.
 #
 while(True):
     rgb, dep, success = d435_starter.get_frames()
@@ -59,7 +70,7 @@ print('Mean is:' , fgModel.mu)
 print('Var  is:' , fgModel.sigma)
 print("Switching adaptation off.")
 
-#--[2] Run red glove detector with frozen model until `q` pressed.
+#==[2] Run red glove detector with frozen model until `q` pressed.
 #
 while(True):
     rgb, dep, success = d435_starter.get_frames()

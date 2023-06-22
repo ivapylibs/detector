@@ -49,6 +49,7 @@ from detector.inImage import inImage
 import detector.bgmodel.Gaussian as SGM
 
 import numpy as np
+import h5py
 
 class RunState(Enum):
   ESTIMATE = 1
@@ -327,23 +328,75 @@ class onWorkspace(SGM.Gaussian):
   #================================ save ===============================
   #
   def save(self, fileName):    # Save given file.
+    fptr = h5py.File(fileName,"w")
+    self.saveTo(fptr);
+    fptr.close()
     pass
 
   #=============================== saveTo ==============================
   #
   def saveTo(self, fPtr):    # Save given HDF5 pointer. Puts in root.
-    pass
+    wsds = fPtr.create_group("bgmodel.onWorkspace")
+
+    wsds.create_dataset("mu", data=self.mu)
+    wsds.create_dataset("sigma", data=self.sigma)
+
+    self.config.init.imsize = self.imsize.tolist()
+    configStr = self.config.dump()
+    wsds.create_dataset("configuration", data=configStr)
+
 
   #============================== saveCfg ============================== 
   #
   def saveCfG(self, outFile): # Save to YAML file.
-    pas
+    '''!
+    @brief  Save current instance to a configuration file.
+    '''
+    with open(outFile,'w') as file:
+      file.write(self.config.dump())
+      file.close()
+
 
 
   #================================ load ===============================
   #
   @staticmethod
   def load(fileName):
+    # IAMHERE - Very close to having the load work.
+    #           Right now just confirmed recovery of core information.
+    #           Next step is to create an onWorkspace instance from the info.
+    #
+    fptr = h5py.File(fileName,"r")
+
+    #DEBUG: Remove once done testing.
+    print("Printing names")
+    for name in fptr:
+      print(name)
+    
+    gptr = fptr.get("bgmodel.onWorkspace")
+
+    print("Printing group names")
+    for name in gptr:
+      print(name)
+    
+
+    muPtr    = gptr.get("mu")
+    sigmaPtr = gptr.get("sigma")
+
+    bgMod = SGM.SGMdebug
+    bgMod.mu    = np.array(muPtr)
+    bgMod.sigma = np.array(sigmaPtr)
+
+    print(np.shape(bgMod.mu))
+    print(np.shape(bgMod.sigma))
+
+    cfgPtr   = gptr.get("configuration")
+    configStr = cfgPtr[()].decode()
+    print('--------')
+    print(configStr)
+
+    fptr.close()
+
     pass
 
   #============================== loadFrom =============================

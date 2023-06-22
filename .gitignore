@@ -109,3 +109,5 @@ ENV/
 testing/figs
 
 *.sw?
+
+*.hdf5

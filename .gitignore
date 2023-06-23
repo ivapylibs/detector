@@ -107,6 +107,7 @@ ENV/
 
 # testing data
 testing/figs
-testing/data
 
 *.sw?
+
+*.hdf5

@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 
 import cv2
 import numpy as np
@@ -6,15 +6,15 @@ import detector.bgmodel.inCorner as bgdet
 
 if __name__=='__main__':
     #filename = 'data/workspace_no_pieces_Color.png'
-    #filename = 'data/workspace_with_pieces_dinosaur_Color.png'
+    filename = 'data/workspace_with_pieces_dinosaur_02.png'
     #filename = 'workspace_arm_no_pieces_Color_Color.png'
-    filename = 'data/workspace_with_arm_pieces_dinosaur_Color_Color.png'
+    #filename = 'data/workspace_with_arm_pieces_dinosaur_Color_Color.png'
     #filename = 'data/img.png'
     img_test = cv2.imread(filename)
 
-    alpha = 20
+    alpha = 10
     cent  = np.array([[1],[1],[1]])*alpha*2
-    bgModel = bgdet.SphericalModel.build_model(cent, (30+alpha)^2, 0)
+    bgModel = bgdet.SphericalModel.build_model(cent, (45+alpha)^2, 0)
     bgDetector = bgdet.inCorner()
     bgDetector.set_model(bgModel)
 

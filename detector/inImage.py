@@ -53,6 +53,11 @@ class inImage(object):
   def adapt(self):
     pass
 
+  def detect(self, I):
+    self.predict()
+    self.measure(I)
+    self.correct()
+
   def process(self, I):
     self.predict()
     self.measure(I)

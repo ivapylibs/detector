@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import cv2
 import numpy as np
 from detector.fgmodel.targetMagenta import targetMagenta

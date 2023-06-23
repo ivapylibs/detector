@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 # ============================ image07_targetSG ==============================
 """
     @brief:         Code to test out the single-Gaussian-color-modeling-based 

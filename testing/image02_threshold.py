@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 #=========================== image02_threshold ===========================
 #
 # @brief    Code to test out the simple image detector for a fairly

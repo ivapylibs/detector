@@ -32,17 +32,39 @@ class SurfaceCutModel(object):
     def __init__(self):
       pass
 
+#================================== PlanarModel ==================================
+#
+#
 class PlanarModel(SurfaceCutModel):
     '''!
       @brief    Specification data class that describes the planar cut classifier
                 and its functional properties.
     '''
-    def __init__(self, n=None, d = None, tau=None, classify=None, vectorize=True):
-        self.n = n
-        self.d = d
+    def __init__(self, n=None, d = None, tau=None, vectorize=True):
+        self.n   = n
+        self.d   = d
         self.tau = tau
-        self.classify = classify
         self.vectorize = vectorize
+
+        self.classify = None
+        self.margin   = None
+        self._genLambdaFunctions()
+
+    def _genLambdaFunctions(self):
+        if (self.d == 0):
+          self.classify = lambda c: self.n @ c > self.tau
+        else:
+          self.classify = lambda c: self.n @ c + self.d < self.tau
+
+        if (self.d == 0):
+          self.margin = lambda c: self.n @ c - self.tau
+        else:
+          self.margin = lambda c: self.n @ c + self.d - self.tau
+
+
+    def adjustThreshold(self, ntau):
+        self.tau = ntau
+        self._genLambdaFunctions()
 
     @staticmethod
     def build_model(n, d, tau, isVectorized=True):
@@ -56,17 +78,11 @@ class PlanarModel(SurfaceCutModel):
                                     Default is True.
         '''
 
-        theModel = PlanarModel(n, d, tau)
-
-        if (theModel.d == 0):
-          theModel.classify = lambda c: theModel.n @ c > theModel.tau
-        else:
-          theModel.classify = lambda c: theModel.n @ c + theModel.d < theModel.tau
-
-        theModel.vectorize = isVectorized
+        theModel = PlanarModel(n, d, tau, isVectorized)
 
         return theModel
 
+# @todo This code is out of date.  Needs to look like the PlanarModel code. 
 class SphericalModel(SurfaceCutModel):
     '''!
       @brief    Specification data class that describes the planar cut classifier
@@ -103,6 +119,9 @@ class SphericalModel(SurfaceCutModel):
         return theModel
 
 
+#===================================== inCorner ====================================
+#
+#
 class inCorner(inImage):
 
     #================================ inCorner ===============================
@@ -175,6 +194,29 @@ class inCorner(inImage):
         else:
             self.Ip = self.bgModel.classify(pI)
 
+    #============================== calc_margin ==============================
+    #
+    #
+    def calc_margin(self, I):
+        '''!
+        @brief  Run classifier scoring computation and return value. 
+
+        @param[in]  I   Image to test on.
+        @param[out] mI  The marging values (as an image/2D array).
+        '''
+        if self.processor:
+            pI = self.processor.apply(I)
+        else:
+            pI = I
+
+        if self.bgModel.vectorize:
+            imDat = np.array(pI).reshape(-1,pI.shape[2]).T
+            fgB   = self.bgModel.margin(imDat)
+            mI    = np.array(fgB).reshape(pI.shape[0], pI.shape[1])
+        else:
+            mI    = self.bgModel.margin(pI)
+
+        return mI
 
     #========================== build_model_blackBG ==========================
     #

@@ -145,14 +145,19 @@ class Gaussian(inImage):
       self.config = bgCfg
 
     # Set all runtime member variables and working memory.
-    self.imsize = self.config.init.imsize
-
-    # Background model.
-    self.mu     = None
-    self.sigma  = None
 
     # Last measurement.
     self.measI = None
+
+    # Background model.
+    # If background model passed in, set it.
+    #
+    if bgMod is not None:
+      self.mu    = bgMod.mu
+      self.sigma = bgMod.sigma
+    else:
+      self.mu    = None
+      self.sigma = None
 
     # Working memory.
     self.errI  = None
@@ -161,13 +166,13 @@ class Gaussian(inImage):
     self.maxE  = None
     self.bgI   = None
 
+    # Image dimensions
+    self.imsize = None
+    if (self.config.init.imsize is not None):
+      self._setsize_(self.config.init.imsize)
+
     # Check for image processor routine.
     self.improcessor = processor
-
-    # If background model passed in, set it.
-    if bgMod is not None:
-      self.mu    = bgMod.mu
-      self.sigma = bgMod.sigma
 
 
   #============================= _setsize_ =============================
@@ -201,7 +206,8 @@ class Gaussian(inImage):
     self.maxE  = np.zeros( linShape ) 
     self.bgI   = np.zeros( linShape , dtype=bool) 
 
-    self.sigma = np.full( bigShape , self.config.init.sigma )
+    if (self.sigma is None):
+      self.sigma = np.full( bigShape , self.config.init.sigma )
   
   #============================== predict ==============================
   #
@@ -398,27 +404,64 @@ class Gaussian(inImage):
     #tinfo.trackparms = bgp;
     pass
 
-  #================================ save ===============================
-  #
-  def save(self, fileName):    # Save given file.
-    pass
-
   #=============================== saveTo ==============================
   #
   def saveTo(self, fPtr):    # Save given HDF5 pointer. Puts in root.
-    pass
+    wsds = fPtr.create_group("bgmodel.Gaussian")
+
+    wsds.create_dataset("mu", data=self.mu)
+    wsds.create_dataset("sigma", data=self.sigma)
+
+    self.config.init.imsize = self.imsize.tolist()
+    configStr = self.config.dump()
+    wsds.create_dataset("configuration", data=configStr)
+
 
   #============================== saveCfg ============================== 
   #
   def saveCfG(self, outFile): # Save to YAML file.
-    pas
+    '''!
+    @brief  Save current instance to a configuration file.
+    '''
+    with open(outFile,'w') as file:
+      file.write(self.config.dump())
+      file.close()
 
 
   #================================ load ===============================
   #
   @staticmethod
   def load(fileName):
-    pass
+    # IAMHERE - [X] Very close to having the load work.
+    #           [X] Right now just confirmed recovery of core information.
+    #           [X] Next step is to create an onWorkspace instance from the info.
+    #           [_] Final step is to run and demonstrate correct loading.
+    #
+    fptr = h5py.File(fileName,"r")
+
+    gptr = fptr.get("bgmodel.Gaussian")
+
+    muPtr    = gptr.get("mu")
+    sigmaPtr = gptr.get("sigma")
+
+    bgMod = SGM.SGMdebug
+    bgMod.mu    = np.array(muPtr)
+    bgMod.sigma = np.array(sigmaPtr)
+
+    cfgPtr   = gptr.get("configuration")
+    configStr = cfgPtr[()].decode()
+
+    fptr.close()
+
+    configCfg = CfgSGM.load_cfg(configStr)
+
+    theConfig = CfgSGM()
+    theConfig.merge_from_other_cfg(configCfg)
+
+    theModel = Gaussian(theConfig, None, bgMod)
+
+    return theModel
+
 
   #============================== loadFrom =============================
   #

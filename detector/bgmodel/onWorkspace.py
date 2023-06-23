@@ -69,7 +69,7 @@ class CfgOnWS(SGM.CfgSGM):
   def __init__(self, init_dict=None, key_list=None, new_allowed=True):
 
     if (init_dict == None):
-      init_dict = CfgSGM.get_default_settings()
+      init_dict = SGM.CfgSGM.get_default_settings()
 
     super().__init__(init_dict, key_list, new_allowed)
 
@@ -94,7 +94,11 @@ class CfgOnWS(SGM.CfgSGM):
 
     return default_dict
 
-#================================ Gaussian ===============================
+#
+#---------------------------------------------------------------------------
+#=============================== onWorkspace ===============================
+#---------------------------------------------------------------------------
+#
 
 class onWorkspace(SGM.Gaussian):
 
@@ -325,14 +329,6 @@ class onWorkspace(SGM.Gaussian):
     #tinfo.trackparms = bgp;
     pass
 
-  #================================ save ===============================
-  #
-  def save(self, fileName):    # Save given file.
-    fptr = h5py.File(fileName,"w")
-    self.saveTo(fptr);
-    fptr.close()
-    pass
-
   #=============================== saveTo ==============================
   #
   def saveTo(self, fPtr):    # Save given HDF5 pointer. Puts in root.
@@ -346,39 +342,19 @@ class onWorkspace(SGM.Gaussian):
     wsds.create_dataset("configuration", data=configStr)
 
 
-  #============================== saveCfg ============================== 
-  #
-  def saveCfG(self, outFile): # Save to YAML file.
-    '''!
-    @brief  Save current instance to a configuration file.
-    '''
-    with open(outFile,'w') as file:
-      file.write(self.config.dump())
-      file.close()
-
-
 
   #================================ load ===============================
   #
   @staticmethod
   def load(fileName):
-    # IAMHERE - Very close to having the load work.
-    #           Right now just confirmed recovery of core information.
-    #           Next step is to create an onWorkspace instance from the info.
+    # IAMHERE - [X] Very close to having the load work.
+    #           [X] Right now just confirmed recovery of core information.
+    #           [X] Next step is to create an onWorkspace instance from the info.
+    #           [_] Final step is to run and demonstrate correct loading.
     #
     fptr = h5py.File(fileName,"r")
 
-    #DEBUG: Remove once done testing.
-    print("Printing names")
-    for name in fptr:
-      print(name)
-    
     gptr = fptr.get("bgmodel.onWorkspace")
-
-    print("Printing group names")
-    for name in gptr:
-      print(name)
-    
 
     muPtr    = gptr.get("mu")
     sigmaPtr = gptr.get("sigma")
@@ -387,17 +363,19 @@ class onWorkspace(SGM.Gaussian):
     bgMod.mu    = np.array(muPtr)
     bgMod.sigma = np.array(sigmaPtr)
 
-    print(np.shape(bgMod.mu))
-    print(np.shape(bgMod.sigma))
-
     cfgPtr   = gptr.get("configuration")
     configStr = cfgPtr[()].decode()
-    print('--------')
-    print(configStr)
 
     fptr.close()
 
-    pass
+    configCfg = CfgOnWS.load_cfg(configStr)
+
+    theConfig = CfgOnWS()
+    theConfig.merge_from_other_cfg(configCfg)
+
+    theModel = onWorkspace(theConfig, None, bgMod)
+
+    return theModel
 
   #============================== loadFrom =============================
   #

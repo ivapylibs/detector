@@ -68,5 +68,15 @@ class inImage(object):
     state = detectorState(self.Ip)
     return state
 
+  #================================ save ===============================
+  #
+  def save(self, fileName):    # Save given file.
+    fptr = h5py.File(fileName,"w")
+    self.saveTo(fptr);
+    fptr.close()
+    pass
+
+
+
 #
 #=========================== detector/inImage ============================

@@ -1,13 +1,17 @@
 #!/usr/bin/python
-# ============================ image07_targetSG ==============================
-"""
-    @brief:         Code to test out the single-Gaussian-color-modeling-based 
-                    foreground detector. 
+#============================== image07_targetSG =============================
+"""!
+@brief  Test the single-Gaussian-color-modeling-based foreground detector. 
 
-    @ author:   Yiye        yychen2019@gatech.edu
-    @ date:     07/16/2021
+Grabs data from saved images and applies.
 """
-# ============================ image07_targetSG ==============================
+#============================== image07_targetSG =============================
+#
+#
+# @author   Yiye Chen        yychen2019@gatech.edu
+# @date     2021/07/16
+#
+#============================== image07_targetSG =============================
 
 # ====== [1] setup the environment. Read the data
 import os
@@ -40,3 +44,6 @@ cv2.imshow("The FG detection result", fgmask.astype(np.uint8)*255)
 
 print("Press any key to exit:")
 cv2.waitKey()
+
+#
+#============================== image07_targetSG =============================

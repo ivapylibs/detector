@@ -1,25 +1,27 @@
-"""
-======================================= bgEva ==============================================
+#==================================== bgEva ====================================
+"""!
+@brief  Background detection evaluation routine for opencv background detectors.
 
-        @ brief             The Background detection evaluation routine
-                            Test on the opencv background detectors
 
-        @ author            Yiye Chen.          yychen2019@gatech
-        @ date              08/07/2021
+Evaluate the detection result by comparing it with the ground truth result.
 
-        Evaluate the detection result by comparing it with the ground 
-        truth result.
+The ground truth result is obtained by:
+1. Get puzzle mask: Use image difference.Need an empty table image and a table+puzzle image
+2. Get human mask: Use the human detector.
+   The human detector is color single gaussian + Height-based refinement
 
-        The ground truth result is obtained by:
-        1. Get puzzle mask: Use image difference.Need an empty table image and a table+puzzle image
-        2. Get human mask: Use the human detector.
-             The human detector is color single gaussian + Height-based refinement
-             So the required data:
-                (a) Glove color calibration data - any image with glove in it
-                (b) Height estimation data - Empty table
+   The required data:
+   (a) Glove color calibration data - any image with glove in it
+   (b) Height estimation data - Empty table
 
 ======================================= bgEva ==============================================
 """
+#==================================== bgEva ====================================
+#
+# @ author  Yiye Chen.          yychen2019@gatech
+# @ date    2021/08/07
+#
+#==================================== bgEva ====================================
 
 # ====== [1] setup the environment. Read the data
 import os
@@ -201,3 +203,6 @@ print(evaluator.evaluate(test_img, test_dep, pred_mask))
 evaluator.visualize(test_img, pred_mask)
 
 plt.show()
+
+#
+#==================================== bgEva ====================================

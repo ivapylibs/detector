@@ -1,16 +1,26 @@
+#!/usr/bin/python
 #=============================== blackbg04_realsense ===============================
 '''!
-@brief  Simple code to open Realsense viewer, snag color imagery and apply the
+@brief  Simple code with original Realsense API to snag color imagery and apply the
         planar black background background estimation model. Visualize in window.
 
-  Works for D435i or equivalent RGB-D camera from Intel Realsense line.  The
-  code demonstrates a couple of things.  First how to use the realsense in python to 
-  snag imagery.  Second, how to setup the realsense configuration by loading a
-  pre-existing JSON file. Lastly, it applies the black background detector model
-  to segment out parts of the scene that are considered to be "background."  In
-  this case, the premise is that the camera looks down at a black mat that defines
-  the operational workspace associated to the task.  Anything in the mat area that is
-  not black is an object of interest.
+Works for D435i or equivalent RGB-D camera from Intel Realsense line.  The
+code demonstrates a couple of things.  First how to use the realsense in python to 
+snag imagery.  Second, how to setup the realsense configuration by loading a
+pre-existing JSON file. Lastly, it applies the black background detector model
+to segment out parts of the scene that are considered to be "background."  In
+this case, the premise is that the camera looks down at a black mat that defines
+the operational workspace associated to the task.  Anything in the mat area that is
+not black is an object of interest.
+
+Execution:
+----------
+Needs Intel lRealsense D435 or equivalent RGBD camera.
+
+Just run and it displays the original image plus the masked image (full size).
+The black background should be solid black.
+Hit "q" to quit.
+
 '''
 #=============================== blackbg04_realsense ===============================
 '''!
@@ -81,7 +91,7 @@ bgDetector.set_model(bgModel)
 
 # Start streaming
 pipeline.start(config)
-print('Starting ... Use Ctrl-C to Quit.')
+print('Starting ... Press "q" to Quit.')
 
 
 try:
@@ -109,7 +119,10 @@ try:
 
         cv2.namedWindow('Masked Image', cv2.WINDOW_AUTOSIZE)
         cv2.imshow('Masked Image', fgI)
-        cv2.waitKey(1)
+        opKey = cv2.waitKey(1)
+        if opKey == ord('q'):
+            break
+
 
 finally:
     # Stop streaming

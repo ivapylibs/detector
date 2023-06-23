@@ -1,8 +1,7 @@
 #!/usr/bin/python
 #=========================== image01_threshold ===========================
 #
-# @brief    Code to test out the simple image detector for a fairly
-#           contrived scenario: threshold a grayscale image.
+# @brief    Simple in image detector based on improcessor using hard coded scalar data.
 #
 # Uses the base inImage class to do the work.  The inImage class is
 # almost a blank base class, except that is does have some minimal

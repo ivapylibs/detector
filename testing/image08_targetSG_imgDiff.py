@@ -1,14 +1,16 @@
 #!/usr/bin/python
-# ============================ image08_targetSG_imgDiff ==============================
-"""
-    @brief:         Code to test out the single-Gaussian-color-modeling-based 
-                    foreground detector, where the foreground color statistics 
-                    is obtained by the image difference method
+#=========================== image08_targetSG_imgDiff ==========================
+"""!
+@brief  Test single-Gaussian-color-modeling-based foreground detector with
+        foreground statistics obtained from image differencing.
 
-    @ author:   Yiye        yychen2019@gatech.edu
-    @ date:     09/26/2021
 """
-# ============================ image08_targetSG_imgDiff ==============================
+#=========================== image08_targetSG_imgDiff ==========================
+#
+# @author   Yiye Chen       yychen2019@gatech.edu
+# @date     2021/09/26
+#
+#=========================== image08_targetSG_imgDiff ==========================
 
 # ====== [1] setup the environment. Read the data
 import os
@@ -64,3 +66,6 @@ axes[1].imshow(fgmask, cmap="gray")
 axes[1].set_title("The foreground mask")
 
 plt.show()
+
+#
+#=========================== image08_targetSG_imgDiff ==========================

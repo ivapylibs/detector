@@ -58,12 +58,14 @@ while(True):
         break
 
 bgModel.save('pws03saved.hdf5')
+bgModel = None
 
-quit()
+print("Saved model. Cleared model. Now loading ...")
 
+bgModel = GWS.onWorkspace.load('pws03saved.hdf5')
 bgModel.state = GWS.RunState.DETECT
-print("Switching adaptation off.")
 
+print("Loaded, now running ...")
 while(True):
     rgb, dep, success = d435_starter.get_frames()
     if not success:

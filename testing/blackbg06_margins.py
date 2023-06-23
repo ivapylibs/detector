@@ -1,8 +1,8 @@
+#!/usr/bin/python
 #================================ blackbg06_margins ================================
 '''!
-@brief  Use Realsense data to collect background classifier margin values across
-        the image and over time.  Stores the maximum value read while collecting
-        data.
+@brief  Use Realsense API to collect background classifier margin values across
+        imagery over time.  Stores the maximum value read while collecting data.
 
   Works for D435i or equivalent RGB-D camera from Intel Realsense line.  Builds on 
   blackbg04 script.  This version applies hard coded values for the detector, but
@@ -19,6 +19,16 @@
   information.  Makes sense to create this script first and then use it to
   load and apply the spatially variable threshold.  Once done, can be included in 
   the actual codebase for this package.
+
+
+Execution:
+----------
+Needs Intel lRealsense D435 or equivalent RGBD camera.
+
+Just run and it displays the original image plus the masked image (full size).
+During running it stores distance/error values observed and keeps track of max value per pixel.
+Hit "q" to quit.
+
 '''
 #================================ blackbg06_margins ================================
 '''!
@@ -141,12 +151,13 @@ finally:
     print("Minimum value: "), print(minV)
     print("Maximum value: "), print(maxV)
 
-    if (maxV == minV):
+    if (maxV == minV):      # Prevent division by zero.
       maxV = minV + 1
+
     scI = np.subtract(mI, minV)/(maxV-minV)
     cv2.namedWindow('Max Margin Observed', cv2.WINDOW_AUTOSIZE)
     cv2.imshow('Max Margin Observed', scI.astype(float))
-    cv2.waitKey(-1)
+    cv2.waitKey()
 
 #
 #================================ blackbg06_margins ================================

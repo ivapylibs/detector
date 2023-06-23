@@ -1,3 +1,4 @@
+#!/usr/bin/python
 #=============================== region01_realsense ================================
 '''!
 @brief  Background model processed for largest connected region evaluated over time
@@ -8,6 +9,16 @@
   blackbg05 by adding largest connected component processing using skimage.  While
   OpenCV has similar functions, the skimage ones are much easier to use, have better
   documentation, and better map to Matlab's routines.
+
+
+  Execution:
+  ----------
+  Assumes an Intel Realsense D435 or compatible RGBD camera.
+
+  Just run it and hit 'q' when ready to quit model updating.
+  Displays largest region in image.  
+  Hit 'q' again to quit.
+
 '''
 #=============================== region01_realsense ================================
 '''!

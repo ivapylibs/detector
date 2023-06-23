@@ -1,8 +1,7 @@
 #!/usr/bin/python
 #=========================== image02_threshold ===========================
 #
-# @brief    Code to test out the simple image detector for a fairly
-#           contrived scenario: threshold a grayscale image.
+# @brief    Simple in image detector based on improcessor with visual output.
 #
 # Extends ``image01_threshold`` to have a bigger array and visual output of
 # the array data and an image.

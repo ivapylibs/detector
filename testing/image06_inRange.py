@@ -1,11 +1,12 @@
 #!/usr/bin/python
 #============================ image06_inRange ============================
-#
-# @brief    Code to test out the simple image detector for a fairly
-#           contrived scenario: threshold a grayscale image. The depth
-#           image sequence is from a depth sensor and saved to a .npz file.
-#           We put the preprocesing code in the testing file for now.
-#
+'''!
+@brief    
+
+The depth image sequence is from depth sensor data saved to a .npz file.
+The npz file is loaded and processed.
+
+'''
 #============================ image06_inRange ============================
 
 # 

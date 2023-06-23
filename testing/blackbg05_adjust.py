@@ -1,11 +1,23 @@
+#!/usr/bin/python
 #================================= blackbg05_adjust ================================
 '''!
-@brief  Code to use Realsense camera to snag color imagery and apply the planar
+@brief  Use Realsense camera API to snag color imagery and apply the planar
         black background background estimation model with option to adjust threshold.
 
   Works for D435i or equivalent RGB-D camera from Intel Realsense line.  Extends 
   blackbg04 to have a user modified threshold, controlled through increment keyboard
   commands.
+
+
+Execution:
+----------
+Needs Intel lRealsense D435 or equivalent RGBD camera.
+
+Just run and it displays the original image plus the masked image (full size).
+The black background should be solid black.  
+Hit "<" / ">" or  "{" / "}" to adjust settings (smaller/bigger threshold).
+Hit "q" to quit.
+
 '''
 #================================= blackbg05_adjust ================================
 '''!

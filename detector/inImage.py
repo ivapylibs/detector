@@ -23,6 +23,8 @@ import numpy as np
 from dataclasses import dataclass
 from improcessor.basic import basic
 
+import h5py
+
 @dataclass
 class detectorState:
   x: any = None

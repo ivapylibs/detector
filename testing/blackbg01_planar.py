@@ -1,4 +1,29 @@
 #!/usr/bin/python
+#============================== blackbg01_planar =============================
+'''!
+
+@brief  Run inCorner background model detector on image, with a black corner model.
+
+
+Execution:
+----------
+Select file in script if desired.
+Just run. It displays masked image.  Black area should be uniformly black except 
+at edges.
+Hit "q" to quit.
+
+'''
+#============================== blackbg01_planar =============================
+
+#
+# @file     blackbg01_planar.py
+#
+# @author   Patricio A. Vela,       pvela@gatech.edu
+# @date     2023/05/XX
+#
+# NOTE: Indent set to 4 spaces with conversion. 90-100 columns.
+#
+#============================== blackbg01_planar =============================
 
 import cv2
 import numpy as np
@@ -6,8 +31,7 @@ import detector.bgmodel.inCorner as bgdet
 
 if __name__=='__main__':
     #filename = 'data/workspace_no_pieces_Color.png'
-    filename = 'data/workspace_with_pieces_dinosaur_Color.png'
-    #filename = 'data/workspace_with_pieces_dinosaur_02.png'
+    filename = 'data/workspace_with_pieces_dinosaur_02.png'
     #filename = 'workspace_arm_no_pieces_Color_Color.png'
     #filename = 'data/workspace_with_arm_pieces_dinosaur_Color_Color.png'
     #filename = 'data/img.png'
@@ -30,3 +54,6 @@ if __name__=='__main__':
 
     print("Press any key to exit:")
     cv2.waitKey()
+
+#
+#============================== blackbg01_planar =============================

@@ -1,4 +1,30 @@
 #!/usr/bin/python
+#============================ blackbg03_spherical ============================
+'''!
+
+@brief  Run inCorner background model detector on image, with a black spherical model.
+
+
+Execution:
+----------
+Select file in script if desired.
+Just run. It displays masked image.  Black area should be uniformly black except 
+at edges.
+Hit "q" to quit.
+
+'''
+#============================ blackbg03_spherical ============================
+
+#
+# @file     blackbg03_spherical.py
+#
+# @author   Patricio A. Vela,       pvela@gatech.edu
+# @date     2023/05/XX
+#
+# NOTE: Indent set to 4 spaces with conversion. 90-100 columns.
+#
+#============================ blackbg03_spherical ============================
+
 
 import cv2
 import numpy as np
@@ -31,3 +57,6 @@ if __name__=='__main__':
 
     print("Press any key to exit:")
     cv2.waitKey()
+
+#
+#============================ blackbg03_spherical ============================

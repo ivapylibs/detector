@@ -46,7 +46,9 @@
 
 from yacs.config import CfgNode
 from dataclasses import dataclass
+
 import numpy as np
+import h5py
 
 from detector.inImage import inImage
 
@@ -116,9 +118,9 @@ class CfgSGM(CfgNode):
   #
   @staticmethod
   def builtForDepth435():
-    depth_dict = dict(tauSigma = 1.0, minSigma = [0.0004], alpha = 0.05, \
+    depth_dict = dict(tauSigma = 2.0, minSigma = [0.00009], alpha = 0.05, \
                         adaptall = False,
-                        init = dict( sigma = [0.0002] , imsize = None)  )
+                        init = dict( sigma = [0.0001] , imsize = None)  )
     learnCfg = CfgSGM(depth_dict);
     return learnCfg
 

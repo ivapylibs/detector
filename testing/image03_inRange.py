@@ -1,8 +1,7 @@
 #!/usr/bin/python
 #============================ image03_inRange ============================
 #
-# @brief    Code to test out the simple image detector for a fairly
-#           contrived scenario: threshold a grayscale image.
+# @brief    In image detector with improcessor using OpenCV inRange on fake image.
 #
 # Upgrades earlier test scripts to use a depth image plus upper and lower
 # depth limits to establish a detection depth zone. The "depth image" here

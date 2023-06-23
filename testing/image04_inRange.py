@@ -1,10 +1,11 @@
 #!/usr/bin/python
 #============================ image04_inRange ============================
 #
-# @brief    Code to test out the simple image detector for a fairly
-#           contrived scenario: threshold a grayscale image. The depth image
-#           is from a depth sensor and saved to a .npz file. We put the
-#           preprocesing code in the testing file for now.
+# @brief    inImage detector using OpenCV inRange with stored depth data.
+#
+#
+# Test out the in image detector for a depth image saved from a depth sensor
+# and saved to a .npz file. The preprocesing code is the testing file.
 #
 #
 #============================ image04_inRange ============================

@@ -6,7 +6,8 @@ import detector.bgmodel.inCorner as bgdet
 
 if __name__=='__main__':
     #filename = 'data/workspace_no_pieces_Color.png'
-    filename = 'data/workspace_with_pieces_dinosaur_02.png'
+    filename = 'data/workspace_with_pieces_dinosaur_Color.png'
+    #filename = 'data/workspace_with_pieces_dinosaur_02.png'
     #filename = 'workspace_arm_no_pieces_Color_Color.png'
     #filename = 'data/workspace_with_arm_pieces_dinosaur_Color_Color.png'
     #filename = 'data/img.png'

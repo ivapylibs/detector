@@ -99,7 +99,7 @@ while(True):
 
     fgIm = cv2.cvtColor(fgS.fgIm.astype(np.uint8)*255, cv2.COLOR_GRAY2BGR)
 
-    display.display_rgb_cv(fgIm, ratio=0.5, \
+    display.rgb_cv(fgIm, ratio=0.5, \
                    window_name="Output. Press \'q\' to move on.")
 
     opKey = cv2.waitKey(1)
@@ -128,7 +128,7 @@ while(True):
 
     fgIm = cv2.cvtColor(fgS.fgIm.astype(np.uint8)*255, cv2.COLOR_GRAY2BGR)
 
-    display.display_rgb_cv(fgIm, ratio=0.5, \
+    display.rgb_cv(fgIm, ratio=0.5, \
                    window_name="Camera signals. Press \'q\' to exit")
 
     opKey = cv2.waitKey(1)

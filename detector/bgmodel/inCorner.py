@@ -24,6 +24,8 @@
 #============================ detector.fgmodel.inCorner ============================
 
 import numpy as np
+import h5py
+
 from detector.inImage import inImage
 
 # Struct for tModel
@@ -63,9 +65,33 @@ class PlanarModel(SurfaceCutModel):
 
 
     def adjustThreshold(self, ntau):
-        self.tau = ntau
-        self._genLambdaFunctions()
+        if (np.isscalar(ntau)):
+            self.tau = ntau
+        else:
+            if (self.vectorize):
+                self.tau = np.array(ntau).reshape(-1,1).T
+            else:
+                self.tau = ntau
 
+        self._genLambdaFunctions()
+    
+    def offsetThreshold(self, dtau):
+      self.tau = self.tau + dtau
+
+    #=============================== saveTo ==============================
+    #
+    def saveTo(self, fPtr):    # Save given HDF5 pointer. Puts in root.
+      gds = fPtr.create_group("PlanarModel")
+      print("Creating group: PlanarModel")
+
+      gds.create_dataset("n", data=self.n)
+      gds.create_dataset("d", data=self.d)
+      gds.create_dataset("tau", data=self.tau)
+      print("Size of tau")
+      print(np.size(self.tau))
+      gds.create_dataset("vectorize", data=self.vectorize)
+
+  
     @staticmethod
     def build_model(n, d, tau, isVectorized=True):
         '''!
@@ -81,6 +107,31 @@ class PlanarModel(SurfaceCutModel):
         theModel = PlanarModel(n, d, tau, isVectorized)
 
         return theModel
+
+    #=============================== loadFrom ==============================
+    #
+    @staticmethod
+    def loadFrom(fptr):
+        # IAMHERE - [_] Work on getting basic load function.
+        #           [_] Confirm recovery of core information.
+        #           [_] Next step is to create an instance from the info.
+        #           [_] Final step is to run and demonstrate correct loading.
+        #
+        gptr = fptr.get("PlanarModel")
+  
+        nPtr = gptr.get("n")
+        dPtr = gptr.get("d")
+        tPtr = gptr.get("tau")
+        vPtr = gptr.get("vectorize")
+
+        n = np.array(nPtr)
+        d = np.array(dPtr)
+        tau = np.array(tPtr)
+        vectorize = np.array("vectorize", dtype=np.bool_)
+
+        theModel = PlanarModel(n, d, tau, vectorize)
+        return theModel
+  
 
 # @todo This code is out of date.  Needs to look like the PlanarModel code. 
 class SphericalModel(SurfaceCutModel):
@@ -119,9 +170,12 @@ class SphericalModel(SurfaceCutModel):
         return theModel
 
 
+#
+#-----------------------------------------------------------------------------------
 #===================================== inCorner ====================================
+#-----------------------------------------------------------------------------------
 #
-#
+
 class inCorner(inImage):
 
     #================================ inCorner ===============================
@@ -169,7 +223,6 @@ class inCorner(inImage):
 
         @param[in]  pCutModel   Background planar cut model instance.
         '''
-
         self.bgModel = pCutModel
 
 
@@ -202,7 +255,7 @@ class inCorner(inImage):
         @brief  Run classifier scoring computation and return value. 
 
         @param[in]  I   Image to test on.
-        @param[out] mI  The marging values (as an image/2D array).
+        @param[out] mI  The margin values (as an image/2D array).
         '''
         if self.processor:
             pI = self.processor.apply(I)
@@ -217,6 +270,7 @@ class inCorner(inImage):
             mI    = self.bgModel.margin(pI)
 
         return mI
+
 
     #========================== build_model_blackBG ==========================
     #
@@ -305,6 +359,119 @@ class inCorner(inImage):
      
         pass
         # @todo To be coded up.
+
+    #================================ load ===============================
+    #
+    @staticmethod
+    def load(fileName):
+        fptr = h5py.File(fileName,"r")
+
+        gptr = fptr.get("bgmodel.inCorner")
+  
+        bgModel = None
+        for name in gptr:
+          if   (name == 'PlanarModel'):
+              bgModel = PlanarModel.loadFrom(gptr)
+          elif (name == 'SphericalModel'):
+              bgModel = SphericalModel.loadFrom(gptr)
+  
+        theDetector = inCorner()
+        if (bgModel is None):
+            print("Uh-oh: No background inCorner model found to load.")
+        else:
+            theDetector.set_model(bgModel)
+
+        return theDetector
+  
+
+#
+#-----------------------------------------------------------------------------------
+#================================ inCornerEstimator ================================
+#-----------------------------------------------------------------------------------
+#
+class inCornerEstimator(inCorner):
+
+    def __init__(self, processor = None, bgMod = None):
+
+      super(inCornerEstimator,self).__init__(processor, bgMod) 
+
+      self.mI           = None
+      self.maxMargin    = None
+
+    #============================= estimate_clear ============================
+    #
+    def estimate_clear(self):
+
+        self.maxMargin = None
+
+    #================================ measure ================================
+    #
+    def measure(self, I):
+        '''!
+        @brief  Apply the appearance-based margin calculator to image.
+
+        Computes the margin for the image provided.  If the measurements are to 
+        be used for updating the model, then the full process is needed since it
+        includes the model adaptation.
+
+        @param[in]  I   Image to test on.
+        '''
+        super().measure(I)
+        self.mI = self.calc_margin(I)
+
+
+    #================================= adapt =================================
+    #
+    #
+    def adapt(self):
+
+        if (self.maxMargin is None):
+            self.maxMargin = self.mI
+        else:
+            self.maxMargin = np.maximum(self.maxMargin, self.mI)
+
+    #======================== apply_estimated_margins ========================
+    #
+    def apply_estimated_margins(self):
+
+        self.bgModel.adjustThreshold(self.bgModel.tau + self.maxMargin)
+
+
+
+    #================================== info =================================
+    #
+    def info(self):
+      #tinfo.name = mfilename;
+      #tinfo.version = '0.1;';
+      #tinfo.date = datestr(now,'yyyy/mm/dd');
+      #tinfo.time = datestr(now,'HH:MM:SS');
+      #tinfo.trackparms = bgp;
+      pass
+  
+    #=============================== saveTo ==============================
+    #
+    def saveTo(self, fPtr):    # Save given HDF5 pointer. Puts in root.
+      gds = fPtr.create_group("bgmodel.inCorner")
+      print("Creating group: bgmodel.inCorner")
+  
+      self.bgModel.saveTo(gds)
+
+      #DELETE IF NOT NEEDED.
+      #configStr = self.config.dump()
+      #wsds.create_dataset("configuration", data=configStr)
+  
+
+    ##============================== saveCfg ============================== 
+    ##
+    #def saveCfG(self, outFile): # Save to YAML file.
+    #  '''!
+    #  @brief  Save current instance to a configuration file.
+    #  '''
+    #  with open(outFile,'w') as file:
+    #    file.write(self.config.dump())
+    #    file.close()
+
+
 
 #
 #============================ detector.fgmodel.inCorner ============================

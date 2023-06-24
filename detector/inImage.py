@@ -67,7 +67,7 @@ class inImage(object):
     self.adapt()
 
   def getState(self):
-    state = detectorState(self.Ip)
+    state = detectorState(x=self.Ip)
     return state
 
   #================================ save ===============================

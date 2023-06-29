@@ -26,6 +26,7 @@
 import numpy as np
 import h5py
 
+from yacs.config import CfgNode
 from detector.inImage import inImage
 
 # Struct for tModel
@@ -168,6 +169,54 @@ class SphericalModel(SurfaceCutModel):
         theModel.vectorize = isVectorized
 
         return theModel
+
+
+#
+#-----------------------------------------------------------------------------------
+#================================== Configuration ==================================
+#-----------------------------------------------------------------------------------
+#
+
+class CfgInCorner(CfgNode):
+  '''!
+  @brief  Configuration setting specifier for Gaussian workspace model.
+  '''
+  #============================= __init__ ============================
+  #
+  '''!
+  @brief        Constructor of configuration instance.
+
+  @param[in]    cfg_files   List of config files to load to merge settings.
+  '''
+  def __init__(self, new_allowed=True):
+
+    init_dict = CfgInCorner.get_default_settings()
+
+    super().__init__(init_dict, key_list, new_allowed)
+
+    # self.merge_from_lists(XX)
+
+  #========================= get_default_settings ========================
+  #
+  # @brief    Recover the default settings in a dictionary.
+  #
+  @staticmethod
+  def get_default_settings():
+    '''!
+    @brief  Defines most basic, default settings for RealSense D435.
+
+    @param[out] default_dict  Dictionary populated with minimal set of
+                              default settings.
+    '''
+
+    default_dict = dict(cutModel = 'Planar', 
+                        cutParmsPlanar    = dict(n = -[0.57735, 0.57735, 0.57735], 
+                                                 d = -70.0),
+                        cutParmsSpherical = dict(c = [0.0, 0.0, 0.0], r = 80.0), 
+                        isVectorized = true,
+                        tau = 0.0) 
+
+    return default_dict
 
 
 #

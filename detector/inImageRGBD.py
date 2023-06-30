@@ -41,7 +41,7 @@ class inImageRGBD(inImage):
   #
   def __init__(self, processor=None):
 
-    super(inImage,self).__init__(processor)
+    super(inImageRGBD,self).__init__(processor)
 
     self.Id = None
 

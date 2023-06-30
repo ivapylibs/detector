@@ -48,11 +48,11 @@
 #
 #================================ Gaussian ===============================
 
-from yacs.config import CfgNode
 from dataclasses import dataclass
 import numpy as np
 
 from detector.inImage import inImage
+from detector.Configuration import AlgConfig
 
 @dataclass
 class SGMstate:
@@ -70,7 +70,7 @@ class SGMdebug:
 #-------------------------------------------------------------------------
 #
 
-class CfgSGT(CfgNode):
+class CfgSGT(AlgConfig):
   '''!
   @brief  Configuration setting specifier for Gaussian BG model.
 
@@ -508,11 +508,11 @@ class Gaussian(inImage):
       file.close()
 
 
-  #=========================== loadFromConfig ==========================
+  #=========================== loadFromYAML ==========================
   #
   #
   @staticmethod
-  def loadFromConfig(fileName):
+  def loadFromYAML(fileName):
     '''!
     @brief  Instantiate from stored configuration file (YAML).
     '''
@@ -520,6 +520,18 @@ class Gaussian(inImage):
     theSetup = CfgSGT()
     theSetup.merge_from_file(fileName)
     fgDetector = Gaussian(theSetup)
+    return fgDetector
+
+  #=========================== buildFromCfg ==========================
+  #
+  #
+  @staticmethod
+  def buildFromCfg(theConfig):
+    '''!
+    @brief  Instantiate from stored configuration file (YAML).
+    '''
+
+    fgDetector = Gaussian(theConfig)
     return fgDetector
 
 # DELETE AT SOME POINT. HAS NO FUNCTION.

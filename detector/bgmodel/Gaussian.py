@@ -44,13 +44,13 @@
 #
 #================================ Gaussian ===============================
 
-from yacs.config import CfgNode
-from dataclasses import dataclass
 
+from dataclasses import dataclass
 import numpy as np
 import h5py
 
 from detector.inImage import inImage
+from detector.Configuration import AlgConfig
 
 @dataclass
 class SGMstate:
@@ -63,7 +63,7 @@ class SGMdebug:
   errIm : np.ndarray
 
 
-class CfgSGM(CfgNode):
+class CfgSGM(AlgConfig):
   '''!
   @brief  Configuration setting specifier for Gaussian BG model.
 
@@ -81,7 +81,16 @@ class CfgSGM(CfgNode):
     if (init_dict == None):
       init_dict = CfgSGM.get_default_settings()
 
-    super().__init__(init_dict, key_list, new_allowed)
+    super(CfgSGM,self).__init__(init_dict, key_list, new_allowed)
+
+    #print('Test out:')
+    #print(self)
+    #print(dict(self))
+    #print(self.dump())
+    #cpy = CfgNode()
+    #cpy.deepcopy(self)
+    #print(convert_to_dict(cpy))
+    #print('--------')
 
     # self.merge_from_lists(XX)
 
@@ -151,8 +160,10 @@ class Gaussian(inImage):
     # Last measurement.
     self.measI = None
 
-    # Background model.
+    #== Background model.
     # If background model passed in, set it.
+    # Otherwise set to none.  If model is given in the configuration,
+    # then it will be set during _setsize_ invocation.
     #
     if bgMod is not None:
       self.mu    = bgMod.mu
@@ -210,6 +221,10 @@ class Gaussian(inImage):
 
     if (self.sigma is None):
       self.sigma = np.full( bigShape , self.config.init.sigma )
+
+    #if (self.mu is None) && (self.config.init.mu is not None):
+    #  self.mu = np.full( bigShape, self.config.init.mu)
+    #  NOT IMPLEMENTED.  NEED TO THINK IT THROUGH.
   
   #============================== predict ==============================
   #

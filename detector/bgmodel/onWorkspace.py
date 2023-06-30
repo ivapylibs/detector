@@ -43,13 +43,14 @@
 #============================== onWorkspace ==============================
 
 from enum import Enum
-from yacs.config import CfgNode
 from dataclasses import dataclass
-from detector.inImage import inImage
-import detector.bgmodel.Gaussian as SGM
 
 import numpy as np
 import h5py
+
+from detector.inImage import inImage
+import detector.bgmodel.Gaussian as SGM
+
 
 class RunState(Enum):
   ESTIMATE = 1
@@ -69,7 +70,7 @@ class CfgOnWS(SGM.CfgSGM):
   def __init__(self, init_dict=None, key_list=None, new_allowed=True):
 
     if (init_dict == None):
-      init_dict = SGM.CfgSGM.get_default_settings()
+      init_dict = CfgOnWS.get_default_settings()
 
     super().__init__(init_dict, key_list, new_allowed)
 
@@ -88,7 +89,7 @@ class CfgOnWS(SGM.CfgSGM):
                               default settings.
     '''
 
-    default_dict = CfgSGM.get_default_settings()
+    default_dict = SGM.CfgSGM.get_default_settings()
     #append_dict  = dict(NOTHING FOR NOW)
     #default_dict.update(append_dict)
 
@@ -383,6 +384,20 @@ class onWorkspace(SGM.Gaussian):
   def loadFrom(fileName):
     pass
 
+  #============================ buildFromCfg ===========================
+  #
+  @staticmethod
+  def buildFromCfg(theConfig, processor=None):
+    '''!
+    @brief  Build an onWorkspace instance from an algorithm configuration node.
+
+    @param[out] bgDet   Instantiated onWorkspace background model detector.
+    '''
+  
+    bgDet = onWorkspace(theConfig, processor)
+    return bgDet
+
+  
 
 #
 #============================== onWorkspace ==============================

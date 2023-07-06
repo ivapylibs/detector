@@ -53,6 +53,7 @@ class PlanarModel(SurfaceCutModel):
       self.margin   = None
       self._genLambdaFunctions()
 
+
   def _genLambdaFunctions(self):
       if (self.d == 0):
         self.classify = lambda c: self.n @ c > self.tau
@@ -88,8 +89,6 @@ class PlanarModel(SurfaceCutModel):
     gds.create_dataset("n", data=self.n)
     gds.create_dataset("d", data=self.d)
     gds.create_dataset("tau", data=self.tau)
-    print("Size of tau")
-    print(np.size(self.tau))
     gds.create_dataset("vectorize", data=self.vectorize)
 
 
@@ -111,7 +110,7 @@ class PlanarModel(SurfaceCutModel):
 
       return theModel
 
-  #============================ buildFromCfg ===========================
+  #====================== PlanarModel/buildFromCfg =====================
   #
   @staticmethod
   def buildFromCfg(theParms, tau = 0, isVectorized = True):
@@ -123,6 +122,7 @@ class PlanarModel(SurfaceCutModel):
 
     pModel = PlanarModel(np.array(theParms.n), np.array(theParms.d),
                                                                 tau, isVectorized)
+    return pModel
 
   #=============================== loadFrom ==============================
   #
@@ -238,8 +238,8 @@ class CfgInCorner(AlgConfig):
     '''
 
     default_dict = dict(cutModel = 'Planar', 
-                        cutParmsPlanar    = dict(n = [-0.57735, -0.57735, -0.57735], 
-                                                 d = -70.0),
+                        cutParmsPlanar    = dict(n = [0.57735, 0.57735, 0.57735], 
+                                                 d = -50.0),
                         cutParmsSpherical = dict(c = [0.0, 0.0, 0.0], r = 80.0), 
                         isVectorized = True,
                         tau = 0.0) 
@@ -461,7 +461,7 @@ class inCorner(inImage):
 
       return theDetector
 
-  #============================ buildFromCfg ===========================
+  #======================= inCorner/buildFromCfg =======================
   #
   @staticmethod
   def buildFromCfg(theConfig, processor=None):

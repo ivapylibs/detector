@@ -95,6 +95,23 @@ class CfgOnWS(SGM.CfgSGM):
 
     return default_dict
 
+  #========================== builtForDepth435 =========================
+  #
+  #
+  @staticmethod
+  def builtForDepth435():
+    '''!
+    @brief  On Workspace model parameters for Realsense 435 mounted
+            a given distance from tabletop, looking down.
+
+    '''
+    depth_dict = dict(tauSigma = 1.0, minSigma = [0.0001], alpha = 0.05, \
+                        adaptall = False,
+                        init = dict( sigma = [0.0010] , imsize = None)  )
+    learnCfg = CfgOnWS(depth_dict);
+    return learnCfg
+
+
 #
 #---------------------------------------------------------------------------
 #=============================== onWorkspace ===============================
@@ -384,7 +401,7 @@ class onWorkspace(SGM.Gaussian):
   def loadFrom(fileName):
     pass
 
-  #============================ buildFromCfg ===========================
+  #====================== onWorkspace/buildFromCfg =====================
   #
   @staticmethod
   def buildFromCfg(theConfig, processor=None):
@@ -394,6 +411,10 @@ class onWorkspace(SGM.Gaussian):
     @param[out] bgDet   Instantiated onWorkspace background model detector.
     '''
   
+    #DEBUG
+    #print('onWorkspace -----')
+    #print(theConfig)
+    #print('onWorkspace #####')
     bgDet = onWorkspace(theConfig, processor)
     return bgDet
 

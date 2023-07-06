@@ -22,17 +22,9 @@ import numpy as np
 
 from dataclasses import dataclass
 from detector.inImage import inImage
+from camera.base import ImageRGBD
 
 import h5py
-
-@dataclass
-class detectorState:
-  x: any = None
-
-@dataclass
-class ImageRGBD:
-  color: any = None
-  depth: any = None
 
 # @classf detector
 class inImageRGBD(inImage):

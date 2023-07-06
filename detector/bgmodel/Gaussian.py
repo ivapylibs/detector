@@ -122,17 +122,6 @@ class CfgSGM(AlgConfig):
     learnCfg.minSigma = [4.0]
     return learnCfg
 
-  #========================== builtForDepth435 =========================
-  #
-  #
-  @staticmethod
-  def builtForDepth435():
-    depth_dict = dict(tauSigma = 2.0, minSigma = [0.00009], alpha = 0.05, \
-                        adaptall = False,
-                        init = dict( sigma = [0.0001] , imsize = None)  )
-    learnCfg = CfgSGM(depth_dict);
-    return learnCfg
-
 #================================ Gaussian ===============================
 
 class Gaussian(inImage):

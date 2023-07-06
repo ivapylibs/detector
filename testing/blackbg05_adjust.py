@@ -82,9 +82,17 @@ if loadConfig:
 else:
     print('Using current camera configuration')
 
-bgModel = bgdet.inCorner.build_model_blackBG(-70, 0)
-bgDetector = bgdet.inCorner()
-bgDetector.set_model(bgModel)
+#bgModel = bgdet.inCorner.build_model_blackBG(-70, 0)
+#bgDetector = bgdet.inCorner()
+#bgDetector.set_model(bgModel)
+
+blackModelConfig = bgdet.CfgInCorner()
+bgDetector = bgdet.inCorner.buildFromCfg(blackModelConfig)
+bgModel = bgDetector.bgModel
+
+print(bgModel.n)
+print(bgModel.d)
+print(bgModel.tau)
 
 # Start streaming
 pipeline.start(config)

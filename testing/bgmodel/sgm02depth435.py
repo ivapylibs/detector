@@ -1,5 +1,5 @@
 #!/usr/bin/python
-#=============================== test02_align ==============================
+#============================== sgm02depth435 ==============================
 """
 @brief          More advanced setup of D435 camera from stored JSON settings.
 
@@ -7,12 +7,12 @@ Expands on the test01 implementation by permitting the loading of setting
 information from a YAML file with an option JSON file for more detailed D435
 settings (as obtained from the realsense_viewer application).
 """
-#=============================== test02_align ==============================
+#============================== sgm02depth435 ==============================
 #
 # @author         Patricio A. Vela,       pvela@gatech.edu
 # @date           2023/05/26              [created]
 #
-#=============================== test02_align ==============================
+#============================== sgm02depth435 ==============================
 
 import cv2
 import camera.utils.display as display
@@ -74,4 +74,4 @@ while(True):
         break
 
 #
-#=============================== test02_align ==============================
+#============================== sgm02depth435 ==============================

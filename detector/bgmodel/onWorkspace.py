@@ -47,6 +47,9 @@ from dataclasses import dataclass
 
 import numpy as np
 import h5py
+import cv2
+
+import camera.utils.display as display
 
 from detector.inImage import inImage
 import detector.bgmodel.Gaussian as SGM
@@ -105,9 +108,9 @@ class CfgOnWS(SGM.CfgSGM):
             a given distance from tabletop, looking down.
 
     '''
-    depth_dict = dict(tauSigma = 1.0, minSigma = [0.0001], alpha = 0.05, \
+    depth_dict = dict(tauSigma = 1.5, minSigma = [0.0001], alpha = 0.05, \
                         adaptall = False,
-                        init = dict( sigma = [0.0010] , imsize = None)  )
+                        init = dict( sigma = [0.0010] , imsize = [])  )
     learnCfg = CfgOnWS(depth_dict);
     return learnCfg
 
@@ -166,7 +169,7 @@ class onWorkspace(SGM.Gaussian):
     if self.improcessor is not None: 
       I = self.improcessor.pre(I)
     
-    if self.imsize is None:
+    if (self.imsize is None) or (len(self.imsize) == 0):
         self._setsize_(np.array(np.shape(I)))
 
     self.measI = np.array(I, dtype=float, copy=True)
@@ -359,6 +362,49 @@ class onWorkspace(SGM.Gaussian):
     configStr = self.config.dump()
     wsds.create_dataset("configuration", data=configStr)
 
+  #
+  #---------------------------------------------------------------------
+  #====================== Static Member Functions ======================
+  #---------------------------------------------------------------------
+  #
+
+  #==================== buildAndCalibrateFromConfig ====================
+  #
+  # @brief  build and calibrate onWorkspace model from an initial config 
+  #         and a camera class streaming camera. Return instantiated and 
+  #         calibrated model.
+  #         
+  # The stream is presumed to be a depth + color stream as obtained from
+  # a Realsense camera.  Code is not as generic as could be.
+  #
+  # @todo   Modify to be a bit more generic.
+  #
+  @staticmethod
+  def buildAndCalibrateFromConfig(theConfig, theStream, incVis = False):
+
+    bgModel = onWorkspace( theConfig )
+ 
+    while(True):
+      rgb, dep, success = theStream.get_frames()
+      if not success:
+        print("Cannot get the camera signals. Exiting...")
+        exit()
+
+      bgModel.process(dep)
+
+      if (incVis):
+        bgS = bgModel.getState()
+        bgD = bgModel.getDebug()
+
+        bgIm = cv2.cvtColor(bgS.bgIm.astype(np.uint8)*255, cv2.COLOR_GRAY2BGR)
+        display.rgb_depth_cv(bgIm, bgD.mu, ratio=0.25, window_name="RGB+Depth")
+
+      opKey = cv2.waitKey(1)
+      if opKey == ord('q'):
+        break
+
+    return bgModel
+
 
 
   #================================ load ===============================
@@ -386,10 +432,7 @@ class onWorkspace(SGM.Gaussian):
 
     fptr.close()
 
-    configCfg = CfgOnWS.load_cfg(configStr)
-
-    theConfig = CfgOnWS()
-    theConfig.merge_from_other_cfg(configCfg)
+    theConfig = CfgOnWS.load_cfg(configStr)
 
     theModel = onWorkspace(theConfig, None, bgMod)
 

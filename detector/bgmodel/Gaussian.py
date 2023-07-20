@@ -109,7 +109,7 @@ class CfgSGM(AlgConfig):
 
     default_dict = dict(tauSigma = 3.5, minSigma = [50.0], alpha = 0.05, \
                         adaptall = False,
-                        init = dict( sigma = [20.0] , imsize = None)  )
+                        init = dict( sigma = [20.0] , imsize = [])  )
     return default_dict
 
   #========================== builtForLearning =========================
@@ -170,7 +170,7 @@ class Gaussian(inImage):
 
     # Image dimensions
     self.imsize = None
-    if (self.config.init.imsize is not None):
+    if (self.config.init.imsize is not None) and (len(self.config.init.imsize) > 0):
       self._setsize_(self.config.init.imsize)
 
     # Check for image processor routine.
@@ -459,10 +459,12 @@ class Gaussian(inImage):
 
     fptr.close()
 
-    configCfg = CfgSGM.load_cfg(configStr)
+    theConfig = CfgSGM.load_cfg(configStr)
 
-    theConfig = CfgSGM()
-    theConfig.merge_from_other_cfg(configCfg)
+    #Above line was configCfg but found that gets loaded as proper class.
+    #@todo Delete the lines below once known to work. onWorkspace verified.
+    #theConfig = CfgSGM()
+    #theConfig.merge_from_other_cfg(configCfg)
 
     theModel = Gaussian(theConfig, None, bgMod)
 

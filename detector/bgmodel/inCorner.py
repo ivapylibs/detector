@@ -30,6 +30,9 @@ import cv2
 
 import camera.utils.display as display
 
+from skimage import measure
+from skimage import morphology
+
 from detector.Configuration import AlgConfig
 from detector.inImage import inImage
 
@@ -555,7 +558,7 @@ class inCornerEstimator(inCorner):
     self.bgModel.adjustThreshold(self.bgModel.tau + self.maxMargin)
 
 
-  #============================ calibrateFromRGB ===========================
+  #========================= calibrateFromRGBStream ========================
   #
   # @brief  Calibrate model using a camera class RGB stream. Return calibrated
   #         model.
@@ -565,7 +568,7 @@ class inCornerEstimator(inCorner):
   #
   # @todo   Confirm and correct as needed.
   #
-  def calibrateFromRGBD(self, theStream, incVis = False):
+  def calibrateFromRGBDStream(self, theStream, incVis = False):
 
     while(True):
       rgb, success = theStream.get_frame()
@@ -586,9 +589,9 @@ class inCornerEstimator(inCorner):
     self.apply_estimated_margins()
 
 
-  #=========================== calibrateFromRGBD ===========================
+  #========================== refineFromRGBDStream =========================
   #
-  # @brief  Calibrate model using a camera class RGBD stream. Return calibrated
+  # @brief  Refine model using a camera class RGBD stream. Return calibrated
   #         model.
   #         
   # The stream is presumed to be a depth + color stream as obtained from
@@ -597,7 +600,7 @@ class inCornerEstimator(inCorner):
   #
   # @todo   Modify to be a bit more generic.
   #
-  def calibrateFromRGBD(self, theStream, incVis = False):
+  def refineFromRGBDStream(self, theStream, incVis = False):
 
     while(True):
       rgb, dep, success = theStream.get_frames()
@@ -615,8 +618,67 @@ class inCornerEstimator(inCorner):
       if opKey == ord('q'):
         break
 
+  #======================== calibrateFromRGBDStream ========================
+  #
+  # @brief  Calibrate model using a camera class RGBD stream. Return calibrated
+  #         model.
+  #         
+  # The stream is presumed to be a depth + color stream as obtained from
+  # a Realsense camera but only the color stream is processed.  Code is 
+  # not as generic as it could be.
+  #
+  # @todo   Modify to be a bit more generic.
+  #
+  def calibrateFromRGBDStream(self, theStream, incVis = False):
+
+    self.refineFromRGBDStream(theStream, incVis);
     self.apply_estimated_margins()
 
+  #======================== maskRegionFromRGBDStream =======================
+  #
+  # @brief  Use model parameters and iamge stream to recover largest background
+  #         region in image.  That will generate the mask.
+  #
+  def maskRegionFromRGBDStream(self, theStream, incVis = False):
+
+    roiIntersect = None
+
+    while(True):
+      rgb, dep, success = theStream.get_frames()
+      if not success:
+        print("Cannot get the camera signals. Exiting...")
+        exit()
+
+      self.process(rgb)
+
+      #-- Below is code that attempts to recover largest background
+      #     region.  Performs some logic to remove inconsistent
+      #     detections at the pixel level.
+      #
+      bgmask = self.getState()
+
+      bglabeled = measure.label(bgmask.x, connectivity=2)
+      bgprops   = measure.regionprops_table(bglabeled, properties=['label','area'])
+
+      bigl  = np.argmax(bgprops['area'])
+      bgroi = (bglabeled == bgprops['label'][bigl])
+
+      if roiIntersect is None:
+        roiIntersect = bgroi
+      else:
+        roiIntersect = np.logical_and(roiIntersect, bgroi)
+
+      if (incVis):
+        bgM = cv2.cvtColor(255-roiIntersect.astype(np.uint8)*255, cv2.COLOR_GRAY2BGR)
+        fgI = cv2.bitwise_and(rgb, bgM)
+
+        display.rgb_binary_cv(fgI, roiIntersect, ratio=0.25, window_name="Region Mask")
+
+      opKey = cv2.waitKey(1)
+      if opKey == ord('q'):
+        break
+      
+    return roiIntersect
 
   #================================== info =================================
   #

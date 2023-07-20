@@ -1,4 +1,5 @@
 #!/usr/bin/python
+#================================= blackbg10_region ================================
 #================================ blackbg06_margins ================================
 '''!
 @brief  Use Realsense API to collect background classifier margin values across
@@ -30,11 +31,11 @@ During running it stores distance/error values observed and keeps track of max v
 Hit "q" to quit.
 
 '''
-#================================ blackbg06_margins ================================
+#================================= blackbg10_region ================================
 '''!
 
 @author Patricio A. Vela,   pvela@gatech.edu
-@date   2023/04/21
+@date   2023/07/20
 
 '''
 # NOTE: Formatted for 100 column view. Using 4 space indent.
@@ -66,29 +67,30 @@ bgModel = bgdet.inCorner.build_model_blackBG(-70, 0)
 
 bgDetector = bgdet.inCornerEstimator()
 bgDetector.set_model(bgModel)
-bgDetector.calibrateFromRGBDStream(theStream, True)
-bgDetector.bgModel.offsetThreshold(35)
 
-bgDetector.save("blackbg09.hdf5")
+print("Running detector for a bit. Hit 'q' to move on.")
+bgDetector.refineFromRGBDStream(theStream, True)
 
 
-bgDetector = None
-bgDetector = bgdet.inCorner.load("blackbg09.hdf5")
+print("Estimating ROI mask. Hit 'q' to move on.")
+theMask = bgDetector.maskRegionFromRGBDStream(theStream, True)
 
+
+print("Testing out ROI mask. Hit 'q' to move on.")
 while(True):
-    rgb, dep, success = theStream.get_frames()
-    if not success:
-        print("Cannot get the camera signals. Exiting...")
-        exit()
+  rgb, dep, success = theStream.get_frames()
+  if not success:
+    print("Cannot get the camera signals. Exiting...")
+    exit()
 
-    bgDetector.process(rgb)
-    bgmask = bgDetector.getState()
+  bgDetector.process(rgb)
+  bgmask = bgDetector.getState()
 
-    display.rgb_binary_cv(rgb, bgmask.x, ratio=0.5, window_name="RGB+Mask")
+  display.rgb_binary_cv(rgb, theMask & bgmask.x, ratio=0.5, window_name="RGB+Mask")
 
-    opKey = cv2.waitKey(1)
-    if opKey == ord('q'):
-        break
+  opKey = cv2.waitKey(1)
+  if opKey == ord('q'):
+    break
 
 #
-#================================ blackbg06_margins ================================
+#================================= blackbg10_region ================================

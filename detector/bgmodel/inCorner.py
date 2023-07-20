@@ -26,6 +26,10 @@
 import numpy as np
 import h5py
 
+import cv2
+
+import camera.utils.display as display
+
 from detector.Configuration import AlgConfig
 from detector.inImage import inImage
 
@@ -350,6 +354,13 @@ class inCorner(inImage):
       return mI
 
 
+  #
+  #---------------------------------------------------------------------------
+  #========================= Static Member Functions =========================
+  #---------------------------------------------------------------------------
+  #
+
+
   #========================== build_model_blackBG ==========================
   #
   @staticmethod
@@ -544,6 +555,68 @@ class inCornerEstimator(inCorner):
     self.bgModel.adjustThreshold(self.bgModel.tau + self.maxMargin)
 
 
+  #============================ calibrateFromRGB ===========================
+  #
+  # @brief  Calibrate model using a camera class RGB stream. Return calibrated
+  #         model.
+  #         
+  # The stream is presumed to be a color stream only.  Code is presumed to
+  # work but not confirmed.
+  #
+  # @todo   Confirm and correct as needed.
+  #
+  def calibrateFromRGBD(self, theStream, incVis = False):
+
+    while(True):
+      rgb, success = theStream.get_frame()
+      if not success:
+        print("Cannot get the camera signals. Exiting...")
+        exit()
+
+      self.process(rgb)
+
+      if (incVis):
+        bgmask = self.getState()
+        display.rgb_binary_cv(rgb, bgmask.x, ratio=0.5, window_name="RGB+Mask")
+
+      opKey = cv2.waitKey(1)
+      if opKey == ord('q'):
+        break
+
+    self.apply_estimated_margins()
+
+
+  #=========================== calibrateFromRGBD ===========================
+  #
+  # @brief  Calibrate model using a camera class RGBD stream. Return calibrated
+  #         model.
+  #         
+  # The stream is presumed to be a depth + color stream as obtained from
+  # a Realsense camera but only the color stream is processed.  Code is 
+  # not as generic as it could be.
+  #
+  # @todo   Modify to be a bit more generic.
+  #
+  def calibrateFromRGBD(self, theStream, incVis = False):
+
+    while(True):
+      rgb, dep, success = theStream.get_frames()
+      if not success:
+        print("Cannot get the camera signals. Exiting...")
+        exit()
+
+      self.process(rgb)
+
+      if (incVis):
+        bgmask = self.getState()
+        display.rgb_binary_cv(rgb, bgmask.x, ratio=0.5, window_name="RGB+Mask")
+
+      opKey = cv2.waitKey(1)
+      if opKey == ord('q'):
+        break
+
+    self.apply_estimated_margins()
+
 
   #================================== info =================================
   #
@@ -577,6 +650,52 @@ class inCornerEstimator(inCorner):
   #  with open(outFile,'w') as file:
   #    file.write(self.config.dump())
   #    file.close()
+
+
+  #
+  #---------------------------------------------------------------------
+  #====================== Static Member Functions ======================
+  #---------------------------------------------------------------------
+  #
+
+  #==================== buildAndCalibrateFromConfig ====================
+  #
+  # @brief  build and calibrate onWorkspace model from an initial config 
+  #         and a camera class streaming camera. Return instantiated and 
+  #         calibrated model.
+  #         
+  # The stream is presumed to be a depth + color stream as obtained from
+  # a Realsense camera but only the color stream is processed.  Code is 
+  # not as generic as it could be.
+  #
+  # @todo   Modify to be a bit more generic.
+  #
+  @staticmethod
+  def buildAndCalibrateFromConfig(theConfig, theStream, incVis = False):
+    return
+
+    bgModel = inCornerEstimator( theConfig )
+ 
+    while(True):
+      rgb, dep, success = theStream.get_frames()
+      if not success:
+        print("Cannot get the camera signals. Exiting...")
+        exit()
+
+      bgModel.process(rgb)
+
+      if (incVis):
+        bgS = bgModel.getState()
+
+        bgIm = cv2.cvtColor(bgS.bgIm.astype(np.uint8)*255, cv2.COLOR_GRAY2BGR)
+        display.rgb_cv(bgIm, ratio=0.25, window_name="RGB")
+
+      opKey = cv2.waitKey(1)
+      if opKey == ord('q'):
+        break
+
+    return bgModel
+
 
 
 #

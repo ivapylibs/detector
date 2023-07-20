@@ -433,6 +433,43 @@ class Gaussian(inImage):
       file.write(self.config.dump())
       file.close()
 
+  #==================== buildAndCalibrateFromConfig ====================
+  #
+  # @brief  build and calibrate onWorkspace model from an initial config 
+  #         and a camera class streaming camera. Return instantiated and 
+  #         calibrated model.
+  #         
+  # The stream is presumed to be a depth + color stream as obtained from
+  # a Realsense camera.  Code is not as generic as could be.
+  #
+  # @todo   Modify to be a bit more generic.
+  #
+  @staticmethod
+  def buildAndCalibrateFromConfig(theConfig, theStream, incVis = False):
+
+    bgModel = Gaussian( theConfig )
+ 
+    while(True):
+      rgb, dep, success = theStream.get_frames()
+      if not success:
+        print("Cannot get the camera signals. Exiting...")
+        exit()
+
+      bgModel.process(rgb)
+
+      if (incVis):
+        bgS = bgModel.getState()
+        bgD = bgModel.getDebug()
+
+        bgIm = cv2.cvtColor(bgS.bgIm.astype(np.uint8)*255, cv2.COLOR_GRAY2BGR)
+        display.rgb_depth_cv(bgIm, bgD.mu, ratio=0.25, window_name="RGB+Depth")
+
+      opKey = cv2.waitKey(1)
+      if opKey == ord('q'):
+        break
+
+    return bgModel
+
 
   #================================ load ===============================
   #

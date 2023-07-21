@@ -467,7 +467,8 @@ class Gaussian(inImage):
       opKey = cv2.waitKey(1)
       if opKey == ord('q'):
         break
-
+   
+    display.close_cv("RGB+Depth")
     return bgModel
 
 

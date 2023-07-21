@@ -382,6 +382,11 @@ class onWorkspace(SGM.Gaussian):
   @staticmethod
   def buildAndCalibrateFromConfig(theConfig, theStream, incVis = False):
 
+    print('STEP: \n\t Make sure workspace is empty.')
+    print('\t Hit any key to continue once scene is prepped.')
+    print('\t Hit "q" to stop adaptation process. Should be short.')
+    opKey = cv2.waitKey(0)
+
     bgModel = onWorkspace( theConfig )
  
     while(True):
@@ -403,6 +408,7 @@ class onWorkspace(SGM.Gaussian):
       if opKey == ord('q'):
         break
 
+    display.close_cv("RGB+Depth")
     return bgModel
 
 

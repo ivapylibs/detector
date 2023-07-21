@@ -756,6 +756,7 @@ class inCornerEstimator(inCorner):
       if opKey == ord('q'):
         break
 
+    display.close_cv("RGB")
     return bgModel
 
 

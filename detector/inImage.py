@@ -70,6 +70,13 @@ class inImage(object):
     state = detectorState(x=self.Ip)
     return state
 
+  #=============================== saveTo ==============================
+  #
+  def saveTo(self, fPtr):    # Save given HDF5 pointer. Puts in root.
+    # Not sure what goes here.  Leaving empty.
+    # Maybe eventually save the info strings / structure / dict.
+    pass
+
   #================================ save ===============================
   #
   def save(self, fileName):    # Save given file.

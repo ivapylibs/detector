@@ -476,13 +476,14 @@ class Gaussian(inImage):
   #
   @staticmethod
   def load(fileName):
-    # IAMHERE - [X] Very close to having the load work.
-    #           [X] Right now just confirmed recovery of core information.
-    #           [X] Next step is to create an onWorkspace instance from the info.
-    #           [_] Final step is to run and demonstrate correct loading.
-    #
     fptr = h5py.File(fileName,"r")
+    theModel = Gaussian.loadFrom(fptr)
 
+
+  #============================== loadFrom =============================
+  #
+  @staticmethod
+  def loadFrom(fPtr):
     gptr = fptr.get("bgmodel.Gaussian")
 
     muPtr    = gptr.get("mu")
@@ -507,14 +508,6 @@ class Gaussian(inImage):
     theModel = Gaussian(theConfig, None, bgMod)
 
     return theModel
-
-
-  #============================== loadFrom =============================
-  #
-  @staticmethod
-  def loadFrom(fileName):
-    pass
-
 
 #
 #================================ Gaussian ===============================

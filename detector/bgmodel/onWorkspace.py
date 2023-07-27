@@ -382,10 +382,11 @@ class onWorkspace(SGM.Gaussian):
   @staticmethod
   def buildAndCalibrateFromConfig(theConfig, theStream, incVis = False):
 
-    print('STEP: \n\t Make sure workspace is empty.')
-    print('\t Hit any key to continue once scene is prepped.')
-    print('\t Hit "q" to stop adaptation process. Should be short.')
-    opKey = cv2.waitKey(0)
+    print('\n STEPS to calibrate onWorkspace.')
+    print('\t [1] Make sure workspace is empty.')
+    print('\t [2] Hit enter to continue once scene is prepped.')
+    print('\t [3] Hit "q" to stop adaptation process. Should be short.')
+    input()
 
     bgModel = onWorkspace( theConfig )
  
@@ -417,13 +418,17 @@ class onWorkspace(SGM.Gaussian):
   #
   @staticmethod
   def load(fileName):
-    # IAMHERE - [X] Very close to having the load work.
-    #           [X] Right now just confirmed recovery of core information.
-    #           [X] Next step is to create an onWorkspace instance from the info.
-    #           [_] Final step is to run and demonstrate correct loading.
-    #
-    fptr = h5py.File(fileName,"r")
 
+    fptr = h5py.File(fileName,"r")
+    theModel = onWorkspace.loadFrom(fptr)
+    fptr.close()
+
+    return theModel
+
+  #============================== loadFrom =============================
+  #
+  @staticmethod
+  def loadFrom(fptr):
     gptr = fptr.get("bgmodel.onWorkspace")
 
     muPtr    = gptr.get("mu")
@@ -436,19 +441,11 @@ class onWorkspace(SGM.Gaussian):
     cfgPtr   = gptr.get("configuration")
     configStr = cfgPtr[()].decode()
 
-    fptr.close()
 
     theConfig = CfgOnWS.load_cfg(configStr)
-
-    theModel = onWorkspace(theConfig, None, bgMod)
-
+    theModel  = onWorkspace(theConfig, None, bgMod)
     return theModel
 
-  #============================== loadFrom =============================
-  #
-  @staticmethod
-  def loadFrom(fileName):
-    pass
 
   #====================== onWorkspace/buildFromCfg =====================
   #

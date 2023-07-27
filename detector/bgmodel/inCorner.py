@@ -457,7 +457,14 @@ class inCorner(inImage):
   @staticmethod
   def load(fileName):
       fptr = h5py.File(fileName,"r")
+      theDetector = inCorner.loadFrom(fptr)
+      fptr.close()
+      return theDetector
 
+  #============================== loadFrom =============================
+  #
+  @staticmethod
+  def loadFrom(fptr):
       gptr = fptr.get("bgmodel.inCorner")
 
       bgModel = None
@@ -602,6 +609,12 @@ class inCornerEstimator(inCorner):
   #
   def refineFromRGBDStream(self, theStream, incVis = False):
 
+    print("\nSTEPS to refine color BG model.")
+    print("\t [1] Prep the scene. Usually empty it of foreground objects.")
+    print("\t [2] Hit enter to start estimation process.")
+    print("\t [3] Wait a little then hit 'q' to stop estimation process.")
+    input("")
+
     while(True):
       rgb, dep, success = theStream.get_frames()
       if not success:
@@ -617,6 +630,8 @@ class inCornerEstimator(inCorner):
       opKey = cv2.waitKey(1)
       if opKey == ord('q'):
         break
+
+    display.close_cv("RGB+Mask")
 
   #======================== calibrateFromRGBDStream ========================
   #
@@ -641,8 +656,13 @@ class inCornerEstimator(inCorner):
   #
   def maskRegionFromRGBDStream(self, theStream, incVis = False):
 
-    roiIntersect = None
+    print("\nSTEPS to get largest region as mask.")
+    print("\t [1] Prep the scene by emptying it (usually already empty).")
+    print("\t [2] Hit enter to start mask estimation process.")
+    print("\t [3] Wait a little then hit 'q' to sstop mask estimation process.")
+    input("")
 
+    roiIntersect = None
     while(True):
       rgb, dep, success = theStream.get_frames()
       if not success:
@@ -678,6 +698,7 @@ class inCornerEstimator(inCorner):
       if opKey == ord('q'):
         break
       
+    display.close_cv("Region Mask")
     return roiIntersect
 
   #================================== info =================================

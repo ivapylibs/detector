@@ -56,6 +56,7 @@
 from dataclasses import dataclass
 import numpy as np
 import cv2
+import h5py
 
 from detector.inImage import inImage
 from detector.Configuration import AlgConfig
@@ -378,23 +379,29 @@ class Gaussian(inImage):
 
     if (self.imsize[2] > 1):
       newVals = self.measI[self.fgI,:]
-      newMu   = np.mean(newVals, 0)
-      newSig  = np.var(newVals, 0)
+
+      if (np.size(newVals) > 0):
+        newMu   = np.mean(newVals, 0)
+        newSig  = np.var(newVals, 0)
+
+        self.mu    = self.mu    + self.config.alpha*(newMu - self.mu)
+        self.sigma = self.sigma + self.config.alpha*(newSig - self.sigma)
+
+        # Impose min sigma constraint.
+        np.maximum(self.sigma, self.config.minSigma, out=self.sigma)
+
     else:
       newVals = self.measI[self.fgI]
-      newMu   = np.mean(newVals)
-      newSig  = np.var(newVals)
-     
-    #DEBUG
-    #print(np.size(newVals))
-    #print(np.shape(newVals))
-    #print(np.shape(self.mu))
-    if (np.size(newVals) > 0):
-      self.mu    = self.mu    + self.config.alpha*(newMu - self.mu)
-      self.sigma = self.sigma + self.config.alpha*(newSig - self.sigma)
 
-      # Impose min sigma constraint.
-      np.maximum(self.sigma, self.config.minSigma, out=self.sigma)
+      if (np.size(newVals) > 0):
+        newMu   = np.mean(newVals)
+        newSig  = np.var(newVals)
+     
+        self.mu    = self.mu    + self.config.alpha*(newMu - self.mu)
+        self.sigma = self.sigma + self.config.alpha*(newSig - self.sigma)
+
+        # Impose min sigma constraint.
+        np.maximum(self.sigma, self.config.minSigma, out=self.sigma)
   
     # MOST LIKELY NOT NECESSARY FOR FG MODEL. DELETE SHORTLY.
     #if not self.config.adaptall:                # Revert foreground values.
@@ -496,10 +503,10 @@ class Gaussian(inImage):
   #
   def refineFromRGBDStream(self, theStream, incVis = False):
 
-    print('STEP: \n\t Refine calibrate the red glove model.')
-    print('\t Hit any key to continue once scene is prepped.')
-    print('\t Hit "q" to stop adaptation process. Should be short.')
-    opKey = cv2.waitKey(0)
+    print('STEPS to Refine the Gaussian model.\n')
+    print('\t [1] Hit any key to continue once scene is prepped.\n')
+    print('\t [2] Wait a little. Hit "q" to stop adaptation process. Should be short.\n')
+    input();
   
     while(True):
       rgb, dep, success = theStream.get_frames()
@@ -551,16 +558,10 @@ class Gaussian(inImage):
       display.close_cv("Test")
 
 
-  #
-  #================================ save ===============================
-  #
-  def save(self, fileName):    # Save given file.
-    pass
-
   #=============================== saveTo ==============================
   #
   def saveTo(self, fPtr):    # Save given HDF5 pointer. Puts in root.
-    pass
+    fPtr.create_dataset("ForegroundGaussian", data=self.config.dump())
 
   #============================ saveConfig =============================
   #
@@ -610,13 +611,35 @@ class Gaussian(inImage):
     fgDetector = Gaussian(theConfig)
     return fgDetector
 
-# DELETE AT SOME POINT. HAS NO FUNCTION.
-#  #============================== loadFrom =============================
-#  #
-#  @staticmethod
-#  def loadFrom(fileName):
-#    pass
-#
+  #================================ load ===============================
+  #
+  @staticmethod
+  def load(fileName):
+    fptr = h5py.File(fileName,"r")
+    theModel = Gaussian.loadFrom(fptr)
+    fptr.close()
+    return theModel
+
+
+  #============================== loadFrom =============================
+  #
+  @staticmethod
+  def loadFrom(fPtr):
+    keyList = list(fPtr.keys())
+
+    if ("ForegroundGaussian" in keyList):
+      print("Have a foreground Gaussian model.")
+      cfgPtr = fPtr.get("ForegroundGaussian")
+      cfgStr = cfgPtr[()].decode()
+
+      print(cfgStr)
+      theConfig = CfgSGT.load_cfg(cfgStr)
+    else:
+      print("No foreground Gaussian model; Returning None.")
+      theConfig = None
+
+    theModel = Gaussian(theConfig)
+    return theModel
 
 #
 #================================ Gaussian ===============================

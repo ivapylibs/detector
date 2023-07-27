@@ -1,5 +1,5 @@
 #!/usr/bin/python
-#============================== pws04calibrate =============================
+#============================== pws05saveload ==============================
 """
 @brief          Example of onWorkspace calibration then deployment.
 
@@ -14,7 +14,7 @@ Assumes availability of Intel Realsense D435 camera or equivalent.
 Operates in two phases.  Calibration, then deployment.  Press 'q' to go from
 first phase to second, then to quit.
 """
-#============================== pws04calibrate =============================
+#============================== pws05saveload ==============================
 #
 # @author         Patricio A. Vela,       pvela@gatech.edu
 # @date           2023/07/20              [created]
@@ -22,7 +22,7 @@ first phase to second, then to quit.
 #
 # NOTE: indent is 4 spaces with conversion. 85 columns.
 #
-#============================== pws04calibrate =============================
+#============================== pws05saveload ==============================
 
 import cv2
 import camera.utils.display as display
@@ -67,4 +67,4 @@ while(True):
         break
 
 #
-#============================== pws04calibrate =============================
+#============================== pws05saveload ==============================

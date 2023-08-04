@@ -503,9 +503,9 @@ class Gaussian(inImage):
   #
   def refineFromRGBDStream(self, theStream, incVis = False):
 
-    print('STEPS to Refine the Gaussian model.\n')
-    print('\t [1] Hit any key to continue once scene is prepped.\n')
-    print('\t [2] Wait a little. Hit "q" to stop adaptation process. Should be short.\n')
+    print('STEPS to Refine the Gaussian model.')
+    print('\t [1] Hit any key to continue once scene is prepped.')
+    print('\t [2] Wait a little. Hit "q" to stop adaptation process. Should be short.')
     input();
   
     while(True):

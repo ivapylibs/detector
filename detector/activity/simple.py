@@ -19,15 +19,19 @@
 
 import numpy as np
 from enum import Enum
-from detector.Configuration import AlgConfig
 
+from improcessor.basic import basic
+
+from detector.Configuration import AlgConfig
 import detector.fromState as detBase
 
 class MoveState(Enum):
   STOPPED = 0
   MOVING  = 1
 
-class TrackState(MoveState):
+class TrackState(Enum):
+  STOPPED = 0
+  MOVING  = 1
   GONE    = 2
 
 #
@@ -97,14 +101,14 @@ class isMoving(detBase.fromState):
 
   @param[in]    processor   A state processor.
   '''
-  def __init__(self, processor=None, config=CfgMoving):
+  def __init__(self, config=CfgMoving(), processor = None):
 
     if isinstance(processor, basic):
       self.processor = processor
     else:
       self.processor = None
 
-    self.config = CfgMoving
+    self.config = config
 
     self.z = None
 
@@ -122,10 +126,10 @@ class isMoving(detBase.fromState):
       # Input x should represent velocities only.
       y = x
 
-    if np.all(np.le(y, np.config.tau)):
-      self.z = MoveState.MOVING
-    else:
+    if np.all(np.abs(y) <= self.config.tau):
       self.z = MoveState.STOPPED
+    else:
+      self.z = MoveState.MOVING
 
 
   #------------------------------ getState -----------------------------
@@ -160,7 +164,7 @@ class isMoving(detBase.fromState):
 #
 
 # @classf detector.activity
-class isMovingInImage(isMoving)
+class isMovingInImage(isMoving):
   '''!
   @brief    A motion detector for track signals from an image.
 
@@ -177,7 +181,7 @@ class isMovingInImage(isMoving)
   '''
   def __init__(self, processor=None, config=CfgMoving):
 
-    super(TrackMotion, self).__init__(processor, config)
+    super(isMovingInImage, self).__init__(processor, config)
 
     self.z = TrackState.GONE
 
@@ -199,7 +203,7 @@ class isMovingInImage(isMoving)
       # Input x should represent velocities only.
       y = x
 
-    if np.all(np.le(y, np.config.tau)):
+    if np.all(y <= self.config.tau):
       self.z = MoveState.MOVING
     else:
       self.z = MoveState.STOPPED

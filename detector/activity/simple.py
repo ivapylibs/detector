@@ -73,7 +73,7 @@ class CfgMoving(AlgConfig):
                               default settings.
     '''
 
-    default_dict = dict(tau = 0.01)
+    default_dict = dict(tau = 0.01, Cvel = None)
     return default_dict
 
   #------------------------ builtForImageTracks ------------------------
@@ -193,7 +193,7 @@ class isMovingInImage(isMoving):
   '''
   def measure(self, x):
     if (x is None):
-      self.z = GONE
+      self.z = TrackState.GONE
       return self.z
 
     if self.processor is not None:
@@ -203,10 +203,10 @@ class isMovingInImage(isMoving):
       # Input x should represent velocities only.
       y = x
 
-    if np.all(y <= self.config.tau):
-      self.z = MoveState.MOVING
+    if np.all(np.abs(y) <= self.config.tau):
+      self.z = TrackState.STOPPED
     else:
-      self.z = MoveState.STOPPED
+      self.z = TrackState.MOVING
 
 #
 #======================== detector/activity/simple =========================

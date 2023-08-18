@@ -22,6 +22,8 @@
     sigma       - Initial variance to use if sigma is empty.
     thresh      - Threshold for determining foreground.
     alpha       - Update rate for mean and variance.
+    lambdaSigma - Update rate scaling for variance (defult = 1). 
+                  Usually it is best to update more slowly.
 
     A note on the improcessor.  If the basic version is used, then it
     performs pre-processing.  If a triple version is used, then the
@@ -108,9 +110,25 @@ class CfgOnWS(SGM.CfgSGM):
             a given distance from tabletop, looking down.
 
     '''
-    depth_dict = dict(tauSigma = 1.5, minSigma = [0.0001], alpha = 0.05, \
-                        adaptall = False,
-                        init = dict( sigma = [0.0010] , imsize = [])  )
+    depth_dict = dict(tauSigma = 1.5, minSigma = [0.0002], alpha = 0.05, \
+                        lambdaSigma = 1, adaptall = True,
+                        init = dict( sigma = [0.005] , imsize = [])  )
+    learnCfg = CfgOnWS(depth_dict);
+    return learnCfg
+
+  #========================= builtForPuzzlebot =========================
+  #
+  #
+  @staticmethod
+  def builtForPuzzlebot():
+    '''!
+    @brief  On Workspace model parameters for Realsense 435 mounted
+            a given distance from tabletop, looking down.
+
+    '''
+    depth_dict = dict(tauSigma = 2.5, minSigma = [0.0001], alpha = 0.025, \
+                        lambdaSigma = 0.3, adaptall = True,
+                        init = dict( sigma = [0.001] , imsize = [])  )
     learnCfg = CfgOnWS(depth_dict);
     return learnCfg
 
@@ -209,6 +227,12 @@ class onWorkspace(SGM.Gaussian):
       else:
         np.copyto(self.maxE, self.nrmE )
 
+      # Positive values mean that distance is lower. Negative values, further.
+      # Why? When looking own at a surface, expect lower distance to be closer
+      # to camera and therefore positive as per previous sentence.
+      # Only need to apply threshold for "closer" distances, e.g., more positive
+      # error values.
+      #
       np.less( self.maxE, self.tauStDev, out=self.bgI )
 
   
@@ -263,10 +287,11 @@ class onWorkspace(SGM.Gaussian):
     #
     np.subtract( self.mu    , self.config.alpha*self.errI, out=self.mu    )
 
-    # sigma = (1 - alpha) sigma + alpha * (mu - y)^2
+    # sigma = (1 - alphaSigma) sigma + alphaSigma * (mu - y)^2
     #
-    np.multiply( self.sigma , (1-self.config.alpha), out=self.sigma )
-    np.multiply( self.sqeI  , self.config.alpha    , out=self.sqeI  )
+    alphaSigma = self.config.alpha * self.config.lambdaSigma
+    np.multiply( self.sigma , (1-alphaSigma), out=self.sigma )
+    np.multiply( self.sqeI  , alphaSigma    , out=self.sqeI  )
     np.add( self.sigma, self.sqeI , out=self.sigma )
 
     # Impose min sigma constraint.

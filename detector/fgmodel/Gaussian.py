@@ -628,11 +628,9 @@ class Gaussian(inImage):
     keyList = list(fPtr.keys())
 
     if ("ForegroundGaussian" in keyList):
-      print("Have a foreground Gaussian model.")
       cfgPtr = fPtr.get("ForegroundGaussian")
       cfgStr = cfgPtr[()].decode()
 
-      print(cfgStr)
       theConfig = CfgSGT.load_cfg(cfgStr)
     else:
       print("No foreground Gaussian model; Returning None.")

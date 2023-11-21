@@ -114,7 +114,8 @@ class CfgSGT(AlgConfig):
     '''
 
     default_dict = dict(tauSigma = 4.0, minSigma = [50.0], alpha = 0.05, \
-                        init = dict( sigma = [20.0] , mu = None)  )
+                        init = dict( sigma = [20.0] , mu = None), \
+                        minArea = 0)
     return default_dict
 
   #========================== builtForLearning =========================
@@ -129,14 +130,17 @@ class CfgSGT(AlgConfig):
 
   #=========================== builtForRedGlove ==========================
   #
-  #
+  # minArea  = 5000    # For 1920x1200 resolution capture.
+  # minArea  = 500     # For 848x480 resolution capture. [Default]
+  # 
   @staticmethod
-  def builtForRedGlove():
+  def builtForRedGlove(minArea = 500):
     learnCfg = CfgSGT();
     learnCfg.alpha = 0.10
     learnCfg.minSigma = [900.0, 100.0, 150.0]
     learnCfg.init.mu  = [130.0, 10.0, 50.0]
     learnCfg.init.sigma = [1200.0, 150.0, 350.0]
+    learnCfg.minArea  = 800     
     return learnCfg
 
   #========================== builtForDepth435 =========================

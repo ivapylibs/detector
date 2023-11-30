@@ -225,7 +225,8 @@ class CfgInCorner(AlgConfig):
   '''
   def __init__(self, init_dict=None, key_list=None, new_allowed=True):
 
-    init_dict = CfgInCorner.get_default_settings()
+    if init_dict is None:
+      init_dict = CfgInCorner.get_default_settings()
 
     super(CfgInCorner,self).__init__(init_dict, key_list, new_allowed)
 
@@ -565,7 +566,7 @@ class inCornerEstimator(inCorner):
     self.bgModel.adjustThreshold(self.bgModel.tau + self.maxMargin)
 
 
-  #========================= calibrateFromRGBStream ========================
+  #========================= calibrateFromStreamRGB ========================
   #
   # @brief  Calibrate model using a camera class RGB stream. Return calibrated
   #         model.
@@ -575,7 +576,7 @@ class inCornerEstimator(inCorner):
   #
   # @todo   Confirm and correct as needed.
   #
-  def calibrateFromRGBDStream(self, theStream, incVis = False):
+  def calibrateFromStreamRGB(self, theStream, incVis = False):
 
     while(True):
       rgb, success = theStream.get_frame()
@@ -596,7 +597,41 @@ class inCornerEstimator(inCorner):
     self.apply_estimated_margins()
 
 
-  #========================== refineFromRGBDStream =========================
+  #========================== refineFromStreamRGB ==========================
+  #
+  # @brief  Refine model using a camera class RGB stream. Return calibrated
+  #         model.
+  #         
+  # The stream is presumed to be a color stream as obtained from a color camera.
+  #
+  #
+  def refineFromStreamRGB(self, theStream, incVis = False):
+
+    print("\nSTEPS to refine color BG model.")
+    print("\t [1] Prep the scene. Usually empty it of foreground objects.")
+    print("\t [2] Hit enter to start estimation process.")
+    print("\t [3] Wait a little then hit 'q' to stop estimation process.")
+    input("")
+
+    while(True):
+      rgb, success = theStream.get_frames()
+      if not success:
+        print("Cannot get the camera signals. Exiting...")
+        exit()
+
+      self.process(rgb)
+
+      if (incVis):
+        bgmask = self.getState()
+        display.rgb_binary_cv(rgb, bgmask.x, ratio=0.5, window_name="RGB+Mask")
+
+      opKey = cv2.waitKey(1)
+      if opKey == ord('q'):
+        break
+
+    display.close_cv("RGB+Mask")
+
+  #========================== refineFromStreamRGBD =========================
   #
   # @brief  Refine model using a camera class RGBD stream. Return calibrated
   #         model.
@@ -606,8 +641,10 @@ class inCornerEstimator(inCorner):
   # not as generic as it could be.
   #
   # @todo   Modify to be a bit more generic.
+  # @todo   Modify to be called StreamRGBD to match StreamRGB. Do sooner rather than
+  #         later. Otherwise too much trouble to fix.
   #
-  def refineFromRGBDStream(self, theStream, incVis = False):
+  def refineFromStreamRGBD(self, theStream, incVis = False):
 
     print("\nSTEPS to refine color BG model.")
     print("\t [1] Prep the scene. Usually empty it of foreground objects.")
@@ -633,7 +670,14 @@ class inCornerEstimator(inCorner):
 
     display.close_cv("RGB+Mask")
 
-  #======================== calibrateFromRGBDStream ========================
+  # old version with other name.  To be removed.
+  def refineFromRGBDStream(self, theStream, incVis = False):
+
+    print('Deprecated and will be deleted soon.  Change to refineFromStreamRGBD')
+    refineFromStreamRGBD(self, theStream, incVis)
+
+
+  #======================== calibrateFromStreamRGBD ========================
   #
   # @brief  Calibrate model using a camera class RGBD stream. Return calibrated
   #         model.
@@ -644,17 +688,24 @@ class inCornerEstimator(inCorner):
   #
   # @todo   Modify to be a bit more generic.
   #
-  def calibrateFromRGBDStream(self, theStream, incVis = False):
+  def calibrateFromStreamRGBD(self, theStream, incVis = False):
 
-    self.refineFromRGBDStream(theStream, incVis);
+    self.refineFromStreamRGBD(theStream, incVis);
     self.apply_estimated_margins()
 
-  #======================== maskRegionFromRGBDStream =======================
+
+  # old version with other name.  To be removed.
+  def calibrateFromRGBDStream(self, theStream, incVis = False):
+
+    print('Deprecated: switch to calibrateFromStreamRGBD')
+    calibrateFromStreamRGBD(self, theStream, incVis)
+
+  #======================== maskRegionFromStreamRGBD =======================
   #
   # @brief  Use model parameters and iamge stream to recover largest background
   #         region in image.  That will generate the mask.
   #
-  def maskRegionFromRGBDStream(self, theStream, incVis = False):
+  def maskRegionFromStreamRGBD(self, theStream, incVis = False):
 
     print("\nSTEPS to get largest region as mask.")
     print("\t [1] Prep the scene by emptying it (usually already empty).")
@@ -700,6 +751,11 @@ class inCornerEstimator(inCorner):
       
     display.close_cv("Region Mask")
     return roiIntersect
+
+  # old version with other name.  To be removed.
+  def maskRegionFromRGBDStream(self, theStream, incVis = False):
+    print('Deprecated.  Switch to maskRegionFromStreamRGBD')
+    maskRegionFromStreamRGBD(self, theStream, incVis)
 
   #================================== info =================================
   #
@@ -752,10 +808,13 @@ class inCornerEstimator(inCorner):
   # not as generic as it could be.
   #
   # @todo   Modify to be a bit more generic.
+  # @note   Is incorrect. Not actually functional.
   #
   @staticmethod
   def buildAndCalibrateFromConfig(theConfig, theStream, incVis = False):
     return
+
+    print('THIS METHOD IS NOT FUNCTIONAL.')
 
     bgModel = inCornerEstimator( theConfig )
  

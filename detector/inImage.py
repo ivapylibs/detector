@@ -163,7 +163,7 @@ class inImage(object):
     rely on assumptions built into this implemented class.
     """
 
-    return None.        # For now. just getting skeleton code going.
+    return None         # For now. just getting skeleton code going.
 
   #================================ info ===============================
   #

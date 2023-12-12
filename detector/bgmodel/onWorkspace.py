@@ -191,6 +191,7 @@ class onWorkspace(SGM.Gaussian):
         self._setsize_(np.array(np.shape(I)))
 
     self.measI = np.array(I, dtype=float, copy=True)
+    display.depth_cv(self.measI)
     self.measI = np.reshape(self.measI, 
                             np.append(np.prod(self.imsize[0:2]), self.imsize[2]) )
 
@@ -386,6 +387,78 @@ class onWorkspace(SGM.Gaussian):
     self.config.init.imsize = self.imsize.tolist()
     configStr = self.config.dump()
     wsds.create_dataset("configuration", data=configStr)
+
+  #======================== estimateOutlierMask ========================
+  #
+  # @brief  Apply to a stream for a given number of frames, then find pixels
+  #         that are intermittently or persistently evaluating to true.
+  #         These are unreliable.  Should be masked out.
+  #
+  # The stream is presumed to be a depth + color stream as obtained from
+  # a Realsense camera.  Code is not as generic as could be.
+  #
+  # @todo   Modify to be a bit more generic.
+  #
+  # @param[in]  theStream   RGBD stream to use.
+  # @param[in]  numLoop     Number of times to loop (or until keyhit <= 0).
+  # @param[in]  tauRatio    Ratio to recover outlier threshold count.
+  # @param[in]  incVis      Include visualization during process?
+  #
+  def estimateOutlierMaskRGBD(self, theStream, numLoop = 0, tauRatio = 0.75,
+                                                            incVis = False):
+
+    print('\n STEPS to for outlier estimation.')
+    print('\t [1] Make sure workspace is empty and have initial BG model.')
+    print('\t [2] Hit enter to continue once ready.')
+
+    if (numLoop > 0):
+      print('\t     Process will end on its own.')
+    else:
+      print('\t [3] Hit "q" to stop outlier estimation process. Not too long.')
+
+    input()
+
+    surfaceCount  = None
+    loopCount   = 0
+
+    while (loopCount < numLoop) or (numLoop <= 0):
+      # @todo   Modify to use the RGBD call to get frame/image. Code is old.
+      rgb, dep, success = theStream.get_frames()
+      if not success:
+        print("Cannot get the camera signals. Exiting...")
+        exit()
+
+      self.process(dep)
+
+      bgS = self.getState()
+
+      if (surfaceCount is None):
+        surfaceCount = bgS.bgIm.astype('int')
+      else:
+        surfaceCount += bgS.bgIm.astype('int')
+
+      loopCount+=1
+
+      if (incVis):
+        bgD = self.getDebug()
+
+        bgIm = cv2.cvtColor(bgS.bgIm.astype(np.uint8)*255, cv2.COLOR_GRAY2BGR)
+        display.rgb_depth_cv(bgIm, bgD.mu, ratio=0.25, window_name="RGB+Depth")
+
+      opKey = cv2.waitKey(1)
+      if opKey == ord('q'):
+        break
+
+    tauCount = np.floor(1+tauRatio*loopCount)
+    outMask = surfaceCount < tauCount
+
+    if (incVis):
+      display.close_cv("RGB+Depth")
+
+    return outMask
+
+
+
 
   #
   #---------------------------------------------------------------------

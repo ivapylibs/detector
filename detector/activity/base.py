@@ -11,6 +11,10 @@
 """
 #================================== base =================================
 
+
+# @note There is already a detector base class.  Shouldn't this be that?
+#       Better put, is this class even needed?
+
 class Base(object):
 
     def __init__(self):

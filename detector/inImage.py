@@ -1,12 +1,10 @@
 #=========================== detector/inImage ============================
 #
-# @brief    The most basic object or instance detector from image
-#           input. Really should be overloaded, but simple ones can be
-#           created from this class with the right pre/post processor.
 #
 #=========================== detector/inImage ============================
 
-# 
+# @package  detector
+# @module   inImage
 # @file     inImage.m
 #
 # @author   Patricio A. Vela,   pvela@gatech.edu
@@ -31,6 +29,14 @@ class detectorState:
 
 # @classf detector
 class inImage(object):
+  """!
+  @brief    The most basic object or instance detector from image input. 
+
+  Really this class should be overloaded for most cases, but simple image-based
+  detectors can be created from this class with the right pre/post processor.
+  The trick is to have the improcessor output a binary image for downstream
+  use.
+  """
 
   def __init__(self, processor=None):
     if isinstance(processor, basic):

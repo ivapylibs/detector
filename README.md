@@ -1,6 +1,6 @@
-# detection
-Collection of detection methods. At the moment, it is mostly code
-translated over from IVALab Matlab libraries.
+# Detector Library
+Collection of detection methods encapsulated as detector classes. At the moment, it is
+mostly code translated over from IVALab Matlab libraries.
 
 Some of the detection methods are built on basic image processing
 functions for which there should be OpenCV implementations. In that

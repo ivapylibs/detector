@@ -22,6 +22,8 @@
     sigma       - Initial variance to use if sigma is empty.
     thresh      - Threshold for determining foreground.
     alpha       - Update rate for mean and variance.
+    lambdaSigma - Update rate scaling for variance (defult = 1). 
+                  Usually it is best to update more slowly.
 
     A note on the improcessor.  If the basic version is used, then it
     performs pre-processing.  If a triple version is used, then the
@@ -47,6 +49,9 @@ from dataclasses import dataclass
 
 import numpy as np
 import h5py
+import cv2
+
+import camera.utils.display as display
 
 from detector.inImage import inImage
 import detector.bgmodel.Gaussian as SGM
@@ -105,9 +110,25 @@ class CfgOnWS(SGM.CfgSGM):
             a given distance from tabletop, looking down.
 
     '''
-    depth_dict = dict(tauSigma = 1.0, minSigma = [0.0001], alpha = 0.05, \
-                        adaptall = False,
-                        init = dict( sigma = [0.0010] , imsize = None)  )
+    depth_dict = dict(tauSigma = 1.5, minSigma = [0.0002], alpha = 0.05, \
+                        lambdaSigma = 1, adaptall = True,
+                        init = dict( sigma = [0.005] , imsize = [])  )
+    learnCfg = CfgOnWS(depth_dict);
+    return learnCfg
+
+  #========================= builtForPuzzlebot =========================
+  #
+  #
+  @staticmethod
+  def builtForPuzzlebot():
+    '''!
+    @brief  On Workspace model parameters for Realsense 435 mounted
+            a given distance from tabletop, looking down.
+
+    '''
+    depth_dict = dict(tauSigma = 2.5, minSigma = [0.0001], alpha = 0.025, \
+                        lambdaSigma = 0.3, adaptall = True,
+                        init = dict( sigma = [0.001] , imsize = [])  )
     learnCfg = CfgOnWS(depth_dict);
     return learnCfg
 
@@ -166,10 +187,11 @@ class onWorkspace(SGM.Gaussian):
     if self.improcessor is not None: 
       I = self.improcessor.pre(I)
     
-    if self.imsize is None:
+    if (self.imsize is None) or (len(self.imsize) == 0):
         self._setsize_(np.array(np.shape(I)))
 
     self.measI = np.array(I, dtype=float, copy=True)
+    display.depth_cv(self.measI)
     self.measI = np.reshape(self.measI, 
                             np.append(np.prod(self.imsize[0:2]), self.imsize[2]) )
 
@@ -206,6 +228,12 @@ class onWorkspace(SGM.Gaussian):
       else:
         np.copyto(self.maxE, self.nrmE )
 
+      # Positive values mean that distance is lower. Negative values, further.
+      # Why? When looking own at a surface, expect lower distance to be closer
+      # to camera and therefore positive as per previous sentence.
+      # Only need to apply threshold for "closer" distances, e.g., more positive
+      # error values.
+      #
       np.less( self.maxE, self.tauStDev, out=self.bgI )
 
   
@@ -260,10 +288,11 @@ class onWorkspace(SGM.Gaussian):
     #
     np.subtract( self.mu    , self.config.alpha*self.errI, out=self.mu    )
 
-    # sigma = (1 - alpha) sigma + alpha * (mu - y)^2
+    # sigma = (1 - alphaSigma) sigma + alphaSigma * (mu - y)^2
     #
-    np.multiply( self.sigma , (1-self.config.alpha), out=self.sigma )
-    np.multiply( self.sqeI  , self.config.alpha    , out=self.sqeI  )
+    alphaSigma = self.config.alpha * self.config.lambdaSigma
+    np.multiply( self.sigma , (1-alphaSigma), out=self.sigma )
+    np.multiply( self.sqeI  , alphaSigma    , out=self.sqeI  )
     np.add( self.sigma, self.sqeI , out=self.sigma )
 
     # Impose min sigma constraint.
@@ -359,19 +388,145 @@ class onWorkspace(SGM.Gaussian):
     configStr = self.config.dump()
     wsds.create_dataset("configuration", data=configStr)
 
+  #======================== estimateOutlierMask ========================
+  #
+  # @brief  Apply to a stream for a given number of frames, then find pixels
+  #         that are intermittently or persistently evaluating to true.
+  #         These are unreliable.  Should be masked out.
+  #
+  # The stream is presumed to be a depth + color stream as obtained from
+  # a Realsense camera.  Code is not as generic as could be.
+  #
+  # @todo   Modify to be a bit more generic.
+  #
+  # @param[in]  theStream   RGBD stream to use.
+  # @param[in]  numLoop     Number of times to loop (or until keyhit <= 0).
+  # @param[in]  tauRatio    Ratio to recover outlier threshold count.
+  # @param[in]  incVis      Include visualization during process?
+  #
+  def estimateOutlierMaskRGBD(self, theStream, numLoop = 0, tauRatio = 0.75,
+                                                            incVis = False):
+
+    print('\n STEPS to for outlier estimation.')
+    print('\t [1] Make sure workspace is empty and have initial BG model.')
+    print('\t [2] Hit enter to continue once ready.')
+
+    if (numLoop > 0):
+      print('\t     Process will end on its own.')
+    else:
+      print('\t [3] Hit "q" to stop outlier estimation process. Not too long.')
+
+    input()
+
+    surfaceCount  = None
+    loopCount   = 0
+
+    while (loopCount < numLoop) or (numLoop <= 0):
+      # @todo   Modify to use the RGBD call to get frame/image. Code is old.
+      rgb, dep, success = theStream.get_frames()
+      if not success:
+        print("Cannot get the camera signals. Exiting...")
+        exit()
+
+      self.process(dep)
+
+      bgS = self.getState()
+
+      if (surfaceCount is None):
+        surfaceCount = bgS.bgIm.astype('int')
+      else:
+        surfaceCount += bgS.bgIm.astype('int')
+
+      loopCount+=1
+
+      if (incVis):
+        bgD = self.getDebug()
+
+        bgIm = cv2.cvtColor(bgS.bgIm.astype(np.uint8)*255, cv2.COLOR_GRAY2BGR)
+        display.rgb_depth_cv(bgIm, bgD.mu, ratio=0.25, window_name="RGB+Depth")
+
+      opKey = cv2.waitKey(1)
+      if opKey == ord('q'):
+        break
+
+    tauCount = np.floor(1+tauRatio*loopCount)
+    outMask = surfaceCount < tauCount
+
+    if (incVis):
+      display.close_cv("RGB+Depth")
+
+    return outMask
+
+
+
+
+  #
+  #---------------------------------------------------------------------
+  #====================== Static Member Functions ======================
+  #---------------------------------------------------------------------
+  #
+
+  #==================== buildAndCalibrateFromConfig ====================
+  #
+  # @brief  build and calibrate onWorkspace model from an initial config 
+  #         and a camera class streaming camera. Return instantiated and 
+  #         calibrated model.
+  #         
+  # The stream is presumed to be a depth + color stream as obtained from
+  # a Realsense camera.  Code is not as generic as could be.
+  #
+  # @todo   Modify to be a bit more generic.
+  #
+  @staticmethod
+  def buildAndCalibrateFromConfig(theConfig, theStream, incVis = False):
+
+    print('\n STEPS to calibrate onWorkspace.')
+    print('\t [1] Make sure workspace is empty.')
+    print('\t [2] Hit enter to continue once scene is prepped.')
+    print('\t [3] Hit "q" to stop adaptation process. Should be short.')
+    input()
+
+    bgModel = onWorkspace( theConfig )
+ 
+    while(True):
+      rgb, dep, success = theStream.get_frames()
+      if not success:
+        print("Cannot get the camera signals. Exiting...")
+        exit()
+
+      bgModel.process(dep)
+
+      if (incVis):
+        bgS = bgModel.getState()
+        bgD = bgModel.getDebug()
+
+        bgIm = cv2.cvtColor(bgS.bgIm.astype(np.uint8)*255, cv2.COLOR_GRAY2BGR)
+        display.rgb_depth_cv(bgIm, bgD.mu, ratio=0.25, window_name="RGB+Depth")
+
+      opKey = cv2.waitKey(1)
+      if opKey == ord('q'):
+        break
+
+    display.close_cv("RGB+Depth")
+    return bgModel
+
 
 
   #================================ load ===============================
   #
   @staticmethod
   def load(fileName):
-    # IAMHERE - [X] Very close to having the load work.
-    #           [X] Right now just confirmed recovery of core information.
-    #           [X] Next step is to create an onWorkspace instance from the info.
-    #           [_] Final step is to run and demonstrate correct loading.
-    #
-    fptr = h5py.File(fileName,"r")
 
+    fptr = h5py.File(fileName,"r")
+    theModel = onWorkspace.loadFrom(fptr)
+    fptr.close()
+
+    return theModel
+
+  #============================== loadFrom =============================
+  #
+  @staticmethod
+  def loadFrom(fptr):
     gptr = fptr.get("bgmodel.onWorkspace")
 
     muPtr    = gptr.get("mu")
@@ -384,22 +539,11 @@ class onWorkspace(SGM.Gaussian):
     cfgPtr   = gptr.get("configuration")
     configStr = cfgPtr[()].decode()
 
-    fptr.close()
 
-    configCfg = CfgOnWS.load_cfg(configStr)
-
-    theConfig = CfgOnWS()
-    theConfig.merge_from_other_cfg(configCfg)
-
-    theModel = onWorkspace(theConfig, None, bgMod)
-
+    theConfig = CfgOnWS.load_cfg(configStr)
+    theModel  = onWorkspace(theConfig, None, bgMod)
     return theModel
 
-  #============================== loadFrom =============================
-  #
-  @staticmethod
-  def loadFrom(fileName):
-    pass
 
   #====================== onWorkspace/buildFromCfg =====================
   #

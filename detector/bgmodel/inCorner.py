@@ -26,6 +26,13 @@
 import numpy as np
 import h5py
 
+import cv2
+
+import camera.utils.display as display
+
+from skimage import measure
+from skimage import morphology
+
 from detector.Configuration import AlgConfig
 from detector.inImage import inImage
 
@@ -218,7 +225,8 @@ class CfgInCorner(AlgConfig):
   '''
   def __init__(self, init_dict=None, key_list=None, new_allowed=True):
 
-    init_dict = CfgInCorner.get_default_settings()
+    if init_dict is None:
+      init_dict = CfgInCorner.get_default_settings()
 
     super(CfgInCorner,self).__init__(init_dict, key_list, new_allowed)
 
@@ -350,6 +358,13 @@ class inCorner(inImage):
       return mI
 
 
+  #
+  #---------------------------------------------------------------------------
+  #========================= Static Member Functions =========================
+  #---------------------------------------------------------------------------
+  #
+
+
   #========================== build_model_blackBG ==========================
   #
   @staticmethod
@@ -443,7 +458,14 @@ class inCorner(inImage):
   @staticmethod
   def load(fileName):
       fptr = h5py.File(fileName,"r")
+      theDetector = inCorner.loadFrom(fptr)
+      fptr.close()
+      return theDetector
 
+  #============================== loadFrom =============================
+  #
+  @staticmethod
+  def loadFrom(fptr):
       gptr = fptr.get("bgmodel.inCorner")
 
       bgModel = None
@@ -544,6 +566,196 @@ class inCornerEstimator(inCorner):
     self.bgModel.adjustThreshold(self.bgModel.tau + self.maxMargin)
 
 
+  #========================= calibrateFromStreamRGB ========================
+  #
+  # @brief  Calibrate model using a camera class RGB stream. Return calibrated
+  #         model.
+  #         
+  # The stream is presumed to be a color stream only.  Code is presumed to
+  # work but not confirmed.
+  #
+  # @todo   Confirm and correct as needed.
+  #
+  def calibrateFromStreamRGB(self, theStream, incVis = False):
+
+    while(True):
+      rgb, success = theStream.get_frame()
+      if not success:
+        print("Cannot get the camera signals. Exiting...")
+        exit()
+
+      self.process(rgb)
+
+      if (incVis):
+        bgmask = self.getState()
+        display.rgb_binary_cv(rgb, bgmask.x, ratio=0.5, window_name="RGB+Mask")
+
+      opKey = cv2.waitKey(1)
+      if opKey == ord('q'):
+        break
+
+    self.apply_estimated_margins()
+
+
+  #========================== refineFromStreamRGB ==========================
+  #
+  # @brief  Refine model using a camera class RGB stream. Return calibrated
+  #         model.
+  #         
+  # The stream is presumed to be a color stream as obtained from a color camera.
+  #
+  #
+  def refineFromStreamRGB(self, theStream, incVis = False):
+
+    print("\nSTEPS to refine color BG model.")
+    print("\t [1] Prep the scene. Usually empty it of foreground objects.")
+    print("\t [2] Hit enter to start estimation process.")
+    print("\t [3] Wait a little then hit 'q' to stop estimation process.")
+    input("")
+
+    while(True):
+      rgb, success = theStream.get_frames()
+      if not success:
+        print("Cannot get the camera signals. Exiting...")
+        exit()
+
+      self.process(rgb)
+
+      if (incVis):
+        bgmask = self.getState()
+        display.rgb_binary_cv(rgb, bgmask.x, ratio=0.5, window_name="RGB+Mask")
+
+      opKey = cv2.waitKey(1)
+      if opKey == ord('q'):
+        break
+
+    display.close_cv("RGB+Mask")
+
+  #========================== refineFromStreamRGBD =========================
+  #
+  # @brief  Refine model using a camera class RGBD stream. Return calibrated
+  #         model.
+  #         
+  # The stream is presumed to be a depth + color stream as obtained from
+  # a Realsense camera but only the color stream is processed.  Code is 
+  # not as generic as it could be.
+  #
+  # @todo   Modify to be a bit more generic.
+  # @todo   Modify to be called StreamRGBD to match StreamRGB. Do sooner rather than
+  #         later. Otherwise too much trouble to fix.
+  #
+  def refineFromStreamRGBD(self, theStream, incVis = False):
+
+    print("\nSTEPS to refine color BG model.")
+    print("\t [1] Prep the scene. Usually empty it of foreground objects.")
+    print("\t [2] Hit enter to start estimation process.")
+    print("\t [3] Wait a little then hit 'q' to stop estimation process.")
+    input("")
+
+    while(True):
+      rgb, dep, success = theStream.get_frames()
+      if not success:
+        print("Cannot get the camera signals. Exiting...")
+        exit()
+
+      self.process(rgb)
+
+      if (incVis):
+        bgmask = self.getState()
+        display.rgb_binary_cv(rgb, bgmask.x, ratio=0.5, window_name="RGB+Mask")
+
+      opKey = cv2.waitKey(1)
+      if opKey == ord('q'):
+        break
+
+    display.close_cv("RGB+Mask")
+
+  # old version with other name.  To be removed.
+  def refineFromRGBDStream(self, theStream, incVis = False):
+
+    print('Deprecated and will be deleted soon.  Change to refineFromStreamRGBD')
+    refineFromStreamRGBD(self, theStream, incVis)
+
+
+  #======================== calibrateFromStreamRGBD ========================
+  #
+  # @brief  Calibrate model using a camera class RGBD stream. Return calibrated
+  #         model.
+  #         
+  # The stream is presumed to be a depth + color stream as obtained from
+  # a Realsense camera but only the color stream is processed.  Code is 
+  # not as generic as it could be.
+  #
+  # @todo   Modify to be a bit more generic.
+  #
+  def calibrateFromStreamRGBD(self, theStream, incVis = False):
+
+    self.refineFromStreamRGBD(theStream, incVis);
+    self.apply_estimated_margins()
+
+
+  # old version with other name.  To be removed.
+  def calibrateFromRGBDStream(self, theStream, incVis = False):
+
+    print('Deprecated: switch to calibrateFromStreamRGBD')
+    calibrateFromStreamRGBD(self, theStream, incVis)
+
+  #======================== maskRegionFromStreamRGBD =======================
+  #
+  # @brief  Use model parameters and iamge stream to recover largest background
+  #         region in image.  That will generate the mask.
+  #
+  def maskRegionFromStreamRGBD(self, theStream, incVis = False):
+
+    print("\nSTEPS to get largest region as mask.")
+    print("\t [1] Prep the scene by emptying it (usually already empty).")
+    print("\t [2] Hit enter to start mask estimation process.")
+    print("\t [3] Wait a little then hit 'q' to sstop mask estimation process.")
+    input("")
+
+    roiIntersect = None
+    while(True):
+      rgb, dep, success = theStream.get_frames()
+      if not success:
+        print("Cannot get the camera signals. Exiting...")
+        exit()
+
+      self.process(rgb)
+
+      #-- Below is code that attempts to recover largest background
+      #     region.  Performs some logic to remove inconsistent
+      #     detections at the pixel level.
+      #
+      bgmask = self.getState()
+
+      bglabeled = measure.label(bgmask.x, connectivity=2)
+      bgprops   = measure.regionprops_table(bglabeled, properties=['label','area'])
+
+      bigl  = np.argmax(bgprops['area'])
+      bgroi = (bglabeled == bgprops['label'][bigl])
+
+      if roiIntersect is None:
+        roiIntersect = bgroi
+      else:
+        roiIntersect = np.logical_and(roiIntersect, bgroi)
+
+      if (incVis):
+        bgM = cv2.cvtColor(255-roiIntersect.astype(np.uint8)*255, cv2.COLOR_GRAY2BGR)
+        fgI = cv2.bitwise_and(rgb, bgM)
+
+        display.rgb_binary_cv(fgI, roiIntersect, ratio=0.25, window_name="Region Mask")
+
+      opKey = cv2.waitKey(1)
+      if opKey == ord('q'):
+        break
+      
+    display.close_cv("Region Mask")
+    return roiIntersect
+
+  # old version with other name.  To be removed.
+  def maskRegionFromRGBDStream(self, theStream, incVis = False):
+    print('Deprecated.  Switch to maskRegionFromStreamRGBD')
+    maskRegionFromStreamRGBD(self, theStream, incVis)
 
   #================================== info =================================
   #
@@ -577,6 +789,56 @@ class inCornerEstimator(inCorner):
   #  with open(outFile,'w') as file:
   #    file.write(self.config.dump())
   #    file.close()
+
+
+  #
+  #---------------------------------------------------------------------
+  #====================== Static Member Functions ======================
+  #---------------------------------------------------------------------
+  #
+
+  #==================== buildAndCalibrateFromConfig ====================
+  #
+  # @brief  build and calibrate onWorkspace model from an initial config 
+  #         and a camera class streaming camera. Return instantiated and 
+  #         calibrated model.
+  #         
+  # The stream is presumed to be a depth + color stream as obtained from
+  # a Realsense camera but only the color stream is processed.  Code is 
+  # not as generic as it could be.
+  #
+  # @todo   Modify to be a bit more generic.
+  # @note   Is incorrect. Not actually functional.
+  #
+  @staticmethod
+  def buildAndCalibrateFromConfig(theConfig, theStream, incVis = False):
+    return
+
+    print('THIS METHOD IS NOT FUNCTIONAL.')
+
+    bgModel = inCornerEstimator( theConfig )
+ 
+    while(True):
+      rgb, dep, success = theStream.get_frames()
+      if not success:
+        print("Cannot get the camera signals. Exiting...")
+        exit()
+
+      bgModel.process(rgb)
+
+      if (incVis):
+        bgS = bgModel.getState()
+
+        bgIm = cv2.cvtColor(bgS.bgIm.astype(np.uint8)*255, cv2.COLOR_GRAY2BGR)
+        display.rgb_cv(bgIm, ratio=0.25, window_name="RGB")
+
+      opKey = cv2.waitKey(1)
+      if opKey == ord('q'):
+        break
+
+    display.close_cv("RGB")
+    return bgModel
+
 
 
 #

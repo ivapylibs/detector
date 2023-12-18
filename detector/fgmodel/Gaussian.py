@@ -5,14 +5,19 @@
   @brief    Implements a single Gaussian target/foreground model.
 
   A similar implementation exists in ``targetSG``, based on a different
-  operating paradigm that ddecorrelates the input image data.  While
-  the implementation is most likely better than this one,
+  operating paradigm that decorrelates the input image data.  While
+  the implementation is most likely better than this one, simplicity
+  has its own value.
 
   No doubt this implementation exists in some form within the OpenCV or
   BGS libraries, but getting a clean, simple interface from these libraries
   is actually not as easy as implementing from existing Matlab code.
   Plus, it permits some customization that the library implementations
   may not have.
+
+  @todo Eventually should be translated to OpenCV style code by repurposing
+        their code to get CUDA and OpenCL implementations for speed purposes.
+        Even their C code is fairly zippy relative to python.
 
   Inputs:
     mu          - the means of the Gaussian model.
@@ -50,9 +55,12 @@
 
 from dataclasses import dataclass
 import numpy as np
+import cv2
+import h5py
 
 from detector.inImage import inImage
 from detector.Configuration import AlgConfig
+import camera.utils.display as display
 
 @dataclass
 class SGMstate:
@@ -106,7 +114,8 @@ class CfgSGT(AlgConfig):
     '''
 
     default_dict = dict(tauSigma = 4.0, minSigma = [50.0], alpha = 0.05, \
-                        init = dict( sigma = [20.0] , mu = None)  )
+                        init = dict( sigma = [20.0] , mu = None), \
+                        minArea = 0)
     return default_dict
 
   #========================== builtForLearning =========================
@@ -121,14 +130,17 @@ class CfgSGT(AlgConfig):
 
   #=========================== builtForRedGlove ==========================
   #
-  #
+  # minArea  = 5000    # For 1920x1200 resolution capture.
+  # minArea  = 500     # For 848x480 resolution capture. [Default]
+  # 
   @staticmethod
-  def builtForRedGlove():
+  def builtForRedGlove(minArea = 500):
     learnCfg = CfgSGT();
     learnCfg.alpha = 0.10
     learnCfg.minSigma = [900.0, 100.0, 150.0]
     learnCfg.init.mu  = [130.0, 10.0, 50.0]
     learnCfg.init.sigma = [1200.0, 150.0, 350.0]
+    learnCfg.minArea  = 800     
     return learnCfg
 
   #========================== builtForDepth435 =========================
@@ -371,23 +383,29 @@ class Gaussian(inImage):
 
     if (self.imsize[2] > 1):
       newVals = self.measI[self.fgI,:]
-      newMu   = np.mean(newVals, 0)
-      newSig  = np.var(newVals, 0)
+
+      if (np.size(newVals) > 0):
+        newMu   = np.mean(newVals, 0)
+        newSig  = np.var(newVals, 0)
+
+        self.mu    = self.mu    + self.config.alpha*(newMu - self.mu)
+        self.sigma = self.sigma + self.config.alpha*(newSig - self.sigma)
+
+        # Impose min sigma constraint.
+        np.maximum(self.sigma, self.config.minSigma, out=self.sigma)
+
     else:
       newVals = self.measI[self.fgI]
-      newMu   = np.mean(newVals)
-      newSig  = np.var(newVals)
-     
-    #DEBUG
-    #print(np.size(newVals))
-    #print(np.shape(newVals))
-    #print(np.shape(self.mu))
-    if (np.size(newVals) > 0):
-      self.mu    = self.mu    + self.config.alpha*(newMu - self.mu)
-      self.sigma = self.sigma + self.config.alpha*(newSig - self.sigma)
 
-      # Impose min sigma constraint.
-      np.maximum(self.sigma, self.config.minSigma, out=self.sigma)
+      if (np.size(newVals) > 0):
+        newMu   = np.mean(newVals)
+        newSig  = np.var(newVals)
+     
+        self.mu    = self.mu    + self.config.alpha*(newMu - self.mu)
+        self.sigma = self.sigma + self.config.alpha*(newSig - self.sigma)
+
+        # Impose min sigma constraint.
+        np.maximum(self.sigma, self.config.minSigma, out=self.sigma)
   
     # MOST LIKELY NOT NECESSARY FOR FG MODEL. DELETE SHORTLY.
     #if not self.config.adaptall:                # Revert foreground values.
@@ -482,17 +500,74 @@ class Gaussian(inImage):
     #tinfo.trackparms = bgp;
     pass
 
-  #================================ save ===============================
+  #======================== refineFromRGBDStream =======================
   #
-  def save(self, fileName):    # Save given file.
-    pass
+  # @brief  Given an RGBD stream, run the estimation process with 
+  #         adaptation on to improve color model.
+  #
+  def refineFromRGBDStream(self, theStream, incVis = False):
+
+    print('STEPS to Refine the Gaussian model.')
+    print('\t [1] Hit any key to continue once scene is prepped.')
+    print('\t [2] Wait a little. Hit "q" to stop adaptation process. Should be short.')
+    input();
+  
+    while(True):
+      rgb, dep, success = theStream.get_frames()
+      if not success:
+        print("Cannot get the camera signals. Exiting...")
+        exit()
+  
+      self.process(rgb)
+  
+      if (incVis):
+        fgS = self.getState()
+        display.rgb_binary_cv(rgb, fgS.fgIm, 0.25, "Output")
+  
+      opKey = cv2.waitKey(1)
+      if opKey == ord('q'):
+          break
+  
+    if (incVis):
+      display.close_cv("Output")
+
+  #========================== testOnRGBDStream =========================
+  #
+  # @brief  Given an RGBD stream, run the detection process to see how
+  #         well detection works (or not).
+  #
+  def testOnRGBDStream(self, theStream, incVis = True):
+
+    print('STEP: \n\t Test out current foreground model.')
+    print('\t Hit "q" to stop testing process.')
+  
+    while(True):
+      rgb, dep, success = theStream.get_frames()
+      if not success:
+        print("Cannot get the camera signals. Exiting...")
+        exit()
+  
+      self.detect(rgb)
+  
+      if (incVis):
+        fgS = self.getState()
+        display.rgb_binary_cv(rgb, fgS.fgIm, 0.25, "Test")
+  
+      opKey = cv2.waitKey(1)
+      if opKey == ord('q'):
+          break
+  
+    print('\t Done.')
+    if (incVis):
+      display.close_cv("Test")
+
 
   #=============================== saveTo ==============================
   #
   def saveTo(self, fPtr):    # Save given HDF5 pointer. Puts in root.
-    pass
+    fPtr.create_dataset("ForegroundGaussian", data=self.config.dump())
 
-  #============================= saveConfig ==============================
+  #============================ saveConfig =============================
   #
   #
   def saveConfig(self, outFile): 
@@ -508,7 +583,13 @@ class Gaussian(inImage):
       file.close()
 
 
-  #=========================== loadFromYAML ==========================
+  #
+  #-----------------------------------------------------------------------
+  #======================= Static Member Functions =======================
+  #-----------------------------------------------------------------------
+  #
+
+  #============================ loadFromYAML ===========================
   #
   #
   @staticmethod
@@ -522,7 +603,7 @@ class Gaussian(inImage):
     fgDetector = Gaussian(theSetup)
     return fgDetector
 
-  #=========================== buildFromCfg ==========================
+  #============================ buildFromCfg ===========================
   #
   #
   @staticmethod
@@ -534,13 +615,33 @@ class Gaussian(inImage):
     fgDetector = Gaussian(theConfig)
     return fgDetector
 
-# DELETE AT SOME POINT. HAS NO FUNCTION.
-#  #============================== loadFrom =============================
-#  #
-#  @staticmethod
-#  def loadFrom(fileName):
-#    pass
-#
+  #================================ load ===============================
+  #
+  @staticmethod
+  def load(fileName):
+    fptr = h5py.File(fileName,"r")
+    theModel = Gaussian.loadFrom(fptr)
+    fptr.close()
+    return theModel
+
+
+  #============================== loadFrom =============================
+  #
+  @staticmethod
+  def loadFrom(fPtr):
+    keyList = list(fPtr.keys())
+
+    if ("ForegroundGaussian" in keyList):
+      cfgPtr = fPtr.get("ForegroundGaussian")
+      cfgStr = cfgPtr[()].decode()
+
+      theConfig = CfgSGT.load_cfg(cfgStr)
+    else:
+      print("No foreground Gaussian model; Returning None.")
+      theConfig = None
+
+    theModel = Gaussian(theConfig)
+    return theModel
 
 #
 #================================ Gaussian ===============================

@@ -109,7 +109,7 @@ class CfgSGM(AlgConfig):
 
     default_dict = dict(tauSigma = 3.5, minSigma = [50.0], alpha = 0.05, \
                         adaptall = False,
-                        init = dict( sigma = [20.0] , imsize = None)  )
+                        init = dict( sigma = [20.0] , imsize = [])  )
     return default_dict
 
   #========================== builtForLearning =========================
@@ -186,7 +186,7 @@ class Gaussian(inImage):
 
     # Image dimensions
     self.imsize = None
-    if (self.config.init.imsize is not None):
+    if (self.config.init.imsize is not None) and (len(self.config.init.imsize) > 0):
       self._setsize_(self.config.init.imsize)
 
     # Check for image processor routine.
@@ -449,18 +449,57 @@ class Gaussian(inImage):
       file.write(self.config.dump())
       file.close()
 
+  #==================== buildAndCalibrateFromConfig ====================
+  #
+  # @brief  build and calibrate onWorkspace model from an initial config 
+  #         and a camera class streaming camera. Return instantiated and 
+  #         calibrated model.
+  #         
+  # The stream is presumed to be a depth + color stream as obtained from
+  # a Realsense camera.  Code is not as generic as could be.
+  #
+  # @todo   Modify to be a bit more generic.
+  #
+  @staticmethod
+  def buildAndCalibrateFromConfig(theConfig, theStream, incVis = False):
+
+    bgModel = Gaussian( theConfig )
+ 
+    while(True):
+      rgb, dep, success = theStream.get_frames()
+      if not success:
+        print("Cannot get the camera signals. Exiting...")
+        exit()
+
+      bgModel.process(rgb)
+
+      if (incVis):
+        bgS = bgModel.getState()
+        bgD = bgModel.getDebug()
+
+        bgIm = cv2.cvtColor(bgS.bgIm.astype(np.uint8)*255, cv2.COLOR_GRAY2BGR)
+        display.rgb_depth_cv(bgIm, bgD.mu, ratio=0.25, window_name="RGB+Depth")
+
+      opKey = cv2.waitKey(1)
+      if opKey == ord('q'):
+        break
+   
+    display.close_cv("RGB+Depth")
+    return bgModel
+
 
   #================================ load ===============================
   #
   @staticmethod
   def load(fileName):
-    # IAMHERE - [X] Very close to having the load work.
-    #           [X] Right now just confirmed recovery of core information.
-    #           [X] Next step is to create an onWorkspace instance from the info.
-    #           [_] Final step is to run and demonstrate correct loading.
-    #
     fptr = h5py.File(fileName,"r")
+    theModel = Gaussian.loadFrom(fptr)
 
+
+  #============================== loadFrom =============================
+  #
+  @staticmethod
+  def loadFrom(fPtr):
     gptr = fptr.get("bgmodel.Gaussian")
 
     muPtr    = gptr.get("mu")
@@ -475,22 +514,16 @@ class Gaussian(inImage):
 
     fptr.close()
 
-    configCfg = CfgSGM.load_cfg(configStr)
+    theConfig = CfgSGM.load_cfg(configStr)
 
-    theConfig = CfgSGM()
-    theConfig.merge_from_other_cfg(configCfg)
+    #Above line was configCfg but found that gets loaded as proper class.
+    #@todo Delete the lines below once known to work. onWorkspace verified.
+    #theConfig = CfgSGM()
+    #theConfig.merge_from_other_cfg(configCfg)
 
     theModel = Gaussian(theConfig, None, bgMod)
 
     return theModel
-
-
-  #============================== loadFrom =============================
-  #
-  @staticmethod
-  def loadFrom(fileName):
-    pass
-
 
 #
 #================================ Gaussian ===============================

@@ -1,3 +1,10 @@
+#!/usr/bin/env/python
+
+"""!
+@package detector
+    A collection of detector implementations for images and signal streams.
+"""
+
 from setuptools import setup, find_packages
 
 setup(

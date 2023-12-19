@@ -125,6 +125,16 @@ class CfgSGM(AlgConfig):
 #================================ Gaussian ===============================
 
 class Gaussian(inImage):
+  """!
+  @brief    Implements a single Gaussian background model.
+
+  No doubt this implementation exists in some form within the OpenCV or
+  BGS libraries, but getting a clean, simple interface from these libraries
+  is actually not as easy as implementing from existing Matlab code.
+  Plus, it permits some customization that the library implementations
+  may not have.
+
+  """
 
   #========================= Gaussian/__init__ =========================
   #
@@ -132,6 +142,12 @@ class Gaussian(inImage):
   def __init__(self, bgCfg = None, processor = None, bgMod = None):
     '''!
     @brief  Constructor for single Gaussian model background detector.
+
+    A note on the improcessor.  If the basic version is used, then it
+    performs pre-processing.  If a triple version is used, then the
+    mid-processor will perform operations on the detected part rather
+    than the default operations.  The mid-processor can be used to test
+    out different options for cleaning up the binary data.
     
     @param[in]  bgMod   The model or parameters for the detector.
     @param[in]  bgCfg   The model or parameters for the detector.

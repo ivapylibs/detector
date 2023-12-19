@@ -17,31 +17,64 @@
 
 class Base(object):
 
+    #================================ Base ===============================
+    #
     def __init__(self):
+        """!
+        @brief  Instantiate a detector Base activity class object.
+        """
+
         self.x = None
         pass
 
+    #============================== process ==============================
+    #
     def process(self, signal):
+        """!
+        @brief Process the new incoming signal. Establish activity state.
         """
-        Process the new income signal
-        """
+
         self.predict()
         self.measure(signal)
         self.correct()
         self.adapt()
 
+    #============================== predict ==============================
+    #
     def predict(self):
+        """!
+        @brief  If transition model known, generate state prediction. Else
+                it is most likely a static transition model, which does 
+                nothing / keeps prior state.
+        """
         return None
 
+    #============================== measure ==============================
+    #
     def measure(self, signal):
+        """!
+        @brief  Generate measurement of activity state from passed signal.
+
+        @param[in]  signal  Current signal of interest for activity detection.
+        """
         return None
 
+    #============================== correct ==============================
+    #
     def correct(self):
+        """!
+        @brief  Reconcile prediction and measurement as fitting.
+        """
         return None
     
+    #=============================== adapt ===============================
+    #
     def adapt(self):
+        """!
+        @brief  Adapt any internal parameters based on activity state, signal,
+                and any other historical information.
+        """
         return None
-
 
 
 #

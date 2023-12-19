@@ -16,16 +16,24 @@ For now just coding up bare minimum needed.
         specific way, that is what will be coded.
 """
 #=================================== byregion ==================================
-"""
+"""!
 @file       byregion.py
 
 @author     Patricio A. Vela,       pvela@gatech.edu
 @date       2023/12/15
+
 """
+#
+# NOTE: 90 columns, 4 space indent, wrap margin at 5.
+#
 #=================================== byregion ==================================
 
-from detector.activity import base as Base
-import ivapy.display_cv as display
+import numpy as np
+from detector.activity.base import Base
+import ivapy.display_cv as cvdisplay
+import scipy
+import skimage.draw as skidraw
+import ivapy.Configuration
 
 #-------------------------------------------------------------------------------
 #==================================== Planar ===================================
@@ -33,9 +41,15 @@ import ivapy.display_cv as display
 
 
 class Planar(Base):
+    """!
+    @brief  Activity detection based on lying in specific planar regions.
+    """
+
     def __init__(self):
         pass
 
+    #============================== process ==============================
+    #
     def process(self, signal):
         """
         Process the new income signal
@@ -45,15 +59,23 @@ class Planar(Base):
         self.correct()
         self.adapt()
 
+    #============================== predict ==============================
+    #
     def predict(self):
         return None
 
+    #============================== measure ==============================
+    #
     def measure(self, signal):
         return None
 
+    #============================== correct ==============================
+    #
     def correct(self):
         return None
     
+    #=============================== adapt ===============================
+    #
     def adapt(self):
         return None
 
@@ -62,6 +84,8 @@ class Planar(Base):
 #=================================== inImage ===================================
 #-------------------------------------------------------------------------------
 
+#=================================== inImage ===================================
+#
 class inImage(Base):
     """!
     @brief  Activity states depend on having signal lying in specific regions of an
@@ -77,6 +101,9 @@ class inImage(Base):
           Overlapping requires list/array of region masks.  Multiple states can
           be triggered at once. State is a set/list then, not a scalar.
     """
+    # @todo     Should this class employ a configuration? I think so.
+    #           Or maybe just have static factory method using configuration?
+    #           Or should the configuration have the factory method? Both?
 
     #========================= inImage / __init__ ========================
     #
@@ -151,13 +178,15 @@ class inImage(Base):
     #========================= addRegionByPolygon ========================
     #
     #
-    def addRegionByPolygon(self, regPoly, imsize = None)
+    def addRegionByPolygon(self, regPoly, imsize = None):
       """!
       @brief    Add a region by specifying the polygon boundary.  
 
       The polygon should be closed.  If it is not closed, then it will be closed
       by appending the first point in the polygon vertex list.  Also, image
       regions should be initialized or the target shape given in imsize.
+
+      The polygon should be column-wise in (x,y) coordinates.
 
       @param[in]    regPoly The polygon region to add. If None, does nothing.
       @param[in]    imsize  The image dimensions, if not yet initialized (optional)
@@ -166,19 +195,21 @@ class inImage(Base):
       if regPoly is None:
         return
 
+      regPoly = np.flipud(regPoly)      # numpy array indexing flipped: (x,y) to (i,j)
+
       if not self.isInit:
         self.initRegions(imsize)
 
       if self.isInit:
         if (any(regPoly[:,0] != regPoly[:,-1])):
-          regPoly = append(regPoly, np.transpose([regPoly[:,-1]]))
+          regPoly = np.hstack((regPoly, np.array(np.transpose([regPoly[:,-1]]))))
 
-        regMask = skidraw.polygon2mask(np.shape(self.imRegions), regPoly)
+        regMask = skidraw.polygon2mask(np.shape(self.imRegions), np.transpose(regPoly))
         self.addRegionByMask(regMask)
 
     #========================== addRegionByMask ==========================
     #
-    def addRegionByMask(self, regMask)
+    def addRegionByMask(self, regMask):
       """!
       @brief    Provide a masked region to use for defining a new state.
                 No check to see if it wipes out existing states.
@@ -189,10 +220,10 @@ class inImage(Base):
       @param[in]    regMask     Region mask, should match size of internal image.
       """
 
-      if (all(np.shape(self.imRegions) == np.shape(regMask))):
-        if (any(regMask)):
+      if (np.shape(self.imRegions) == np.shape(regMask)):
+        if (regMask.any()):
           self.lMax += 1
-          self.imRegions[self.regMask] = self.lMax
+          self.imRegions[regMask] = self.lMax
 
     #============================== measure ==============================
     #
@@ -206,11 +237,13 @@ class inImage(Base):
         self.x = 0
         return
 
-      self.x = scipy.ndimage.map_coordinate(self.imRegions, np.transpose(zsig), order = 0)
+      # Map coordinates takes in (i,j). Map zsig from (x,y) to (i,j).
+      zsig   = np.flipud(zsig)
+      self.x = scipy.ndimage.map_coordinates(self.imRegions, zsig, order = 0)
 
     #===================== specifyRegionsFromImageRGB ====================
     #
-    def specifyPolyRegionsFromImageRGB(seld, theImage):
+    def specifyPolyRegionsFromImageRGB(self, theImage):
       """!
       @brief    Given an image, get user input as polygons that define the
                 different regions.  If some regions lie interior to others,
@@ -225,12 +258,24 @@ class inImage(Base):
 
       polyReg = [[1,1]]
       while polyReg is not None:
-        polyReg = display.getline_rgb(theImage, isClosed = True)
-        self.addPolyRegion(polyReg)
+        polyReg = cvdisplay.getline_rgb(theImage, isClosed = True)
+        self.addRegionByPolygon(polyReg)
 
       # @todo   Maybe keep visualizing/displaying the regions as more get added.
       #         Right now just closes/opens window.
 
+
+    #============================= display_cv ============================
+    #
+    def display_cv(self, ratio = 1, window_name = "Activity Regions"):
+
+      if (self.lMax > 0):
+        rho    = 254/self.lMax
+        regIm  = self.imRegions*rho
+      else:
+        regIm = self.imRegions
+
+      cvdisplay.gray(regIm.astype(np.uint8), ratio = ratio, window_name = window_name)
 
 
 ## ADD HDF5 LOAD SUPPORT.

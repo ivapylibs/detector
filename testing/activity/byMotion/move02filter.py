@@ -17,7 +17,7 @@
 import numpy as np
 import camera.utils.display as display
 import matplotlib.pyplot as plot
-import detector.activity.simple as ad
+import detector.activity.byMotion as ad
 import estimator.dtfilters as df
 
 

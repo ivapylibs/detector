@@ -15,7 +15,7 @@
 #=============================== move01basic ===============================
 
 import numpy as np
-import detector.activity.simple as ad
+import detector.activity.byMotion as ad
 
 
 movcfg = ad.CfgMoving()

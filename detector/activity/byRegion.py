@@ -1,8 +1,8 @@
-#=================================== byregion ==================================
+#=================================== byRegion ==================================
 """!
-@brief  Activities defined by regions.  Signal must lie in a region to trigger
-        associated state.
-
+@package    byRegion
+@brief      Activities defined by regions.  Signal must lie in a region to trigger
+            associated state.
 
 Should be a general purpose module that triggers activity state when signal enters
 known region/zone with a given label.  Whether these zones are mutually exclusive
@@ -15,9 +15,9 @@ For now just coding up bare minimum needed.
         states or status flags.  Since I aim to instantiate the reasons in one
         specific way, that is what will be coded.
 """
-#=================================== byregion ==================================
+#=================================== byRegion ==================================
 """!
-@file       byregion.py
+@file       byRegion.py
 
 @author     Patricio A. Vela,       pvela@gatech.edu
 @date       2023/12/15
@@ -26,7 +26,7 @@ For now just coding up bare minimum needed.
 #
 # NOTE: 90 columns, 4 space indent, wrap margin at 5.
 #
-#=================================== byregion ==================================
+#=================================== byRegion ==================================
 
 import numpy as np
 from detector.activity.base import Base
@@ -282,4 +282,4 @@ class inImage(Base):
 ## ADD CALIBRATION SUPPORT.
 
 #
-#=================================== byregion ==================================
+#=================================== byRegion ==================================

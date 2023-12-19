@@ -1,20 +1,22 @@
-#======================== detector/activity/simple =========================
-#
-# @brief    Implements simple activity detectors.
-#
-#======================== detector/activity/simple =========================
+#=========================== detector/activity/byMotion ============================
+"""!
+@package    byMotion
+@brief      Implements simple activity detectors based on movement (or lack of).
+"""
+#=========================== detector/activity/byMotion ============================
 
 # 
-# @file     activity.py
+# @file     byMotion.py
 #
 # @author   Patricio A. Vela,   pvela@gatech.edu
 # @date     2023/08/10          [created]
 #
 #!NOTE:
 #!  Indent is set to 2 spaces.
+#!  90 columns. wrap margin at 6.
 #!  Tab is set to 4 spaces with conversion to spaces.
 #
-#======================== detector/activity/simple =========================
+#=========================== detector/activity/byMotion ============================
 
 
 import numpy as np
@@ -209,4 +211,4 @@ class isMovingInImage(isMoving):
       self.z = TrackState.MOVING
 
 #
-#======================== detector/activity/simple =========================
+#=========================== detector/activity/byMotion ============================

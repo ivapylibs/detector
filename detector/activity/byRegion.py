@@ -28,10 +28,15 @@ For now just coding up bare minimum needed.
 #
 #=================================== byRegion ==================================
 
+
+#======================== Environment / API Dependencies =======================
 import numpy as np
+import h5py
+
 from detector.base import Base
 import ivapy.display_cv as cvdisplay
 import scipy
+import scipy.ndimage
 import skimage.draw as skidraw
 import ivapy.Configuration
 
@@ -83,6 +88,11 @@ class Planar(Base):
 #-------------------------------------------------------------------------------
 #=============================== byRegion.inImage ==============================
 #-------------------------------------------------------------------------------
+
+# @todo     Eventually may want to create configuration class that specifies how
+#           to build an inImage instance. Parses fields is particular order
+#           and reconstructs based on field entries.  
+#
 
 #=================================== inImage ===================================
 #
@@ -300,9 +310,32 @@ class inImage(Base):
       actds.create_dataset("imRegions", data=self.imRegions)
 
 
+  #================================ load ===============================
+  #
+  @staticmethod
+  def load(fileName, relpath = None):    # Load given file.
+    """!
+    @brief  Outer method for loading file given as a string (with path).
+
+    Opens file, preps for loading, invokes loadFrom routine, then closes.
+    Overloaded to invoke coorect loadFrom member function.
+
+    @param[in]  fileName    The full or relative path filename.
+    @param[in]  relpath     The hdf5 (relative) path name to use for loading.
+                            Usually class has default, this is to override.
+    """
+    fptr = h5py.File(fileName,"r")
+    if relpath is not None:
+      theInstance = inImage.loadFrom(fptr, relpath);
+    else:
+      theInstance = inImage.loadFrom(fptr)
+    fptr.close()
+    return theInstance
+
   #============================== loadFrom =============================
   #
-  def loadFrom(fPtr, relpath="activity.byRegion"):    
+  @staticmethod
+  def loadFrom(fptr, relpath="activity.byRegion"):    
     """!
     @brief  Empty method for loading internal information from HDF5 file.
 
@@ -311,14 +344,17 @@ class inImage(Base):
     """
     gptr = fptr.get(relpath)
 
-    keyList = list(fPtr.keys())
+    keyList = list(gptr.keys())
+    print(keyList)
     if ("imRegions" in keyList):
-      regionsPtr = fPtr.get("imRegions")
+      print('Have imregions')
+      regionsPtr = gptr.get("imRegions")
       imRegions  = np.array(regionsPtr)
     else:
+      print('Do NOT have imregions')
       imRegions  = None
 
-    theDetector = byRegion(imRegions)
+    theDetector = inImage(imRegions)
 
     return theDetector
 
@@ -344,6 +380,25 @@ class inImage(Base):
 
     theDetector.save(theFile)
 
+  #---------------------------------------------------------------------
+  #----------------------- Factory/Build Routines ----------------------
+  #---------------------------------------------------------------------
+
+  def buildFromPolygons(imsize, thePolygons):
+    """!
+    @brief  Construct an inImage instance with provided polygon regions.
+
+    @param[in]  imsize      The image size.
+    @param[in]  thePolygons List of polygons as column array of coordinates.
+
+    @return     Instantiated object.
+    """
+
+    actDet = inImage(np.zeros(imsize))
+    for poly in thePolygons:
+      actDet.addRegionByPolygon(poly)
+
+    return actDet
 
 #
 #=================================== byRegion ==================================

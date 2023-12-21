@@ -20,7 +20,7 @@
 
 #==[0] Environment setup.
 #
-import detector.activity.byregion as regact
+import detector.activity.byRegion as regact
 import numpy as np
 import ivapy.display_cv as display
 

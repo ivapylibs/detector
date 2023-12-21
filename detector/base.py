@@ -11,6 +11,9 @@
 """
 #================================== base =================================
 
+from dataclasses import dataclass
+import h5py
+
 
 @dataclass
 class detectorState:
@@ -100,7 +103,7 @@ class Base(object):
 
     #=============================== detect ==============================
     #
-    def detect(self, signal)
+    def detect(self, signal):
         """!
         @brief  Run detection only processing pipeline (no adaptation).
 
@@ -178,7 +181,6 @@ class Base(object):
         fptr = h5py.File(fileName,"w")
         self.saveTo(fptr);
         fptr.close()
-        pass
 
     #================================ load ===============================
     #
@@ -188,11 +190,17 @@ class Base(object):
         @brief  Outer method for loading file given as a string (with path).
 
         Opens file, preps for loading, invokes loadFrom routine, then closes.
-        Usually not overloaded.  Overload the loadFrom member function.
+        Overload to invoke sub-class loadFrom member function.
+
+        @param[in]  fileName    The full or relative path filename.
+        @param[in]  relpath     The hdf5 (relative) path name to use for loading.
+                                Usually class has default, this is to override.
         """
         fptr = h5py.File(fileName,"r")
         if relpath is not None:
-          theInstance = self.loadFrom(fptr, relpath);
+          theInstance = Base.loadFrom(fptr, relpath);
+        else:
+          theInstance = Base.loadFrom(fptr)
         fptr.close()
         return theInstance
 
@@ -210,6 +218,7 @@ class Base(object):
 
     #============================== loadFrom =============================
     #
+    @staticmethod
     def loadFrom(fPtr):    
         """!
         @brief  Empty method for loading internal information from HDF5 file.

@@ -258,7 +258,7 @@ class inImage(Base):
 
   #===================== specifyRegionsFromImageRGB ====================
   #
-  def specifyPolyRegionsFromImageRGB(self, theImage):
+  def specifyPolyRegionsFromImageRGB(self, theImage, doClear = False):
     """!
     @brief    Given an image, get user input as polygons that define the
               different regions.  If some regions lie interior to others,
@@ -266,10 +266,14 @@ class inImage(Base):
 
     Overrides any existing specification.
 
-    @param[in]    theImage
+    @param[in]  theImage    The source image to provide region context.
+    @param[in]  doClear     Optional: clear existing imregions?
     """
 
-    self.initRegions(np.shape(theImage))
+    if (doClear) or (self.imRegions is None) \
+                 or (np.shape(theImage)[0:2] != np.shape(self.imRegions)):
+
+      self.initRegions(np.shape(theImage))
 
     polyReg = [[1,1]]
     while polyReg is not None:
@@ -298,13 +302,16 @@ class inImage(Base):
 
   #=============================== saveTo ==============================
   #
-  def saveTo(self, fPtr):    
+  def saveTo(self, fPtr, relpath="activity.byRegion"):    
     """!
     @brief  Empty method for saving internal information to HDF5 file.
 
     Save data to given HDF5 pointer. Puts in root.
+
+    @param[in]  fPtr        HDF5 file pointer.
+    @param[in]  relpath     Group name relative to current HDF5 path.
     """
-    actds = fPtr.create_group("activity.byRegion")
+    actds = fPtr.create_group(relpath)
 
     if (self.imRegions is not None):
       actds.create_dataset("imRegions", data=self.imRegions)
@@ -345,13 +352,10 @@ class inImage(Base):
     gptr = fptr.get(relpath)
 
     keyList = list(gptr.keys())
-    print(keyList)
     if ("imRegions" in keyList):
-      print('Have imregions')
       regionsPtr = gptr.get("imRegions")
       imRegions  = np.array(regionsPtr)
     else:
-      print('Do NOT have imregions')
       imRegions  = None
 
     theDetector = inImage(imRegions)
@@ -362,21 +366,32 @@ class inImage(Base):
   #------------------------ Calibration Routines -----------------------
   #---------------------------------------------------------------------
 
+  #============= calibrateFromPolygonMouseInputOverImageRGB ============
+  #
   def calibrateFromPolygonMouseInputOverImageRGB(theImage, theFile, initRegions = None):
     """!
     @brief  Calibrate a region detector by requesting closed polygon input from user.
 
-    Has two modes, one of which is to do so from scratch.  Another does some from
-    a pre-existing activity region image (basically a label image). Recall that there
-    is no check to see if user input is wiping out a previously existing or
-    previously enetered activity region.
+    Calibration routines save the information for loading in the future.  They
+    do not return an instantiated object.
+
+    This version has two modes, one of which is to specify from scratch.  Another
+    takes a pre-existing activity region image (basically a label image).  Recall
+    that there is no check to see if user input is wiping out a previously
+    existing or previously enetered activity region.
     """
 
     imsize      = np.shape(theImage)
-    imRegions   = np.zeros( imsize[0:2] , dtype='int' )
+    if (initRegions is not None) and (imsize[0:2] == np.shape(initRegions)):
+      pass
+    else:
+      initRegions = np.zeros( imsize[0:2] , dtype='int' )
 
-    theDetector = byRegion(imRegions)
+    theDetector = inImage(initRegions)
     theDetector.specifyPolyRegionsFromImageRGB(theImage)
+
+    theDetector.display_cv();
+    cvdisplay.wait()
 
     theDetector.save(theFile)
 

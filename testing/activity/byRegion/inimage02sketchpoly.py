@@ -1,12 +1,13 @@
 #!/usr/bin/python
-#=============================== inimage01sketchpoly ===============================
+#=============================== inimage02sketchpoly ===============================
 """!
-@brief  Test basic inImage activity region specification.
+@brief  Test basic inImage activity region specification from user input.
 
+User can select polygonal image regions to serve as activity sensitive locations.
 """
-#=============================== inimage01sketchpoly ===============================
+#=============================== inimage02sketchpoly ===============================
 """!
-@file       inimage01sketchpoly.py
+@file       inimage02sketchpoly.py
 
 @author     Patricio A. Vela,       pvela@gatech.edu
 @date       2023/12/19
@@ -15,7 +16,7 @@
 #
 # NOTE: 90 columns, 2 space indent, wrap margin 5.
 #
-#=============================== inimage01sketchpoly ===============================
+#=============================== inimage02sketchpoly ===============================
 
 
 #==[0] Environment setup.
@@ -50,4 +51,4 @@ print(theActivity.x)
 display.wait()
 
 #
-#=============================== inimage01sketchpoly ===============================
+#=============================== inimage02sketchpoly ===============================

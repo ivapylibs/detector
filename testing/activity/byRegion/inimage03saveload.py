@@ -1,8 +1,7 @@
 #!/usr/bin/python
 #=============================== inimage03saveload ===============================
 """!
-@brief  Test basic inImage activity region specification.
-
+@brief  Test basic inImage save/load routings. All hard coded, no user input.
 """
 #=============================== inimage03saveload ===============================
 """!

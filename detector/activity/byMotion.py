@@ -96,6 +96,10 @@ class CfgMoving(AlgConfig):
 
 # @classf detector.activity
 class isMoving(detBase.fromState):
+  """!
+  @ingroup    Detector
+  @brief      Simple activity detector based on motion/velocity.
+  """
 
   #=========================== isMoving:init ===========================
   '''!

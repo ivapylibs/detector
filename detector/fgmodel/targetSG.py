@@ -1,23 +1,4 @@
 #============================ fgmodel/targetSG ===========================
-"""
- @class    fgmodel.targetSG
-
- @brief    Interfaces for the target detection module 
-            based on the single Gaussian RGB color modeling
-
-
- Target object pixels are assumed to have similar RGB value, modeled by a
- single Guassian distribution.  Test images are transformed, per the model,
- into a Gaussian with uncorrelated components by diagonalizing the covariance
- matrix. Foreground detection is done by thresholding each component
- independently in the transformed color space(tilt):
-
-       |color_tilt_i - mu_tilt_i| < tau * cov_tilt_i, for all i=1,2,3
-
- tau is a parameter.
-
- The interface is adapted from the fgmodel/targetNeon.
-"""
 #============================ fgmodel/targetSG ===========================
 """
  @file     targetSG.m
@@ -36,7 +17,7 @@ import matplotlib.pyplot as plt
 from roipoly import RoiPoly
 from dataclasses import dataclass
 
-from detector.fgmodel.appearance import appearance
+from detector.fgmodel.appearance import fgAppearance
 from improcessor.basic import basic
 from improcessor.mask import mask as maskproc
 
@@ -80,13 +61,29 @@ class tModel_SG():
         return mask 
     
 
-class targetSG(appearance):
+class targetSG(fgAppearance):
+    """!
+    @ingroup    Detector
+    @brief      Single-Gaussian based target detection with full covariance.
+     
+    Interfaces for the target detection module based on the single Gaussian RGB
+    color modeling for the target.
+    Effectively, target object pixels are assumed to have similar RGB value,
+    modeled by a single Guassian distribution.  Test images are transformed, per
+    the model, into a Gaussian with uncorrelated components by diagonalizing the
+    covariance matrix. Foreground detection is done by thresholding each component
+    independently in the transformed color space (tilt):
+ 
+        |color_tilt_i - mu_tilt_i| < tau * cov_tilt_i, for all i=1,2,3
+ 
+    tau is a threshold parameter.
+ 
+    The interface is adapted from the fgmodel/targetNeon.
     """
-    The single-Gaussian based target detection class.
-    The target color is modeled as a single-Guassian distribution
-    """
+
     def __init__(self, tModel: tModel_SG=tModel_SG(), params:Params=Params()):
-        """The targetSG constructor
+        """!
+        @brief  The targetSG constructor
 
         Args:
             tModel (tModel_SG, optional): The target model class storing the single Gaussian model statistics.\

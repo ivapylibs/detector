@@ -1,6 +1,8 @@
 #!/usr/bin/python
 #================================ inimage04calibrate ===============================
 """!
+@file       inimage04calibrate.py
+
 @brief  Test out calibration routine that gets user input and saves regions.
 
 This code tests the case that an initial region mask is available.  In this case,
@@ -10,15 +12,9 @@ regions based on the user input.
 The version without initial regions was manually tested and works. The conditional
 logic is correct.
 
-"""
-#================================ inimage04calibrate ===============================
-"""!
-@file       inimage04calibrate.py
-
 @author     Patricio A. Vela,       pvela@gatech.edu
 @date       2023/12/21
 """
-
 #
 # NOTE: 90 columns, 2 space indent, wrap margin 5.
 #
@@ -38,7 +34,7 @@ import ivapy.display_cv as display
 
 print("[1] Construct based on specified image, initialized region, and annotations.")
 print("    Saving to file.")
-theActivity = regact.inImage(np.zeros([200,400]))
+theActivity = regact.imageRegions(np.zeros([200,400]))
 
 theImage = np.zeros([200,400,3])
 theImage[20:150, 20:150, :] = 200
@@ -46,12 +42,12 @@ theImage[20:150, 20:150, :] = 200
 initRegions = np.zeros([200,400], dtype=int)
 initRegions[20:150, 20:150] = 1
 
-regact.inImage.calibrateFromPolygonMouseInputOverImageRGB(\
+regact.imageRegions.calibrateFromPolygonMouseInputOverImageRGB(\
                                         theImage,'inimage04data.hdf', initRegions)
 
 
 print("[2] Load from file and apply.")
-theActivity = regact.inImage.load('inimage04data.hdf')
+theActivity = regact.imageRegions.load('inimage04data.hdf')
 
 theActivity.display_cv(window_name = "Loaded")
 

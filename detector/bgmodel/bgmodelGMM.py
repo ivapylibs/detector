@@ -1,67 +1,60 @@
 #=============================== bgmodelGMM ==============================
-"""
-  @class bgmodelGMM
-
-  bgmodelGMM(mu, sigma, parms)
-
-  Implements a background modeling foreground detector using a Gaussian 
-  mixture model.  This model involves two parts, one is an estimator,
-  and the other is a change detector.  The estimator is a static 
-  prediction observer on the mean and variance with fixed udpate gains.  
-  The change detector is threshold-based.  Estimate corrections rely
-  on the change detector.
-
-  Inputs:
-    mu          - the means of the Gaussian models.
-    sigma       - the variance of the Gaussian models.
-    weights     - the weights of the Gaussian models.
-    parms       - [optional] structure with parameters specified.
-
-  Fields of the parms structure:
-    sigma       - Initial variance to use if sigma is empty.
-    thresh      - Threshold for determining foreground.
-    alpha       - Update rate for mean and variance.
-    rho         - Update rate for weights.
-    cnctd_thrsh - Connected component threshold size for false blob removal.
-    se3	        - structuring element for morphological operations. 
-    improcessor - Image processor interface object for performing
-					  pre-, mid-, and post-processing of signal.
-
-		A note on the improcessor.  If the basic version is used, then
-		it performs pre-processing. If a triple version is used, then
-		the mid-processor will perform operations on the detected part
-		rather than the default operations.  The mid-processor can be used
-		to test out different options for cleaning up the binary data.
-
-"""
 #=============================== bgmodelGMM ==============================
+"""!
+
+@author Gbolabo Ogunmakin, 		gogunmakin3@gatech.edu
+@author	Patricio A. Vela,		pvela@gatech.edu
+@author Yiye Chen (py),         yychen2019@gatech.edu
+
+@date   2011/01/31 		(original: bg_model.m)
+@date   2021/07/22      (python) 
 """
-
-  Name:		    bgmodelGMM.m
-
-  Author:		Gbolabo Ogunmakin, 		gogunmakin3@gatech.edu
-				Patricio A. Vela,		pvela@gatech.edu
-                Yiye Chen (py),         yychen2019@gatech.edu
-
-  Created: 	    2011/01/31 		(original: bg_model.m)
-  Modified:	    2013/01/20 
-  Translated to python: 2021/07/22
-
-  Notes:
-    set tabstop = 4, indent = 2.
-"""
+#! NOTE:
+#!    set tabstop = 4, indent = 2.
 #=============================== bgmodelGMM ==============================
 
 import numpy as np
 import cv2
 from dataclasses import dataclass
 
-from detector.inImage import inImage
+from detector.inImage import bgImage
 
-class bgmodelGMM(inImage):
+class bgmodelGMM(bgImage):
     """
-    Translation of the ivaMatlib/bgmodelGMM
-    NOTE: Not implemented.
+    @ingroup    Detector
+    @brief      Gaussian mixture background model.
+
+    Implements a background modeling foreground detector using a Gaussian 
+    mixture model.  This model involves two parts, one is an estimator,
+    and the other is a change detector.  The estimator is a static 
+    prediction observer on the mean and variance with fixed udpate gains.  
+    The change detector is threshold-based.  Estimate corrections rely
+    on the change detector.
+
+    Inputs:
+      mu          - the means of the Gaussian models.
+      sigma       - the variance of the Gaussian models.
+      weights     - the weights of the Gaussian models.
+      parms       - [optional] structure with parameters specified.
+
+    Fields of the parms structure:
+      sigma       - Initial variance to use if sigma is empty.
+      thresh      - Threshold for determining foreground.
+      alpha       - Update rate for mean and variance.
+      rho         - Update rate for weights.
+      cnctd_thrsh - Connected component threshold size for false blob removal.
+      se3	        - structuring element for morphological operations. 
+      improcessor - Image processor interface object for performing
+					  pre-, mid-, and post-processing of signal.
+
+    @note
+        A note on the improcessor.  If the basic version is used, then
+		it performs pre-processing. If a triple version is used, then
+		the mid-processor will perform operations on the detected part
+		rather than the default operations.  The mid-processor can be used
+		to test out different options for cleaning up the binary data.
+
+    @note Translation of ivaMatlib/bgmodelGMM
     """
     def __init__(self, K, **kwargs):
         super().__init__()
@@ -156,7 +149,7 @@ class Params_cv:
     ShadowThreshold:    float = 0.5
     adapt_rate:         float = -1      # will automatically choose rate
 
-class bgmodelGMM_cv(inImage):
+class bgmodelGMM_cv(bgImage):
     """
     GMM Background Substraction method MOG2 based on the OpenCV.
     Include shadow detection feature.

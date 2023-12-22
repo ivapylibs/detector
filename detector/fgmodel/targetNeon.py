@@ -1,15 +1,4 @@
 #=========================== fgmodel/targetNeon ==========================
-#
-# @class    fgmodel.targetNeon
-#
-# @brief    General interface for simple appearance-based detection
-#           module for images.
-#
-#
-# Neon colors are defined by RGB coordinate values maximizing two of
-# three color channels and being of low to mid valued in the third. This
-# is defined as less than 180 out of 255, but can be overriden.
-#
 #=========================== fgmodel/targetNeon ==========================
 
 #
@@ -26,7 +15,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from roipoly import RoiPoly
 import warnings
-from appearance import appearance
+from appearance import fgAppearance
 
 # Struct for tModel
 class TModel(object):
@@ -49,7 +38,15 @@ class MData(object):
         self.pix = pix
         self.data = data
 
-class targetNeon(appearance):
+class targetNeon(fgAppearance):
+    """!
+    @ingroup    Detector
+    @brief      Detection interface for neon colored targets.
+
+    Neon colors are defined by RGB coordinate values maximizing two of
+    three color channels and being of low to mid valued in the third. This
+    is defined as less than 180 out of 255, but can be overriden.
+    """
 
     # ============================= targetNeon ============================
     #

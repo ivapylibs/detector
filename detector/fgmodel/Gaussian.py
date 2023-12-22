@@ -1,44 +1,4 @@
 #================================ Gaussian ===============================
-"""
-  @class Gaussian
-
-  @brief    Implements a single Gaussian target/foreground model.
-
-  A similar implementation exists in ``targetSG``, based on a different
-  operating paradigm that decorrelates the input image data.  While
-  the implementation is most likely better than this one, simplicity
-  has its own value.
-
-  No doubt this implementation exists in some form within the OpenCV or
-  BGS libraries, but getting a clean, simple interface from these libraries
-  is actually not as easy as implementing from existing Matlab code.
-  Plus, it permits some customization that the library implementations
-  may not have.
-
-  @todo Eventually should be translated to OpenCV style code by repurposing
-        their code to get CUDA and OpenCL implementations for speed purposes.
-        Even their C code is fairly zippy relative to python.
-
-  Inputs:
-    mu          - the means of the Gaussian model.
-    sigma       - the variance of the Gaussian model.
-    weights     - the weights of the Gaussian models.
-    parms       - [optional] configuration instance with parameters specified.
-
-  Fields of the parms structure:
-    sigma       - Initial variance to use if sigma is empty.
-    thresh      - Threshold for determining foreground.
-    alpha       - Update rate for mean and variance.
-
-    A note on the improcessor.  If the basic version is used, then it
-    performs pre-processing.  If a triple version is used, then the
-    mid-processor will perform operations on the detected part rather
-    than the default operations.  The mid-processor can be used to test
-    out different options for cleaning up the binary data.
-"""
-#================================ Gaussian ===============================
-#
-# @file     Gaussian.py
 #
 # @author   Jun Yang,
 # @author   Patricio A. Vela,   pvela@gatech.edu
@@ -58,16 +18,22 @@ import numpy as np
 import cv2
 import h5py
 
-from detector.inImage import inImage
+from detector.inImage import fgImage
 from detector.Configuration import AlgConfig
 import camera.utils.display as display
 
 @dataclass
 class SGMstate:
+  """!
+  @brief    Data class for storing Gaussian foreground output.
+  """
   fgIm  : np.ndarray
 
 @dataclass
 class SGMdebug:
+  """!
+  @brief    Data class for storing Gaussian mean and variance diagonal.
+  """
   mu    : np.ndarray
   sigma : np.ndarray
 
@@ -80,9 +46,16 @@ class SGMdebug:
 
 class CfgSGT(AlgConfig):
   '''!
-  @brief  Configuration setting specifier for Gaussian BG model.
+  @brief    Configuration setting specifier for Gaussian BG model.
 
-  @note   Currently not using a CfgBGModel super class. Probably best to do so.
+  The most basic settings are the mean and variance vectors (mu, sigma),
+  where the assumption is that the covariance matrix is diagonal only,
+  and the detection threshold.  Also available are the learning rate (alpha),
+  the minimum sigma permissible and the minimum area of the foreground target.
+  The minimum sigma prevents small values that end up behaving like a delta
+  function and are too restrictive regarding what is acceptable.
+
+  @note     Currently not using a CfgBGModel super class. Probably best to do so.
   '''
   #============================= __init__ ============================
   #
@@ -134,12 +107,17 @@ class CfgSGT(AlgConfig):
   # minArea  = 500     # For 848x480 resolution capture. [Default]
   # 
   @staticmethod
-  def builtForRedGlove(minArea = 500):
+  def builtForRedGlove(minArea = 500, initModel = None):
     learnCfg = CfgSGT();
     learnCfg.alpha = 0.10
     learnCfg.minSigma = [900.0, 100.0, 150.0]
-    learnCfg.init.mu  = [130.0, 10.0, 50.0]
-    learnCfg.init.sigma = [1200.0, 150.0, 350.0]
+    if (initModel is None):
+      learnCfg.init.mu    = [130.0, 10.0, 50.0]
+      learnCfg.init.sigma = [1200.0, 150.0, 350.0]
+    else:
+      learnCfg.init.mu    = initModel[0]
+      learnCfg.init.sigma = initModel[1]
+
     learnCfg.minArea  = 800     
     return learnCfg
 
@@ -159,7 +137,37 @@ class CfgSGT(AlgConfig):
 #-------------------------------------------------------------------------
 #
 
-class Gaussian(inImage):
+class fgGaussian(fgImage):
+  """!
+  @ingroup  Detector
+  @brief    Implements a single Gaussian target/foreground model.
+
+  A similar implementation exists in ``targetSG``, based on a different
+  operating paradigm that decorrelates or whitens the input image data, which
+  is effectively a linear transformation of the image data.  While the
+  implementation is most likely better than this one, simplicity has its own
+  value.
+
+  No doubt this implementation exists in some form within the OpenCV or BGS
+  libraries, but getting a clean, simple interface from these libraries is
+  actually not as easy as implementing from existing Matlab code.  Plus, it
+  permits some customization that the library implementations may not have.
+
+  For how to configure the input, please see CfgSGT.  Likewise for model
+  overriding, please see SGMdebug.
+
+  @note  A note on the improcessor.  If the basic version is used, then it
+    performs pre-processing.  If a triple version is used, then the
+    mid-processor will perform operations on the detected part rather
+    than the default operations.  The mid-processor can be used to test
+    out different options for cleaning up the binary data.
+
+  @todo Eventually should be translated to OpenCV style code by repurposing
+        their code to get CUDA and OpenCL implementations for speed purposes.
+        Even their C code is fairly zippy relative to python.
+
+  @todo Redo so that inherits from appearance or some kind of fgmodel class.
+  """
 
   #========================= Gaussian/__init__ =========================
   #
@@ -500,6 +508,37 @@ class Gaussian(inImage):
     #tinfo.trackparms = bgp;
     pass
 
+  #======================== refineFromStreamRGB ========================
+  #
+  # @brief  Given an RGB stream, run the estimation process with 
+  #         adaptation on to improve color model.
+  #
+  def refineFromStreamRGB(self, theStream, incVis = False):
+
+    print('STEPS to Refine the Gaussian model.')
+    print('\t [1] Hit any key to continue once scene is prepped.')
+    print('\t [2] Wait a little. Hit "q" to stop adaptation process. Should be short.')
+    input();
+  
+    while(True):
+      rgb, success = theStream.capture()
+      if not success:
+        print("Cannot get the camera signals. Exiting...")
+        exit()
+  
+      self.process(rgb)
+  
+      if (incVis):
+        fgS = self.getState()
+        display.rgb_binary_cv(rgb, fgS.fgIm, 0.25, "Output")
+  
+      opKey = cv2.waitKey(1)
+      if opKey == ord('q'):
+          break
+  
+    if (incVis):
+      display.close_cv("Output")
+
   #======================== refineFromRGBDStream =======================
   #
   # @brief  Given an RGBD stream, run the estimation process with 
@@ -607,18 +646,21 @@ class Gaussian(inImage):
   #
   #
   @staticmethod
-  def buildFromCfg(theConfig):
+  def buildFromCfg(theConfig, processor = None, fgMod = None):
     '''!
     @brief  Instantiate from stored configuration file (YAML).
     '''
 
-    fgDetector = Gaussian(theConfig)
+    fgDetector = Gaussian(theConfig, processor, fgMod)
     return fgDetector
 
   #================================ load ===============================
   #
   @staticmethod
   def load(fileName):
+    """!
+    @brief  Load Gaussian instance specification from HDF5 file.
+    """
     fptr = h5py.File(fileName,"r")
     theModel = Gaussian.loadFrom(fptr)
     fptr.close()
@@ -629,8 +671,12 @@ class Gaussian(inImage):
   #
   @staticmethod
   def loadFrom(fPtr):
+    """!
+    @brief  Specialzed load function to parse HDF5 data from file pointer.
+    """
     keyList = list(fPtr.keys())
 
+    # @todo     May not be loading from actual model but from config. Not good.
     if ("ForegroundGaussian" in keyList):
       cfgPtr = fPtr.get("ForegroundGaussian")
       cfgStr = cfgPtr[()].decode()

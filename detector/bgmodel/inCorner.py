@@ -1,15 +1,4 @@
 #============================ detector.fgmodel.inCorner ============================
-'''!
-  @brief    Class instance for extracting background that lies with the corner
-            region of the RGB color cube, or the extremal regions of a
-            color-space based on a planar cut.
-
-  The idea is similar to the fgmodel approach based on planar cuts but
-  with the presumption that the background is what has the unique color
-  profile.  The presumption is that the background lies in a region of 
-  color-space that is extremal so that a planar surface separates it from
-  the expected foreground colors.
-'''
 #============================ detector.fgmodel.inCorner ============================
 '''!
 
@@ -34,7 +23,7 @@ from skimage import measure
 from skimage import morphology
 
 from detector.Configuration import AlgConfig
-from detector.inImage import inImage
+from detector.inImage import bgImage
 
 # Struct for tModel
 class SurfaceCutModel(object):
@@ -262,7 +251,19 @@ class CfgInCorner(AlgConfig):
 #-----------------------------------------------------------------------------------
 #
 
-class inCorner(inImage):
+class inCorner(bgImage):
+  '''!
+  @ingroup  Detector
+  @brief    Class instance for extracting background that lies with the corner
+            region of the RGB color cube, or the extremal regions of a
+            color-space based on a planar cut.
+  
+  The idea is similar to the fgmodel approach based on planar cuts but
+  with the presumption that the background is what has the unique color
+  profile.  The presumption is that the background lies in a region of 
+  color-space that is extremal so that a planar surface separates it from
+  the expected foreground colors.
+  '''
 
   #================================ inCorner ===============================
   #
@@ -579,7 +580,7 @@ class inCornerEstimator(inCorner):
   def calibrateFromStreamRGB(self, theStream, incVis = False):
 
     while(True):
-      rgb, success = theStream.get_frame()
+      rgb, success = theStream.capture()
       if not success:
         print("Cannot get the camera signals. Exiting...")
         exit()

@@ -18,7 +18,7 @@ import h5py
 @dataclass
 class detectorState:
     """!
-    @brief  Basic version of a detector state.
+    @brief      Basic version of a detector state.
 
     The most basic version has space for the detected instance.
     It should be empty/none if no detection.
@@ -27,6 +27,10 @@ class detectorState:
 
 
 class Base(object):
+    """!
+    @ingroup    Detector
+    @brief      Base or root implementation of detector class.
+    """
 
     #================================ Base ===============================
     #

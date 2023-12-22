@@ -1,17 +1,13 @@
 #!/usr/bin/python
 #================================= inimage01basics =================================
 """!
-@brief  Test basic inImage activity region specification.
+@file   inimage01basics.py
 
-"""
-#================================= inimage01basics =================================
-"""!
-@file       inimage01basics.py
+@brief  Test basic imageRegions activity region specification.
 
 @author     Patricio A. Vela,       pvela@gatech.edu
 @date       2023/12/19
 """
-
 #
 # NOTE: 90 columns, 2 space indent, wrap margin 5.
 #
@@ -35,7 +31,7 @@ region01[20:40,20:40]   = 1
 region01[60:80,60:80]   = 2
 region01[30:70,130:180] = 3
 
-theActivity = regact.inImage(region01)
+theActivity = regact.imageRegions(region01)
 
 theActivity.display_cv()
 

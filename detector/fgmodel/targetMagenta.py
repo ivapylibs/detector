@@ -1,5 +1,5 @@
 import numpy as np
-from detector.fgmodel.appearance import appearance
+from detector.fgmodel.appearance import fgAppearance
 
 # Struct for tModel
 class TModel(object):
@@ -10,7 +10,17 @@ class TModel(object):
         self.classify = classify
         self.vectorize = vectorize
 
-class targetMagenta(appearance):
+class targetMagenta(fgAppearance):
+    '''!
+    @ingroup    Detector
+    @brief      Class instance for extracting bright/neon magenta targets, which
+                tend to lie in a corner region of the RGB color cube.  
+
+    This color is relatively unique in natural and built environments.  For
+    natural environments, it tends to be rate.  Built environments might
+    be morelikely to have the color, but it is still rare. Especially in small
+    environments with low scene complexity.
+    '''
 
     # ============================= targetMagenta ============================
     #

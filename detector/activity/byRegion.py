@@ -34,6 +34,7 @@ import numpy as np
 import h5py
 
 from detector.base import Base
+from detector.fromState import fromState
 import ivapy.display_cv as cvdisplay
 import scipy
 import scipy.ndimage
@@ -45,9 +46,10 @@ import ivapy.Configuration
 #-------------------------------------------------------------------------------
 
 
-class Planar(Base):
+class Planar(fromState):
   """!
-  @brief  Activity detection based on lying in specific planar regions.
+  @ingroup  Detector
+  @brief    Activity detection based on lying in specific planar regions.
   """
 
   def __init__(self):
@@ -86,28 +88,29 @@ class Planar(Base):
 
 
 #-------------------------------------------------------------------------------
-#=============================== byRegion.inImage ==============================
+#=============================== byRegion.imageRegions ==============================
 #-------------------------------------------------------------------------------
 
 # @todo     Eventually may want to create configuration class that specifies how
-#           to build an inImage instance. Parses fields is particular order
+#           to build an imageRegions instance. Parses fields is particular order
 #           and reconstructs based on field entries.  
 #
 
-#=================================== inImage ===================================
+#=================================== imageRegions ===================================
 #
 
-class inImage(Base):
+class imageRegions(fromState):
   """!
-  @brief  Activity states depend on having signal lying in specific regions of an
-          image. Signal is presumably in image pixels.
+  @ingroup  Detector
+  @brief    Activity states depend on having signal lying in specific regions of an
+            image. Signal is presumably in image pixels.
 
   The presumption is that the regions are disjoint so that each pixel maps to either
   1 or 0 activity/event states.    The signals can be pixel coordinates (2D) or it
   can be pixel coordinates plus depth or height (3D), but up to the underlying class
   implementation to work out whether that extra coordinate matters and its meaning.
 
-  Chosen not to be a sub-class of inImage.inImage due to the fact that these operate
+  Chosen not to be a sub-class of inImage due to the fact that these operate
   differently.  Activity recognition checks for presence of signal location in a
   particular region of the image.  Image-based detection checks for presence of
   target features throughout the entire image.
@@ -120,10 +123,10 @@ class inImage(Base):
   #           Or maybe just have static factory method using configuration?
   #           Or should the configuration have the factory method? Both?
 
-  #========================= inImage / __init__ ========================
+  #========================= imageRegions / __init__ ========================
   #
   def __init__(self, imRegions = None):
-    super(inImage,self).__init__()
+    super(imageRegions,self).__init__()
 
     self.isInit = False
     self.lMax   = 0
@@ -333,9 +336,9 @@ class inImage(Base):
     """
     fptr = h5py.File(fileName,"r")
     if relpath is not None:
-      theInstance = inImage.loadFrom(fptr, relpath);
+      theInstance = imageRegions.loadFrom(fptr, relpath);
     else:
-      theInstance = inImage.loadFrom(fptr)
+      theInstance = imageRegions.loadFrom(fptr)
     fptr.close()
     return theInstance
 
@@ -358,7 +361,7 @@ class inImage(Base):
     else:
       imRegions  = None
 
-    theDetector = inImage(imRegions)
+    theDetector = imageRegions(imRegions)
 
     return theDetector
 
@@ -387,7 +390,7 @@ class inImage(Base):
     else:
       initRegions = np.zeros( imsize[0:2] , dtype='int' )
 
-    theDetector = inImage(initRegions)
+    theDetector = imageRegions(initRegions)
     theDetector.specifyPolyRegionsFromImageRGB(theImage)
 
     theDetector.display_cv();
@@ -401,7 +404,7 @@ class inImage(Base):
 
   def buildFromPolygons(imsize, thePolygons):
     """!
-    @brief  Construct an inImage instance with provided polygon regions.
+    @brief  Construct an imageRegions instance with provided polygon regions.
 
     @param[in]  imsize      The image size.
     @param[in]  thePolygons List of polygons as column array of coordinates.
@@ -409,7 +412,7 @@ class inImage(Base):
     @return     Instantiated object.
     """
 
-    actDet = inImage(np.zeros(imsize))
+    actDet = imageRegions(np.zeros(imsize))
     for poly in thePolygons:
       actDet.addRegionByPolygon(poly)
 

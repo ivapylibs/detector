@@ -1,32 +1,4 @@
 #================================ Gaussian ===============================
-"""
-  @class Gaussian
-
-  @brief    Implements a single Gaussian background model.
-
-  No doubt this implementation exists in some form within the OpenCV or
-  BGS libraries, but getting a clean, simple interface from these libraries
-  is actually not as easy as implementing from existing Matlab code.
-  Plus, it permits some customization that the library implementations
-  may not have.
-
-  Inputs:
-    mu          - the means of the Gaussian models.
-    sigma       - the variance of the Gaussian models.
-    weights     - the weights of the Gaussian models.
-    parms       - [optional] configuration instance with parameters specified.
-
-  Fields of the parms structure:
-    sigma       - Initial variance to use if sigma is empty.
-    thresh      - Threshold for determining foreground.
-    alpha       - Update rate for mean and variance.
-
-    A note on the improcessor.  If the basic version is used, then it
-    performs pre-processing.  If a triple version is used, then the
-    mid-processor will perform operations on the detected part rather
-    than the default operations.  The mid-processor can be used to test
-    out different options for cleaning up the binary data.
-"""
 #================================ Gaussian ===============================
 #
 # @file     Gaussian.py
@@ -49,7 +21,7 @@ from dataclasses import dataclass
 import numpy as np
 import h5py
 
-from detector.inImage import inImage
+from detector.inImage import bgImage
 from detector.Configuration import AlgConfig
 
 @dataclass
@@ -124,18 +96,37 @@ class CfgSGM(AlgConfig):
 
 #================================ Gaussian ===============================
 
-class Gaussian(inImage):
+class bgGaussian(bgImage):
   """!
+  @ingroup  Detector
+
   @brief    Implements a single Gaussian background model.
 
   No doubt this implementation exists in some form within the OpenCV or
   BGS libraries, but getting a clean, simple interface from these libraries
   is actually not as easy as implementing from existing Matlab code.
   Plus, it permits some customization that the library implementations
-  may not have.
+  may not have (or that we don't understand how to do until better understanding
+  the codebase or creating customized subclasses).
 
+  Inputs:
+    mu          - the means of the Gaussian models.
+    sigma       - the variance of the Gaussian models.
+    weights     - the weights of the Gaussian models.
+    parms       - [optional] configuration instance with parameters specified.
+
+  Fields of the parms structure:
+    sigma       - Initial variance to use if sigma is empty.
+    thresh      - Threshold for determining foreground.
+    alpha       - Update rate for mean and variance.
+
+  @note 
+    A note on the improcessor.  If the basic version is used, then it
+    performs pre-processing.  If a triple version is used, then the
+    mid-processor will perform operations on the detected part rather
+    than the default operations.  The mid-processor can be used to test
+    out different options for cleaning up the binary data.
   """
-
   #========================= Gaussian/__init__ =========================
   #
   #

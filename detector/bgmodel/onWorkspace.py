@@ -1,39 +1,7 @@
 #============================== onWorkspace ==============================
-"""
-  @class Gaussian
-
-  @brief    Applies Gaussian model with premise that targets lie to one side of
-            the distribution.
-
-  Background estimation/learning still uses a Gaussian model, but the detection
-  part only checks for the error in one direction (by not squaring the error
-  quantity).  This version makes sense for depth cameras as objects on the
-  workspace will be closer to the camera (at least when viewed from above down
-  towards the workspace). Naturally, there is a static model assumption going
-  on here.
-
-  Inputs:
-    mu          - the means of the Gaussian models.
-    sigma       - the variance of the Gaussian models.
-    weights     - the weights of the Gaussian models.
-    parms       - [optional] configuration instance with parameters specified.
-
-  Fields of the parms structure:
-    sigma       - Initial variance to use if sigma is empty.
-    thresh      - Threshold for determining foreground.
-    alpha       - Update rate for mean and variance.
-    lambdaSigma - Update rate scaling for variance (defult = 1). 
-                  Usually it is best to update more slowly.
-
-    A note on the improcessor.  If the basic version is used, then it
-    performs pre-processing.  If a triple version is used, then the
-    mid-processor will perform operations on the detected part rather
-    than the default operations.  The mid-processor can be used to test
-    out different options for cleaning up the binary data.
-"""
 #============================== onWorkspace ==============================
 #
-# @file     Gaussian.py
+# @file     onWorkspace.py
 #
 # @author   Patricio A. Vela,   pvela@gatech.edu
 # @date     2023/06/15      [converted to python]
@@ -53,7 +21,8 @@ import cv2
 
 import camera.utils.display as display
 
-from detector.inImage import inImage
+from detector.bgmodel.Gaussian import bgGaussian
+from detector.bgmodel.Gaussian import CfgSGM
 import detector.bgmodel.Gaussian as SGM
 
 
@@ -61,7 +30,7 @@ class RunState(Enum):
   ESTIMATE = 1
   DETECT   = 2
     
-class CfgOnWS(SGM.CfgSGM):
+class CfgOnWS(CfgSGM):
   '''!
   @brief  Configuration setting specifier for Gaussian workspace model.
   '''
@@ -94,7 +63,7 @@ class CfgOnWS(SGM.CfgSGM):
                               default settings.
     '''
 
-    default_dict = SGM.CfgSGM.get_default_settings()
+    default_dict = CfgSGM.get_default_settings()
     #append_dict  = dict(NOTHING FOR NOW)
     #default_dict.update(append_dict)
 
@@ -139,7 +108,19 @@ class CfgOnWS(SGM.CfgSGM):
 #---------------------------------------------------------------------------
 #
 
-class onWorkspace(SGM.Gaussian):
+class onWorkspace(bgGaussian):
+  """!
+  @ingroup  Detector
+  @brief    Applies half-Gaussian model with premise that targets lie to one side
+            of the distribution.
+
+  @note 
+    A note on the improcessor.  If the basic version is used, then it
+    performs pre-processing.  If a triple version is used, then the
+    mid-processor will perform operations on the detected part rather
+    than the default operations.  The mid-processor can be used to test
+    out different options for cleaning up the binary data.
+  """
 
   #========================= Gaussian/__init__ =========================
   #

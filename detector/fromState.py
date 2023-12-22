@@ -1,8 +1,5 @@
 #=========================== detector/fromState ============================
 #
-# @brief    The most basic object or instance detector from state vector
-#           input. Really should be overloaded, but simple ones can be
-#           created from this class with the right pre/post processor.
 #
 #=========================== detector/fromState ============================
 
@@ -21,22 +18,25 @@
 
 import numpy as np
 from dataclasses import dataclass
+from detector.base import Base
 
 @dataclass
 class detectorState:
   x: any = None
 
 # @classf detector
-class fromState(object):
-
-  #=========================== fromState:init ==========================
-  '''!
-  @brief    Constructor for fromState instance.
-
-
-  @param[in]    processor   A state processor.
-  '''
+class fromState(Base):
+  """!
+  @ingroup  Detector
+  @brief    Basic detector from state vector input. Should be overloaded, but
+            simple detectors can be created with the right pre/post processor.
+  """
   def __init__(self, processor=None):
+    '''!
+    @brief    Constructor for fromState instance.
+
+    @param[in]    processor   A state processor.
+    '''
     if isinstance(processor, basic):
       self.processor = processor
     else:

@@ -2,7 +2,6 @@
 """!
 @brief  Background detection evaluation routine for opencv background detectors.
 
-
 Evaluate the detection result by comparing it with the ground truth result.
 
 The ground truth result is obtained by:
@@ -14,6 +13,8 @@ The ground truth result is obtained by:
    (a) Glove color calibration data - any image with glove in it
    (b) Height estimation data - Empty table
 
+
+@ingroup    Detector_Testing
 ======================================= bgEva ==============================================
 """
 #==================================== bgEva ====================================

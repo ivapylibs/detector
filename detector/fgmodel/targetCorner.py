@@ -1,10 +1,4 @@
 #===================== detector.fgmodel.targetCorner =====================
-'''!
-  @brief    Class instance for extracting targets that lie with the corner
-            region of the RGB color cube, or the extremal regions of a
-            color-space based on a planar cut.
-
-'''
 #===================== detector.fgmodel.targetCorner =====================
 '''!
 
@@ -19,10 +13,13 @@
 #===================== detector.fgmodel.targetCorner =====================
 
 import numpy as np
-from detector.fgmodel.appearance import appearance
+from detector.fgmodel.appearance import fgAppearance
 
 # Struct for tModel
 class TModel(object):
+    """!
+    @brief    Target model class to encapsulate affine decision classifier.
+    """
     def __init__(self, n=None, d = None, tau=None, classify=None, vectorize=None):
         self.n = n
         self.d = d
@@ -30,7 +27,14 @@ class TModel(object):
         self.classify = classify
         self.vectorize = vectorize
 
-class targetCorner(appearance):
+class targetCorner(fgAppearance):
+    '''!
+    @ingroup Detector
+    @brief   Class instance for extracting targets that lie with the corner
+             region of the RGB color cube, or the extremal regions of a
+             color-space based on a planar cut.
+ 
+    '''
 
     #=========================== targetCorner ==========================
     #

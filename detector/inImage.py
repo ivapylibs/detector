@@ -20,7 +20,7 @@ import numpy as np
 
 from dataclasses import dataclass
 from improcessor.basic import basic
-import detector.base 
+from detector.base import Base
 
 import h5py
 
@@ -32,6 +32,7 @@ import h5py
 # @classf detector
 class inImage(Base):
   """!
+  @ingroup  Detector
   @brief    The most basic object or instance detector from image input. 
 
   Really this class should be overloaded for most cases, but simple image-based
@@ -92,6 +93,47 @@ class inImage(Base):
     #tinfo.time = datestr(now,'HH:MM:SS');
     #tinfo.trackparms = bgp;
     pass
+
+#================================ fgImage ================================
+#
+
+class fgImage(inImage):
+  """!
+  @ingroup  Detector
+  @brief    The most basic object or instance detector from image input. 
+
+  Really this class should be overloaded for most cases, but simple image-based
+  detectors can be created from this class with the right pre/post processor.
+  The trick is to have the improcessor output a binary image for downstream
+  use.
+  """
+
+  #============================== __init__ =============================
+  #
+  def __init__(self, processor=None):
+
+    super(fgImage,self).__init__(processor)
+
+#================================ bgImage ================================
+#
+
+class bgImage(inImage):
+  """!
+  @ingroup  Detector
+  @brief    The most basic object or instance detector from image input. 
+
+  Really this class should be overloaded for most cases, but simple image-based
+  detectors can be created from this class with the right pre/post processor.
+  The trick is to have the improcessor output a binary image for downstream
+  use.
+  """
+
+  #============================== __init__ =============================
+  #
+  def __init__(self, processor=None):
+
+    super(fgImage,self).__init__(processor)
+
 
 
 #

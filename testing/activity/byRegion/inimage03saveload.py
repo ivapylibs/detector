@@ -1,16 +1,13 @@
 #!/usr/bin/python
 #=============================== inimage03saveload ===============================
 """!
-@brief  Test basic inImage save/load routings. All hard coded, no user input.
-"""
-#=============================== inimage03saveload ===============================
-"""!
 @file       inimage03saveload.py
+
+@brief  Test basic imageRegions save/load routings. All hard coded, no user input.
 
 @author     Patricio A. Vela,       pvela@gatech.edu
 @date       2023/12/21
 """
-
 #
 # NOTE: 90 columns, 2 space indent, wrap margin 5.
 #
@@ -39,14 +36,14 @@ region01[20:40,20:40]   = 1
 region01[60:80,60:80]   = 2
 region01[30:70,130:180] = 3
 
-theActivity = regact.inImage.buildFromPolygons([200,400], thePolygons)
+theActivity = regact.imageRegions.buildFromPolygons([200,400], thePolygons)
 
 theActivity.save('inimage03data.hdf')
 theActivity.wipeRegions()
 
 #==[2] Testing/demonstration code to instantiate and specify activity regions.
 #
-theActivity = regact.inImage.load('inimage03data.hdf')
+theActivity = regact.imageRegions.load('inimage03data.hdf')
 
 theActivity.display_cv()
 

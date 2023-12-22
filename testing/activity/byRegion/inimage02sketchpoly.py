@@ -1,18 +1,15 @@
 #!/usr/bin/python
 #=============================== inimage02sketchpoly ===============================
 """!
-@brief  Test basic inImage activity region specification from user input.
+@file   inimage02sketchpoly.py
+
+@brief  Test basic imageRegions activity region specification from user input.
 
 User can select polygonal image regions to serve as activity sensitive locations.
-"""
-#=============================== inimage02sketchpoly ===============================
-"""!
-@file       inimage02sketchpoly.py
 
 @author     Patricio A. Vela,       pvela@gatech.edu
 @date       2023/12/19
 """
-
 #
 # NOTE: 90 columns, 2 space indent, wrap margin 5.
 #
@@ -31,7 +28,7 @@ import ivapy.display_cv as display
 #
 
 print("[1] Construct based on specified image.")
-theActivity = regact.inImage(np.zeros([200,400]))
+theActivity = regact.imageRegions(np.zeros([200,400]))
 
 theImage = np.zeros([200,400,3])
 

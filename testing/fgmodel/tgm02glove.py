@@ -46,7 +46,7 @@ import camera.utils.display as display
 #       
 fgModP = SGM.SGMdebug(mu = np.array([130.0,10.0,50.0]), 
                       sigma = 2*np.array([650.0,150.0,250.0]) )
-fgModel = SGM.Gaussian( SGM.CfgSGT.builtForRedGlove(), None, fgModP )
+fgModel = SGM.fgGaussian( SGM.CfgSGT.builtForRedGlove(), None, fgModP )
 
 
 #==[2] Apply to image data and display outcomes.  Prints the mean and sigma

@@ -1,18 +1,16 @@
 #!/usr/bin/python
 #=========================== image02_threshold ===========================
+##
+#@file     image02_threshold.py
+#@brief    Simple in image detector based on improcessor with visual output.
 #
-# @brief    Simple in image detector based on improcessor with visual output.
+#Extends ``image01_threshold`` to have a bigger array and visual output of
+#the array data and an image.
 #
-# Extends ``image01_threshold`` to have a bigger array and visual output of
-# the array data and an image.
-#
-#=========================== image02_threshold ===========================
-
-# 
-# @file     image02_threshold.m
-#
-# @author   Patricio A. Vela,   pvela@gatech.edu
-# @date     2021/07/11 [created]
+#@author   Patricio A. Vela,   pvela@gatech.edu
+#@date     2021/07/11 [created]
+#@ingroup    Detector_Testing
+#@quitf
 #
 #!NOTE:
 #!  Indent is set to 2 spaces.

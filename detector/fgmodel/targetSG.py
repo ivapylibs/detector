@@ -1,14 +1,9 @@
 #============================ fgmodel/targetSG ===========================
-#============================ fgmodel/targetSG ===========================
-"""
- @file     targetSG.m
-
- @author  Yiye Chen,       yychen2019@gatech.edu
- @date     2021/02/28 [Matlab version]
-           2021/07/15 [Python version]
-
- @classf   fgmodel
-"""
+##
+# @author  Yiye Chen,       yychen2019@gatech.edu
+# @date     2021/02/28 [Matlab version]
+#           2021/07/15 [Python version]
+#
 #============================ fgmodel/targetSG ===========================
 
 import numpy as np
@@ -24,6 +19,8 @@ from improcessor.mask import mask as maskproc
 @dataclass
 class Params():
     """
+    @brief  Parameters dataclass (should rename honestly).
+
     @param[in]  det_th          Det threshold as a factor (of the eigenvalue/variance).
     @param[in]  processor       An instance of the improcessor.basic. The preprocessor before the detection
     """

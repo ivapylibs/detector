@@ -1,18 +1,25 @@
 #!/usr/bin/python
-# ============================ image08_bgGMM_cv ==============================
-"""
-@brief  Experiment with the Opencv GMM-based background substraction methods.
-        It tests the Opencv's Shadow detection algorithm trained on non-shadow
-        training images (pure background)
+#============================ image08_bgGMM_cv ===========================
+##
+# @file 
+#
+# @brief    Experiment with the Opencv GMM-based background substraction methods.
+#           It tests the Opencv's Shadow detection algorithm trained on non-shadow
+#           training images (pure background)
+#
+# @author   Yiye        yychen2019@gatech.edu
+# @date     07/23/2021
+# @ingroup  Detector_Testing
+# @quitf
+#
+#! NOTE
+#!   80 columnes.
+#!   indent 4 spaces.
+#!   wrap margin at 8.
+#!  
+#============================ image08_bgGMM_cv ===========================
 
-@author     Yiye        yychen2019@gatech.edu
-@date       07/23/2021
-
-@ingroup    Detector_Testing
-"""
-# ============================ image08_bgGMM_cv ==============================
-
-# ====== [1] setup the environment. Read the data
+#====== [1] setup the environment. Read the data
 import os
 import numpy as np
 import cv2

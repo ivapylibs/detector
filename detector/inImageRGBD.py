@@ -24,7 +24,6 @@ from camera.base import ImageRGBD
 
 import h5py
 
-# @classf detector
 class inImageRGBD(inImage):
   """!
   @ingroup  Detector

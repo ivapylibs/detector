@@ -24,7 +24,6 @@ from detector.base import Base
 class detectorState:
   x: any = None
 
-# @classf detector
 class fromState(Base):
   """!
   @ingroup  Detector

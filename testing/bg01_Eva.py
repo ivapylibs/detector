@@ -1,26 +1,25 @@
+#!/usr/bin/python
 #==================================== bgEva ====================================
-"""!
-@brief  Background detection evaluation routine for opencv background detectors.
-
-Evaluate the detection result by comparing it with the ground truth result.
-
-The ground truth result is obtained by:
-1. Get puzzle mask: Use image difference.Need an empty table image and a table+puzzle image
-2. Get human mask: Use the human detector.
-   The human detector is color single gaussian + Height-based refinement
-
-   The required data:
-   (a) Glove color calibration data - any image with glove in it
-   (b) Height estimation data - Empty table
-
-
-@ingroup    Detector_Testing
-======================================= bgEva ==============================================
-"""
-#==================================== bgEva ====================================
-#
-# @ author  Yiye Chen.          yychen2019@gatech
-# @ date    2021/08/07
+##
+# @file   
+# @brief  Background detection evaluation routine for opencv background detectors.
+# 
+# Evaluate the detection result by comparing it with the ground truth result.
+# 
+# The ground truth result is obtained by:
+# 1. Get puzzle mask: Use image difference.Need an empty table image and a
+#    table+puzzle image
+# 2. Get human mask: Use the human detector.
+#    The human detector is color single gaussian + Height-based refinement
+# 
+#    The required data:
+#    (a) Glove color calibration data - any image with glove in it
+#    (b) Height estimation data - Empty table
+# 
+# @author     Yiye Chen      yychen2019@gatech
+# @date       2021/08/07
+# @ingroup    Detector_Testing
+# @quitf
 #
 #==================================== bgEva ====================================
 
@@ -55,6 +54,10 @@ height_estimator.calibrate(emTable_dep)
 
 # ======= [2] define the evaluater
 class BgEva():
+    """!
+    @ingroup    Detector_Testing
+    @brief      Evaluator
+    """
     def __init__(self, emTable, puzzle, hDetector):
 
         # GT puzzle

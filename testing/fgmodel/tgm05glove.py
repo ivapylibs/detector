@@ -36,14 +36,14 @@ import camera.utils.display as display
 #       instance by wiping from variable.
 fgModP = SGM.SGMdebug(mu = np.array([130.0,10.0,50.0]), 
                       sigma = 2*np.array([650.0,150.0,250.0]) )
-fgModel = SGM.Gaussian( SGM.CfgSGT.builtForRedGlove(), None, fgModP )
+fgModel = SGM.fgGaussian( SGM.CfgSGT.builtForRedGlove(), None, fgModP )
 fgModel.saveConfig('./tgm05glove.yaml')
 
 fgModel = None
 
 #==[2] Load the saved configuration and instantiate detector again.
 #       
-fgModel = SGM.Gaussian.loadFromConfig('./tgm05glove.yaml')
+fgModel = SGM.fgGaussian.loadFromConfig('./tgm05glove.yaml')
 
 #==[3] Apply to image data and display outcomes.  Prints the mean and sigma
 #       values. Displays the segmentation.

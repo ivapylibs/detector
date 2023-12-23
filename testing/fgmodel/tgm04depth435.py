@@ -52,9 +52,9 @@ d435_starter.start()
 
 fgModP  = SGT.SGMdebug(mu = np.array([150.0,2.0,30.0]), 
                       sigma = np.array([1100.0, 250.0, 250.0]) )
-fgModel = SGT.Gaussian( SGT.CfgSGT.builtForRedGlove(), None, fgModP )
+fgModel = SGT.fgGaussian( SGT.CfgSGT.builtForRedGlove(), None, fgModP )
 
-bgModel = SGB.Gaussian( SGB.CfgSGM.builtForDepth435() )
+bgModel = SGB.bgGaussian( SGB.CfgSGM.builtForDepth435() )
 
 #==[1] Run the depth model estimation and the red glove detector with model
 #      updating, sequentially, waiting `q` press to continue.

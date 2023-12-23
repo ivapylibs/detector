@@ -20,7 +20,6 @@
 from detector.inImage import fgImage, detectorState
 import numpy as np
 
-# @classf detector.fgmodel
 class fgAppearance(fgImage):
   """!
   @ingroup  Detector

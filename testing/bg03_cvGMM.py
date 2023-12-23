@@ -1,12 +1,15 @@
 #!/usr/bin/python
 # ============================ image08_bgGMM_cv ==============================
 """
+@file       bg03_cvGMM.py
+@ingroup    Detector_Testing
     @brief:         Experiment with the Opencv GMM-based background substraction methods.
                     It tests the Opencv's Shadow detection algorithm trained on 
                     training frames with the shadow
 
     @author:    Yiye        yychen2019@gatech.edu
     @date:      07/23/2021
+
 """
 # ============================ image08_bgGMM_cv ==============================
 

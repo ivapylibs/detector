@@ -1,14 +1,16 @@
 #!/usr/bin/python
 #================================= inimage01basics =================================
-"""!
-@file   inimage01basics.py
-
-@brief  Test basic imageRegions activity region specification.
-
-@author     Patricio A. Vela,       pvela@gatech.edu
-@date       2023/12/19
-"""
-#
+##
+# @addtogroup Detector_Testing
+# @{
+# @file   
+# @brief  Test basic imageRegions activity region specification.
+# 
+# @author     Patricio A. Vela,       pvela@gatech.edu
+# @date       2023/12/19
+# @ingroup    Detector_Testing_Activity
+# @}
+# @quitf
 # NOTE: 90 columns, 2 space indent, wrap margin 5.
 #
 #================================= inimage01basics =================================

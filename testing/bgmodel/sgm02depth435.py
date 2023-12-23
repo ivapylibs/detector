@@ -26,7 +26,7 @@ d435_configs.merge_from_file('sgm02depth435.yaml')
 d435_starter = d435.D435_Runner(d435_configs)
 d435_starter.start()
 
-bgModel = SGM.Gaussian( SGM.CfgSGM.builtForDepth435() )
+bgModel = SGM.bgGaussian( SGM.CfgSGM.builtForDepth435() )
 
 while(True):
     rgb, dep, success = d435_starter.get_frames()

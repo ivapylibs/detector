@@ -1,22 +1,26 @@
 #!/usr/bin/python
 #================================ inimage04calibrate ===============================
-"""!
-@file       inimage04calibrate.py
-
-@brief  Test out calibration routine that gets user input and saves regions.
-
-This code tests the case that an initial region mask is available.  In this case,
-it provides one pre-existing region. The calibration routine then adds additional
-regions based on the user input.
-
-The version without initial regions was manually tested and works. The conditional
-logic is correct.
-
-@author     Patricio A. Vela,       pvela@gatech.edu
-@date       2023/12/21
-"""
+##
+# @addtogroup   Detector_Testing
+# @{
+# @file       inimage04calibrate.py
+# @brief  Test out calibration routine that gets user input and saves regions.
+# 
+# This code tests the case that an initial region mask is available.  In this case,
+# it provides one pre-existing region. The calibration routine then adds additional
+# regions based on the user input.
+# 
+# The version without initial regions was manually tested and works. The conditional
+# logic is correct.
+# 
+# @author   Patricio A. Vela,       pvela@gatech.edu
+# @date     2023/12/21
+# @ingroup  Detector_Testing_Activity
+# @hidegroupgraph
+# @}
+# @quitf
 #
-# NOTE: 90 columns, 2 space indent, wrap margin 5.
+#! NOTE: 90 columns, 2 space indent, wrap margin 5.
 #
 #================================ inimage04calibrate ===============================
 

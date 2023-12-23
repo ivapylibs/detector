@@ -23,7 +23,7 @@ import cv2
 import camera.utils.display as display
 
 
-bgModel = SGM.Gaussian( SGM.CfgSGM.builtForLearning() )
+bgModel = SGM.bgGaussian( SGM.CfgSGM.builtForLearning() )
 
 for ii in range(210):
   I = np.random.normal(0, 1, (50, 50))

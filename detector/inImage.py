@@ -28,8 +28,6 @@ import h5py
 
 #================================ inImage ================================
 #
-
-# @classf detector
 class inImage(Base):
   """!
   @ingroup  Detector

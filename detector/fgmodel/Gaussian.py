@@ -140,7 +140,7 @@ class CfgSGT(AlgConfig):
 class fgGaussian(fgImage):
   """!
   @ingroup  Detector
-  @brief    Implements a single Gaussian target/foreground model.
+  @brief    Single Gaussian target/foreground model with diagonal covariance.
 
   A similar implementation exists in ``targetSG``, based on a different
   operating paradigm that decorrelates or whitens the input image data, which

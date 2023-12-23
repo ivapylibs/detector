@@ -45,7 +45,7 @@ bgModP = SGM.SGMdebug(mu = np.array([mv]), sigma = np.array([10.0]))
 bgConf = SGM.CfgSGT.builtForLearning()
 bgConf.minSigma = 5;
 
-fgModel = SGM.Gaussian( bgConf, None, bgModP )
+fgModel = SGM.fgGaussian( bgConf, None, bgModP )
 
 #==[2] Run a bunch of times as determined by loop range.
 #       Will continuously output processing results.

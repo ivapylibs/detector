@@ -12,7 +12,6 @@ detected can vary: objects, targets, actions, activities, etc.  Basically
 anything that can be given semantic meaning from a signal.  Not all semantic
 labels need be from detectors though. Some are derivec elsewhere or downstream of
 the base detector process.
-
 """
 
 from setuptools import setup, find_packages

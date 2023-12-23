@@ -1,15 +1,20 @@
 #!/usr/bin/python
 #=============================== inimage03saveload ===============================
-"""!
-@file       inimage03saveload.py
-
-@brief  Test basic imageRegions save/load routings. All hard coded, no user input.
-
-@author     Patricio A. Vela,       pvela@gatech.edu
-@date       2023/12/21
-"""
+##
+# @addtogroup   Detector_Testing
+# @{
+# @file       inimage03saveload.py
 #
-# NOTE: 90 columns, 2 space indent, wrap margin 5.
+# @brief  Test basic imageRegions save/load routings. All hard coded, no user input.
+#
+# @author     Patricio A. Vela,       pvela@gatech.edu
+# @date       2023/12/21
+#
+# @ingroup  Detector_Testing_Activity
+# @}
+# @quitf
+#
+#! NOTE: 90 columns, 2 space indent, wrap margin 5.
 #
 #=============================== inimage03saveload ===============================
 

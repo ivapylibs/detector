@@ -44,7 +44,7 @@ d435_starter.start()
 
 fgModP  = SGM.SGMdebug(mu = np.array([150.0,2.0,30.0]), 
                       sigma = np.array([1100.0,250.0,250.0]) )
-fgModel = SGM.Gaussian( SGM.CfgSGT.builtForRedGlove(), None, fgModP )
+fgModel = SGM.fgGaussian( SGM.CfgSGT.builtForRedGlove(), None, fgModP )
 
 #==[1] Run the red glove detector with model updating until `q` pressed.
 #

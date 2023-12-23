@@ -1,21 +1,20 @@
 #=========================== fgmodel/targetNeon ==========================
-#=========================== fgmodel/targetNeon ==========================
-
-#
-# @file     targetNeon.m
-#
+##
 # @author   Patricio A. Vela,       pvela@gatech.edu
 #           Yunzhi Lin,             yunzhi.lin@gatech.edu
 # @date     2020/08/11 [created]
 #           2021/07/10 [modified]
 #
-# @classf   fgmodel
 #=========================== fgmodel/targetNeon ==========================
+
+#-- Environment dependencies
+#
 import numpy as np
 import matplotlib.pyplot as plt
 from roipoly import RoiPoly
 import warnings
 from appearance import fgAppearance
+
 
 # Struct for tModel
 class TModel(object):
@@ -37,6 +36,9 @@ class MData(object):
     def __init__(self, pix, data):
         self.pix = pix
         self.data = data
+
+#==================================== targetNeon ===================================
+#
 
 class targetNeon(fgAppearance):
     """!

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #=============================== inimage02sketchpoly ===============================
 ##
-# @addtogroup   Detector_Testing
+# @addtogroup   TestDetector
 # @{
 # @file   inimage02sketchpoly.py
 # @brief  Test basic imageRegions activity region specification from user input.
@@ -11,7 +11,7 @@
 # @author   Patricio A. Vela,       pvela@gatech.edu
 # @date     2023/12/19
 #
-# @ingroup  Detector_Testing_Activity
+# @ingroup  TestDet_Activity
 # @}
 # @quitf
 #

@@ -18,7 +18,7 @@
 # 
 # @author     Yiye Chen      yychen2019@gatech
 # @date       2021/08/07
-# @ingroup    Detector_Testing
+# @ingroup    TestDetector
 # @quitf
 #
 #==================================== bgEva ====================================
@@ -55,7 +55,7 @@ height_estimator.calibrate(emTable_dep)
 # ======= [2] define the evaluater
 class BgEva():
     """!
-    @ingroup    Detector_Testing
+    @ingroup    TestDetector
     @brief      Evaluator
     """
     def __init__(self, emTable, puzzle, hDetector):

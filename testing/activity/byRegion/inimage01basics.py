@@ -1,14 +1,14 @@
 #!/usr/bin/python
 #================================= inimage01basics =================================
 ##
-# @addtogroup Detector_Testing
+# @addtogroup TestDetector
 # @{
 # @file   
 # @brief  Test basic imageRegions activity region specification.
 # 
 # @author     Patricio A. Vela,       pvela@gatech.edu
 # @date       2023/12/19
-# @ingroup    Detector_Testing_Activity
+# @ingroup    TestDet_Activity
 # @}
 # @quitf
 # NOTE: 90 columns, 2 space indent, wrap margin 5.

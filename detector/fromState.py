@@ -18,11 +18,7 @@
 
 import numpy as np
 from dataclasses import dataclass
-from detector.base import Base
-
-@dataclass
-class detectorState:
-  x: any = None
+from detector.base import Base, DetectorState
 
 class fromState(Base):
   """!
@@ -70,7 +66,7 @@ class fromState(Base):
     self.adapt()
 
   def getState(self):
-    state = detectorState(x=self.z)
+    state = DetectorState(x=self.z)
     return state
 
   #=============================== saveTo ==============================

@@ -1,0 +1,11 @@
+/**
+@defgroup   TestDetector    Detector 
+
+@brief  Suite of detector testing and API showcase scripts. 
+
+
+@defgroup TestDet_Activity  Activity Detection
+
+@brief  Suite of activity detection testing and API showcase scripts. 
+*/
+

@@ -12,7 +12,7 @@
 # @author   Yunzhi Lin,         yunzhi.lin@gatech.edu
 # @date     2021/07/03 [created]
 # @date     2021/07/11 [modified]
-# @ingroup  Detector_Testing
+# @ingroup  TestDetector
 #
 #!NOTE:
 #!  Indent is set to 2 spaces.

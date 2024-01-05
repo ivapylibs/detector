@@ -9,7 +9,7 @@
 #
 # @author   Yiye        yychen2019@gatech.edu
 # @date     07/23/2021
-# @ingroup  Detector_Testing
+# @ingroup  TestDetector
 # @quitf
 #
 #! NOTE

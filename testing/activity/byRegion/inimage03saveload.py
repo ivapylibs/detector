@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #=============================== inimage03saveload ===============================
 ##
-# @addtogroup   Detector_Testing
+# @addtogroup   TestDetector
 # @{
 # @file       inimage03saveload.py
 #
@@ -10,7 +10,7 @@
 # @author     Patricio A. Vela,       pvela@gatech.edu
 # @date       2023/12/21
 #
-# @ingroup  Detector_Testing_Activity
+# @ingroup  TestDet_Activity
 # @}
 # @quitf
 #

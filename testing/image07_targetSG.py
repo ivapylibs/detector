@@ -1,15 +1,14 @@
 #!/usr/bin/python
 #============================== image07_targetSG =============================
-"""!
-@brief  Test the single-Gaussian-color-modeling-based foreground detector. 
-
-Grabs data from saved images and applies.
-"""
-#============================== image07_targetSG =============================
-#
+## @file
+# @brief  Test the single-Gaussian-color-modeling-based foreground detector. 
+# 
+# Grabs data from saved images and applies.
 #
 # @author   Yiye Chen        yychen2019@gatech.edu
 # @date     2021/07/16
+# @ingroup  TestDetector
+# @quitf
 #
 #============================== image07_targetSG =============================
 

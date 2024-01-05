@@ -1,39 +1,36 @@
 #!/usr/bin/python
 #=============================== region01_realsense ================================
-'''!
-@brief  Background model processed for largest connected region evaluated over time
-        to extract most consistently classified background.  Good for establishing
-        workspace ROI. Anything outside is not of interest.
-
-  Works for D435i or equivalent RGB-D camera from Intel Realsense line.  Builds on
-  blackbg05 by adding largest connected component processing using skimage.  While
-  OpenCV has similar functions, the skimage ones are much easier to use, have better
-  documentation, and better map to Matlab's routines.
-
-
-  Execution:
-  ----------
-  Assumes an Intel Realsense D435 or compatible RGBD camera.
-
-  Just run it and hit 'q' when ready to quit model updating.
-  Displays largest region in image.  
-  Hit 'q' again to quit.
-
-'''
-#=============================== region01_realsense ================================
-'''!
-
-@author Patricio A. Vela,   pvela@gatech.edu
-@date   2023/04/25
-
-'''
+## @file
+# @brief  Background model processed for largest connected region evaluated over time
+#         to extract most consistently classified background.  Good for establishing
+#         workspace ROI. Anything outside is not of interest.
+# 
+# Works for D435i or equivalent RGB-D camera from Intel Realsense line.  Builds on
+# blackbg05 by adding largest connected component processing using skimage.  While
+# OpenCV has similar functions, the skimage ones are much easier to use, have better
+# documentation, and better map to Matlab's routines.
+# 
+# 
+# Execution:
+# ----------
+# Assumes an Intel Realsense D435 or compatible RGBD camera.
+# 
+# Just run it and hit 'q' when ready to quit model updating.
+# Displays largest region in image.  
+# Hit 'q' again to quit.
+# 
+# @author Patricio A. Vela,   pvela@gatech.edu
+# @date   2023/04/25
+# @ingroup  TestDetector
+# @quitf
+#
 # NOTE: Formatted for 100 column view. Using 4 space indent.
 #
-## Code modified from librealsense library.
-## https://github.com/IntelRealSense/librealsense
-##
-## License: Apache 2.0. See LICENSE file in root directory.
-## Copyright(c) 2015-2017 Intel Corporation. All Rights Reserved.
+# Code modified from librealsense library.
+# https://github.com/IntelRealSense/librealsense
+#
+# License: Apache 2.0. See LICENSE file in root directory.
+# Copyright(c) 2015-2017 Intel Corporation. All Rights Reserved.
 #
 #=============================== region01_realsense ================================
 

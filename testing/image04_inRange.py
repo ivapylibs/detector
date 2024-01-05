@@ -1,9 +1,7 @@
 #!/usr/bin/python
 #============================ image04_inRange ============================
-##
-# @file     image04_inRange.py
+## @file
 # @brief    inImage detector using OpenCV inRange with stored depth data.
-#
 #
 # Test out the in image detector for a depth image saved from a depth sensor
 # and saved to a .npz file. The preprocesing code is the testing file.
@@ -13,12 +11,12 @@
 # @date     2021/07/03 [created]
 # @date     2021/07/11 [modified]
 # @ingroup  TestDetector
-#
-#!NOTE:
-#!  Indent is set to 2 spaces.
-#!  Tab is set to 4 spaces with conversion to spaces.
-#
 # @quitf
+#
+# NOTE:
+#   Indent is set to 2 spaces.
+#   Tab is set to 4 spaces with conversion to spaces.
+#
 #============================ image04_inRange ============================
 
 #==[0] Prep the environment. From most basic to current implementation.

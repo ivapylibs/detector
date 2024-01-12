@@ -1,18 +1,13 @@
 #!/usr/bin/python
 #=============================== inimage02sketchpoly ===============================
-##
-# @addtogroup   Detector_Testing
-# @{
-# @file   inimage02sketchpoly.py
+## @file 
 # @brief  Test basic imageRegions activity region specification from user input.
 # 
 # User can select polygonal image regions to serve as activity sensitive locations.
 # 
 # @author   Patricio A. Vela,       pvela@gatech.edu
 # @date     2023/12/19
-#
-# @ingroup  Detector_Testing_Activity
-# @}
+# @ingroup  TestDet_Activity
 # @quitf
 #
 # NOTE: 90 columns, 2 space indent, wrap margin 5.

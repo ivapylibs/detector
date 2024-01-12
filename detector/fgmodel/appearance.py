@@ -17,7 +17,8 @@
 #!  80 columns with margin at 6
 #
 #=============================== detector/appearance =============================== 
-from detector.inImage import fgImage, detectorState
+from detector.inImage import fgImage
+from detector.base    import DetectorState
 import numpy as np
 
 class fgAppearance(fgImage):
@@ -63,7 +64,7 @@ class fgAppearance(fgImage):
   # @brief      Returns the detection mask.
   #
   def getState(self):
-    state = detectorState(self.fgIm)
+    state = DetectorState(self.fgIm)
     return state
 #
 #=============================== detector/appearance =============================== 

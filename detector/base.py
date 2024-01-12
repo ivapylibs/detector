@@ -16,8 +16,9 @@ import h5py
 
 
 @dataclass
-class detectorState:
+class DetectorState:
     """!
+    @ingroup    Detector
     @brief      Basic version of a detector state.
 
     The most basic version has space for the detected instance.
@@ -26,6 +27,7 @@ class detectorState:
     x: any = None
 
 
+# @todo Should be DetectorBase but then need to revise test code.
 class Base(object):
     """!
     @ingroup    Detector
@@ -131,7 +133,7 @@ class Base(object):
         @brief  Return empty state. Useful if contents needed beforehand.
   
         """
-        state = detectorState
+        state = DetectorState
         return state
 
     #============================== getState =============================
@@ -141,7 +143,7 @@ class Base(object):
         @brief  Return current/latest state. 
   
         """
-        state = detectorState(x=self.Ip)
+        state = DetectorState(x=self.Ip)
         return state
 
     #============================= emptyDebug ============================

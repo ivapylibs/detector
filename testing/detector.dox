@@ -1,18 +1,18 @@
-/*!
-@defgroup   Detector_Testing Detector Test Scripts
+/**
+@defgroup   TestDetector    Detector 
 
-Test scripts for detector package.
+@brief  Suite of detector testing and API showcase scripts. 
 
 All of the test routines for the Detector package.
 
 
 @addtogroup Detector_Testing
 @{
-  @defgroup Detector_Testing_Activity    Activity Detection Tests.
+@defgroup TestDet_Activity  Activity Detection
 
-  Test scripts for activity detection.
+@brief  Suite of activity detection testing and API showcase scripts. 
 
-  Subset of test routines in the Detector package for activity detection/recognition.
 
+Subset of test routines in the Detector package for activity detection/recognition.
 @}
 */

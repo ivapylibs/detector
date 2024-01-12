@@ -143,7 +143,7 @@ class isMoving(detBase.fromState):
   @brief    Get current state of motion detector.
   '''
   def getState(self):
-    state = detBase.detectorState(x=self.z)
+    state = detBase.DetectorState(x=self.z)
     return state
 
   #------------------------------- saveTo ------------------------------

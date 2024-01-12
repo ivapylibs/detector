@@ -1,15 +1,15 @@
 #!/usr/bin/python
 #=============================== move03filter ==============================
-'''!
-@brief  Repeat of move03filter but using pixel level measurements.
-
-Also adjusted to measure at 1Hz, not because that is the rate but due
-to simplicity for now since the actual rate is not known.
-'''
-#=============================== move03filter ==============================
+## @file    move03filter.py
+# @brief    Repeat of move03filter but using pixel level measurements.
+#
+# Also adjusted to measure at 1Hz, not because that is the rate but due
+# to simplicity for now since the actual rate is not known.
 #
 # @author   Patricio A. Vela,       pvela@gatech.edu
 # @date     2023/08/11              [created]
+# @ingroup  TestDet_Activity
+# @quitf
 #
 # NOTES:
 #   columns 80+

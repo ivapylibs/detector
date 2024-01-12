@@ -1,27 +1,23 @@
 #!/usr/bin/python
 #============================ image05_inRange ============================
-'''!
-@brief    Extend to grab from a depth image sequence (loaded).
-
-
-The depth image sequence is from a depth sensor and preprocessed to a video
-file. Current result is not good as the source video has not been updated
-yet.
-'''
-#============================ image05_inRange ============================
+## @file
+# @brief    Extend to grab from a depth image sequence (loaded).
 # 
-# @file     image05_inRange.m
-#
+# The depth image sequence is from a depth sensor and preprocessed to a video
+# file. Current result is not good as the source video has not been updated
+# yet.
+# 
 # @author   Patricio A. Vela,   pvela@gatech.edu
 #           Yunzhi Lin,         yunzhi.lin@gatech.edu
 # @date     2021/07/03 [created]
 #           2021/07/11 [modified]
-#
-#!NOTE:
-#!  Indent is set to 2 spaces.
-#!  Tab is set to 4 spaces with conversion to spaces.
-#
+# @ingroup  TestDetector
 # @quitf
+#
+# NOTE:
+#   Indent is set to 2 spaces.
+#   Tab is set to 4 spaces with conversion to spaces.
+#
 #============================ image05_inRange ============================
 
 #==[0] Prep the environment. From most basic to current implementation.

@@ -1,27 +1,22 @@
 #!/usr/bin/python
 #============================ image06_inRange ============================
-'''!
-@brief    
-
-The depth image sequence is from depth sensor data saved to a .npz file.
-The npz file is loaded and processed.
-
-'''
-#============================ image06_inRange ============================
-
+## @file
+# @brief    
 # 
-# @file     image05_inRange.m
-#
+# The depth image sequence is from depth sensor data saved to a .npz file.
+# The npz file is loaded and processed.
+# 
 # @author   Patricio A. Vela,   pvela@gatech.edu
 #           Yunzhi Lin,         yunzhi.lin@gatech.edu
 # @date     2021/07/03 [created]
 #           2021/07/11 [modified]
-#
-#!NOTE:
-#!  Indent is set to 2 spaces.
-#!  Tab is set to 4 spaces with conversion to spaces.
-#
+# @ingroup  TestDetector
 # @quitf
+#
+# NOTE:
+#   Indent is set to 2 spaces.
+#   Tab is set to 4 spaces with conversion to spaces.
+#
 #============================ image06_inRange ============================
 
 #==[0] Prep the environment. From most basic to current implementation.

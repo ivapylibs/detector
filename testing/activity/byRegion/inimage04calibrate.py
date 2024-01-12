@@ -1,9 +1,6 @@
 #!/usr/bin/python
 #================================ inimage04calibrate ===============================
-##
-# @addtogroup   Detector_Testing
-# @{
-# @file       inimage04calibrate.py
+## @file
 # @brief  Test out calibration routine that gets user input and saves regions.
 # 
 # This code tests the case that an initial region mask is available.  In this case,
@@ -15,9 +12,7 @@
 # 
 # @author   Patricio A. Vela,       pvela@gatech.edu
 # @date     2023/12/21
-# @ingroup  Detector_Testing_Activity
-# @hidegroupgraph
-# @}
+# @ingroup  TestDet_Activity
 # @quitf
 #
 #! NOTE: 90 columns, 2 space indent, wrap margin 5.

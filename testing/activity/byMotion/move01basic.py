@@ -1,11 +1,12 @@
 #!/usr/bin/python
 #=============================== move01basic ===============================
-'''!
-'''
-#=============================== move01basic ===============================
+## @file    move01basic.py
+# @brief    Short test with sinusoid to test motion detection.
 #
 # @author   Patricio A. Vela,       pvela@gatech.edu
 # @date     2023/08/11              [created]
+# @ingroup  TestDet_Activity
+# @quitf
 #
 # NOTES:
 #   columns 80+

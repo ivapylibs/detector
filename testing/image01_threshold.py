@@ -11,7 +11,7 @@
 # 
 # @author   Patricio A. Vela,   pvela@gatech.edu
 # @date     2021/07/03 [created]
-# @ingroup  Detector_Testing
+# @ingroup  TestDetector
 # @quitf
 #
 #!NOTE:

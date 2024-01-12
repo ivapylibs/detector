@@ -1,14 +1,12 @@
 #!/usr/bin/python
 #=========================== image09_targetMagenta ===========================
-"""!
+## @file
 @brief  Test the Magenta foreground target detector. 
-
-"""
-#=========================== image09_targetMagenta ===========================
-#
 #
 # @author   Yiye Chen        yychen2019@gatech.edu
 # @date     2021/07/16
+# @ingroup  TestDetector
+# @quitf
 #
 #=========================== image09_targetMagenta ===========================
 

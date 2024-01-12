@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #============================ image03_inRange ============================
-#
+## @file
 # @brief    In image detector with improcessor using OpenCV inRange on fake image.
 #
 # Upgrades earlier test scripts to use a depth image plus upper and lower
@@ -8,19 +8,15 @@
 # is simply ficticious data placed into an array (same as fake data in
 # earlier test scripts).
 #
-#============================ image03_inRange ============================
-
-# 
-# @file     image03_inRange.m
-#
 # @author   Patricio A. Vela,   pvela@gatech.edu
 # @date     2021/07/11 [created]
-#
-#!NOTE:
-#!  Indent is set to 2 spaces.
-#!  Tab is set to 4 spaces with conversion to spaces.
-#
+# @ingroup  TestDetector
 # @quitf
+#
+# NOTE:
+#   Indent is set to 2 spaces.
+#   Tab is set to 4 spaces with conversion to spaces.
+#
 #============================ image03_inRange ============================
 
 #==[0] Prep the environment. From most basic to current implementation.

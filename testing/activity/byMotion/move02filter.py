@@ -1,11 +1,11 @@
 #!/usr/bin/python
 #=============================== move02filter ==============================
-'''!
-'''
-#=============================== move02filter ==============================
+## @file move02filter.py
 #
 # @author   Patricio A. Vela,       pvela@gatech.edu
 # @date     2023/08/11              [created]
+# @ingroup  TestDet_Activity
+# @quitf
 #
 # NOTES:
 #   columns 80+

@@ -1,0 +1,18 @@
+/*!
+@defgroup   Detector_Testing Detector Test Scripts
+
+Test scripts for detector package.
+
+All of the test routines for the Detector package.
+
+
+@addtogroup Detector_Testing
+@{
+  @defgroup Detector_Testing_Activity    Activity Detection Tests.
+
+  Test scripts for activity detection.
+
+  Subset of test routines in the Detector package for activity detection/recognition.
+
+@}
+*/

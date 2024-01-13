@@ -1,11 +1,13 @@
 #=========================== detector/inImage ============================
+##
+# @package  inImage
+# @brief    Detector based on image input.
+#
+# @ingroup  Detector
 #
 #
 #=========================== detector/inImage ============================
 
-# @package  detector
-# @module   inImage
-# @file     inImage.m
 #
 # @author   Patricio A. Vela,   pvela@gatech.edu
 # @date     2021/07/03 [created]
@@ -117,20 +119,22 @@ class fgImage(inImage):
 
 class bgImage(inImage):
   """!
-  @ingroup  Detector
+  @ingroup  Detector_BGModel
   @brief    The most basic object or instance detector from image input. 
 
-  Really this class should be overloaded for most cases, but simple image-based
-  detectors can be created from this class with the right pre/post processor.
-  The trick is to have the improcessor output a binary image for downstream
-  use.
+  Image data is considered to be single modality, which typically means 
+  grayscale, color (RGB), or depth only imagery.  See bgImageRGBD for color+depth
+  modality imagery. Really this class should be overloaded for most cases, but
+  simple image-based detectors can be created from this class with the right
+  pre/post processor.  The trick is to have the improcessor output a binary image
+  for downstream use.
   """
 
   #============================== __init__ =============================
   #
   def __init__(self, processor=None):
 
-    super(fgImage,self).__init__(processor)
+    super(bgImage,self).__init__(processor)
 
 
 

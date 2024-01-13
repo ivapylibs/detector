@@ -1,10 +1,9 @@
 #============================ detector.fgmodel.inCorner ============================
 #============================ detector.fgmodel.inCorner ============================
-'''!
-
-  @author   Patricio A. Vela,       pvela@gatech.edu
-  @date     2023/04/13
-'''
+#
+#  @author   Patricio A. Vela,       pvela@gatech.edu
+#  @date     2023/04/13
+#
 # NOTE:
 #   Expects 100 character width due to 4-space indents in python.
 #   Comment separators also wider to 84 characters rather than 74, with others
@@ -203,6 +202,7 @@ class SphericalModel(SurfaceCutModel):
 
 class CfgInCorner(AlgConfig):
   '''!
+  @ingroup  Detector_BGModel
   @brief  Configuration setting specifier for Gaussian workspace model.
   '''
   #============================= __init__ ============================
@@ -253,7 +253,7 @@ class CfgInCorner(AlgConfig):
 
 class inCorner(bgImage):
   '''!
-  @ingroup  Detector
+  @ingroup  Detector_BGModel
   @brief    Class instance for extracting background that lies with the corner
             region of the RGB color cube, or the extremal regions of a
             color-space based on a planar cut.
@@ -520,6 +520,10 @@ class inCorner(bgImage):
 #-----------------------------------------------------------------------------------
 #
 class inCornerEstimator(inCorner):
+  """!
+  @ingroup  Detector_BGModel
+  @brief    Wrapper to inCorner that performs estimation for caliration and saving.
+  """
 
   def __init__(self, processor = None, bgMod = None):
 

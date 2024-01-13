@@ -1,7 +1,4 @@
 #================================ Gaussian ===============================
-#================================ Gaussian ===============================
-#
-# @file     Gaussian.py
 #
 # @author   Jun Yang,
 # @author   Patricio A. Vela,   pvela@gatech.edu
@@ -37,6 +34,7 @@ class SGMdebug:
 
 class CfgSGM(AlgConfig):
   '''!
+  @ingroup  Detector_BGModel
   @brief  Configuration setting specifier for Gaussian BG model.
 
   @note   Currently not using a CfgBGModel super class. Probably best to do so.
@@ -98,7 +96,7 @@ class CfgSGM(AlgConfig):
 
 class bgGaussian(bgImage):
   """!
-  @ingroup  Detector
+  @ingroup  Detector_BGModel
 
   @brief    Implements a single Gaussian background model.
 

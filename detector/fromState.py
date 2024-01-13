@@ -1,11 +1,13 @@
 #=========================== detector/fromState ============================
+##
+# @package  fromState
+# @brief    Detector based on state vector input.
 #
+# @ingroup  Detector
 #
 #=========================== detector/fromState ============================
 
 # 
-# @file     fromState.py
-#
 # @author   Patricio A. Vela,   pvela@gatech.edu
 # @date     2023/08/10          [created]
 #

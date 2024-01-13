@@ -1,6 +1,8 @@
 #=========================== detector/inImageRGBD ============================
-#
-# Base/root class for RGBD image based detection.
+##
+# @package  inImageRGBD
+# @brief    Detector based on RGBD imagery.
+# @ingroup  Detector
 #
 #=========================== detector/inImageRGBD ============================
 
@@ -58,6 +60,27 @@ class inImageRGBD(inImage):
 
   # @todo   There should be two image processors, one for color, one for depth.
   # @note   Added vanilla code for it, but not tested. Do later. Might crash.
+
+
+#============================== bgImageRGBD ==============================
+#
+
+class bgImageRBGD(inImageRGBD):
+  """!
+  @ingroup  Detector_BGModel
+  @brief    The most basic object or instance detector from RGBD image input. 
+
+  Really this class should be overloaded for most cases, but simple image-based
+  detectors can be created from this class with the right pre/post processor.
+  The trick is to have the improcessor output a binary image for downstream
+  use.
+  """
+
+  #============================== __init__ =============================
+  #
+  def __init__(self, processor=None):
+
+    super(bgImageRGBD,self).__init__(processor)
 
 
 

@@ -1,12 +1,12 @@
 #=========================== detector/activity/byMotion ============================
-"""!
-@package    byMotion
-@brief      Implements simple activity detectors based on movement (or lack of).
-"""
-#=========================== detector/activity/byMotion ============================
+## 
+# @package  byMotion
+# @brief    Implements activity detectors based on movement (or lack of).
+#
+# @ingroup  Detector_Activity
 
+#=========================== detector/activity/byMotion ============================
 # 
-# @file     byMotion.py
 #
 # @author   Patricio A. Vela,   pvela@gatech.edu
 # @date     2023/08/10          [created]

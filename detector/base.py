@@ -15,6 +15,10 @@ from dataclasses import dataclass
 import h5py
 
 
+#-------------------------------------------------------------------------
+#============================= State Classes =============================
+#-------------------------------------------------------------------------
+
 @dataclass
 class DetectorState:
     """!
@@ -25,6 +29,26 @@ class DetectorState:
     It should be empty/none if no detection.
     """
     x: any = None
+
+@dataclass
+class ActivityState:
+  """!
+  @ingroup  Detector
+  @brief    Basic version of an activity state.
+
+  An basic activity state consists of a variable communicating the state plus a
+  flag indicating whether there were sufficient measurements to infer the state.
+  If the flag is false, then the validity of the activity state is not guaranteed.
+  That will depend on the activity detector or any outer loop processing.  Up
+  to the calling scope to correctly interpret.
+  """
+  xActivity:    any
+  haveObs:      bool = False
+
+#-------------------------------------------------------------------------
+#============================== Base Classes =============================
+#-------------------------------------------------------------------------
+
 
 
 # @todo Should be DetectorBase but then need to revise test code.

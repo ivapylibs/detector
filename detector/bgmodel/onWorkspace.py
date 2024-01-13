@@ -1,8 +1,6 @@
 #============================== onWorkspace ==============================
 #============================== onWorkspace ==============================
 #
-# @file     onWorkspace.py
-#
 # @author   Patricio A. Vela,   pvela@gatech.edu
 # @date     2023/06/15      [converted to python]
 #
@@ -32,7 +30,8 @@ class RunState(Enum):
     
 class CfgOnWS(CfgSGM):
   '''!
-  @brief  Configuration setting specifier for Gaussian workspace model.
+  @ingroup  Detector_BGModel
+  @brief    Configuration setting specifier for Gaussian workspace model.
   '''
   #============================= __init__ ============================
   #
@@ -110,7 +109,7 @@ class CfgOnWS(CfgSGM):
 
 class onWorkspace(bgGaussian):
   """!
-  @ingroup  Detector
+  @ingroup  Detector_BGModel
   @brief    Applies half-Gaussian model with premise that targets lie to one side
             of the distribution.
 

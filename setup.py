@@ -11,6 +11,20 @@ detected can vary: objects, targets, actions, activities, etc.  Basically
 anything that can be given semantic meaning from a signal.  Not all semantic
 labels need be from detectors though. Some are derivec elsewhere or downstream of
 the base detector process.
+
+@addtogroup Detector
+@{
+
+@defgroup   Detector_Activity    Detect Activity
+@brief      Interfaces for detecting activity semantics from time-varying signals.
+
+
+@defgroup   Detector_BGModel    Detect Background 
+@brief      Interfaces for detecting when signal matches a background model.
+
+@defgroup   Detector_FGModel    Detect Foreground 
+@brief      Interfaces for detecting when signal matches a foreground model.
+@}
 """
 
 from setuptools import setup, find_packages

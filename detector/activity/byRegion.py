@@ -1,29 +1,26 @@
 #=================================== byRegion ==================================
-"""!
-@package    byRegion
-@brief      Activities defined by regions.  Signal must lie in a region to trigger
-            associated state.
+##
+# @package  byRegion
+# @brief    Activities defined by regions.  Signal must lie in a region to trigger
+#           associated state.
+# 
+# Should be a general purpose module that triggers activity state when signal enters
+# known region/zone with a given label.  Whether these zones are mutually exclusive
+# (disjoint regions) or not is up to the designer.
+# 
+# For now just coding up bare minimum needed.
+# 
+# @ingroup  Detector_Activity
+# @note     Yes, this will be the bare minimum and needs to be expanded based on usage.
+#           There are many ways to define regions and to utilize them as activity
+#           states or status flags.  Since I aim to instantiate in one specific
+#           way at the momemt, that is what will be coded.
 
-Should be a general purpose module that triggers activity state when signal enters
-known region/zone with a given label.  Whether these zones are mutually exclusive
-(disjoint regions) or not is up to the designer.
-
-For now just coding up bare minimum needed.
-
-@note   Yes, this will be the bare minimum and needs to be expanded based on usage.
-        There are many ways to define regions and to utilize them as activity
-        states or status flags.  Since I aim to instantiate in one specific way 
-        at the momemt, that is what will be coded.
-"""
 #=================================== byRegion ==================================
-"""!
-@file       byRegion.py
-
-@author     Patricio A. Vela,       pvela@gatech.edu
-@date       2023/12/15
-
-"""
-#
+# 
+# @author     Patricio A. Vela,       pvela@gatech.edu
+# @date       2023/12/15
+# 
 # NOTE: 90 columns, 2 space indent, wrap margin at 5.
 #
 #=================================== byRegion ==================================
@@ -48,7 +45,7 @@ import ivapy.Configuration
 
 class Planar(fromState):
   """!
-  @ingroup  Detector
+  @ingroup  Detector_Activity
   @brief    Activity detection based on lying in specific planar regions.
   """
 
@@ -101,7 +98,7 @@ class Planar(fromState):
 
 class imageRegions(fromState):
   """!
-  @ingroup  Detector
+  @ingroup  Detector_Activity
   @brief    Activity states depend on having signal lying in specific regions of an
             image. Signal is presumably in image pixels.
 

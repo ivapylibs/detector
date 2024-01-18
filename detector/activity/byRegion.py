@@ -253,8 +253,8 @@ class imageRegions(fromState):
       return
 
     # Map coordinates takes in (i,j). Map zsig from (x,y) to (i,j).
-    zsig   = np.flipud(zsig)
-    self.x = scipy.ndimage.map_coordinates(self.imRegions, zsig, order = 0)
+    zmeas  = np.flipud(zsig.tMeas)
+    self.x = scipy.ndimage.map_coordinates(self.imRegions, zmeas, order = 0)
 
   #===================== specifyRegionsFromImageRGB ====================
   #
@@ -283,6 +283,12 @@ class imageRegions(fromState):
     # @todo   Maybe keep visualizing/displaying the regions as more get added.
     #         Right now just closes/opens window.
 
+
+  #============================= printState ============================
+  #
+  def printState(self):
+
+    print("State: " + str(self.x))
 
   #============================= display_cv ============================
   #

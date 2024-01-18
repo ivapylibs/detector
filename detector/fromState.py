@@ -20,6 +20,8 @@
 
 import numpy as np
 from dataclasses import dataclass
+
+from improcessor.basic import basic
 from detector.base import Base, DetectorState
 
 class fromState(Base):

@@ -35,9 +35,10 @@ class SGMdebug:
 class CfgSGM(AlgConfig):
   '''!
   @ingroup  Detector_BGModel
-  @brief  Configuration setting specifier for Gaussian BG model.
+  @brief    Configuration setting specifier for Gaussian BG model.
 
-  @note   Currently not using a CfgBGModel super class. Probably best to do so.
+  @note     Currently not using a CfgBGModel super class. Should there be one?
+  @note     What about config from bgImage class?
   '''
   #============================= __init__ ============================
   #

@@ -1,4 +1,4 @@
-#================================ Gaussian ===============================
+#================================ bgGaussian ===============================
 #
 # @author   Jun Yang,
 # @author   Patricio A. Vela,   pvela@gatech.edu
@@ -11,7 +11,7 @@
 #
 # Notes:    set tabstop = 4, indent = 2, 85 columns.
 #
-#================================ Gaussian ===============================
+#================================ bgGaussian ===============================
 
 
 from dataclasses import dataclass
@@ -117,7 +117,47 @@ class CfgSGM(AlgConfig):
     learnCfg.init.sigma = [2000.0,30000.0,900.0]
     return learnCfg
 
-#================================ Gaussian ===============================
+
+
+class CfgSGCone(CfgSGM):
+  '''!
+  @ingroup  Detector_BGModel
+  @brief    Configuration setting specifier for Gaussian BG conical model.
+  '''
+  #============================= __init__ ============================
+  #
+  '''!
+  @brief        Constructor of configuration instance.
+
+  @param[in]    cfg_files   List of config files to load to merge settings.
+  '''
+  def __init__(self, init_dict=None, key_list=None, new_allowed=True):
+
+    if (init_dict == None):
+      init_dict = CfgSGCone.get_default_settings()
+
+    super(CfgSGCone,self).__init__(init_dict, key_list, new_allowed)
+
+  #========================= get_default_settings ========================
+  #
+  # @brief    Recover the default settings in a dictionary.
+  #
+  @staticmethod
+  def get_default_settings():
+    '''!
+    @brief  Defines most basic, default settings for RealSense D435.
+
+    @param[out] default_dict  Dictionary populated with minimal set of
+                              default settings.
+    '''
+
+    default_dict = dict(tauSigma = 3.5, minSigma = [10.0], alpha = 0.05, \
+                        adaptall = False,
+                        init = dict( sigma = [100.0] , imsize = [])  )
+    return default_dict
+
+
+#================================ bgGaussian ===============================
 
 class bgGaussian(bgImage):
   """!
@@ -150,7 +190,7 @@ class bgGaussian(bgImage):
     than the default operations.  The mid-processor can be used to test
     out different options for cleaning up the binary data.
   """
-  #========================= Gaussian/__init__ =========================
+  #========================= bgGaussian/__init__ =========================
   #
   #
   def __init__(self, bgCfg = None, processor = None, bgMod = None):
@@ -509,7 +549,7 @@ class bgGaussian(bgImage):
   @staticmethod
   def load(fileName):
     fptr = h5py.File(fileName,"r")
-    theModel = Gaussian.loadFrom(fptr)
+    theModel = bgGaussian.loadFrom(fptr)
 
 
   #============================== loadFrom =============================
@@ -537,9 +577,335 @@ class bgGaussian(bgImage):
     #theConfig = CfgSGM()
     #theConfig.merge_from_other_cfg(configCfg)
 
-    theModel = Gaussian(theConfig, None, bgMod)
+    theModel = bgGaussian(theConfig, None, bgMod)
+
+    return theModel
+
+#================================ bgConical ================================
+
+class bgConical(bgImage):
+  """!
+  @ingroup  Detector_BGModel
+
+  @brief    Implements a single Gaussian background model with conical error.
+
+  The conical error assumes that the error statistics in the direction of
+  the color as less sensitive versus error statistics orthogonal to the
+  direction.  Variance statistics operate in this space.  They will be a bit
+  off during training, but should converge if left long enough.
+
+  Inputs:
+    mu          - the means of the Gaussian models. 
+    sigma       - the variance of the Gaussian models (tangent, then normal). 
+                  will be one dimension up due to coordinate preserving
+                  projection.
+    parms       - [optional] configuration instance with parameters specified.
+
+  Fields of the parms structure:
+    sigma       - Initial variance to use if sigma is empty.
+    thresh      - Threshold for determining foreground.
+    alpha       - Update rate for mean and variance.
+
+  @note 
+    A note on the improcessor.  If the basic version is used, then it
+    performs pre-processing.  If a triple version is used, then the
+    mid-processor will perform operations on the detected part rather
+    than the default operations.  The mid-processor can be used to test
+    out different options for cleaning up the binary data.
+  """
+  #========================== bgConical/__init__ =========================
+  #
+  #
+  def __init__(self, bgCfg = None, processor = None, bgMod = None):
+    '''!
+    @brief  Constructor for single Gaussian model conical background detector.
+
+    @param[in]  bgMod   The model or parameters for the detector.
+    @param[in]  bgCfg   The model or parameters for the detector.
+    '''
+    super(bgGaussian, self).__init__(processor)
+
+    # First, set the configuration member field.
+    if bgCfg is None:
+      self.config = CfgSGM()
+    else:
+      self.config = bgCfg
+
+    # Set all runtime member variables and working memory.
+
+    # Last measurement.
+    self.measI = None
+
+    #== Background model.
+    # If background model passed in, set it.
+    # Otherwise set to none.  If model is given in the configuration,
+    # then it will be set during _setsize_ invocation.
+    #
+    if bgMod is not None:
+      self.mu    = bgMod.mu
+      self.sigma = bgMod.sigma
+    else:
+      self.mu    = None
+      self.sigma = None
+
+    # Working memory.
+    self.errI  = None
+    self.sqeI  = None
+    self.nrmE  = None
+    self.maxE  = None
+    self.bgI   = None
+
+    # Image dimensions
+    self.imsize = None
+    if (self.config.init.imsize is not None) and (len(self.config.init.imsize) > 0):
+      self._setsize_(self.config.init.imsize)
+
+    # Check for image processor routine.
+    self.improcessor = processor
+
+
+  #============================= _setsize_ =============================
+  #
+  def _setsize_(self, imsize):
+
+    if (np.size(imsize) == 2):
+      self.imsize = np.append(imsize, [1])
+    else:
+      self.imsize = imsize;
+
+    self._preallocate_()
+
+  #=========================== _preallocate_ ===========================
+  #
+  def _preallocate_(self):
+    '''!
+    @brief  Image size known, so instantiate memory for working variables.
+    '''
+
+    if self.imsize is None:
+      return
+    
+    bigShape = ( np.prod(self.imsize[0:2]), self.imsize[2] )
+    prjShape = ( np.prod(self.imsize[0:2]), self.imsize[2]+1 )
+    linShape = ( np.prod(self.imsize[0:2]) )
+
+    self.measI = np.zeros( bigShape )
+    self.errI  = np.zeros( prjShape )
+    self.sqeI  = np.zeros( prjShape )
+    self.nrmE  = np.zeros( prjShape ) 
+    self.maxE  = np.zeros( linShape ) 
+    self.bgI   = np.zeros( linShape , dtype=bool) 
+
+    if (self.sigma is None):
+      self.sigma = np.full( prjShape , self.config.init.sigma )
+
+    #if (self.mu is None) && (self.config.init.mu is not None):
+    #  self.mu = np.full( bigShape, self.config.init.mu)
+    #  NOT IMPLEMENTED.  NEED TO THINK IT THROUGH.
+  
+  #============================== measure ==============================
+  #
+  # @todo   See NumExpr library for faster numerical expression evaluation.
+  #         See [here](https://github.com/pydata/numexpr).
+  #
+  # Currently using numpy routines for in-place computation so that memory
+  # allocation can be avoided.
+  #
+  def measure(self, I):
+    '''!
+    @brief    Takes image and generates the detection result.
+  
+    @param[in]    I   Image to process.
+    '''
+    if self.improcessor is not None: 
+      I = self.improcessor.pre(I)
+    
+    if self.imsize is None:
+        self._setsize_(np.array(np.shape(I)))
+
+    self.measI = np.array(I, dtype=float, copy=True)
+    self.measI = np.reshape(self.measI, 
+                            np.append(np.prod(self.imsize[0:2]), self.imsize[2]) )
+
+    if self.mu is None:
+      self.mu = self.measI.copy()
+      
+    # @todo     Need to work out the conical error calculations.
+    #
+    # errI = (mu - measI)
+    # prjN = mu/||mu||
+    # prjI = prjN . errI
+    # prjE = errI - prjI*prjN
+    #
+    # errI = [prjI ; prjE]
+    #
+    # sqeI = errI.^2 / sigma  (in Matlab paraphrasing).
+    #
+    # Apply operations wih broadcasting to avoid memory re-allocation.
+    # Store outcomes since they get used in the adapt routine.
+    np.subtract( self.mu, self.measI, out=self.errI )
+    np.square  ( self.errI , out=self.sqeI )
+    np.divide  ( self.sqeI , self.sigma, out=self.nrmE )
+
+    # Find max error across dimensions if there are more than 1,
+    # as would occur for an RGB image.
+    #
+    if (self.imsize[2] > 1):
+      np.amax( self.nrmE, axis=1, out=self.maxE )
+    else:
+      np.copyto(self.maxE, self.nrmE )
+
+    np.less( self.maxE, self.config.tauSigma, out=self.bgI )
+  
+    if self.improcessor is not None:
+      self.bgI = self.improcessor.post(self.bgI)
+  
+
+  #=============================== adapt ===============================
+  #
+  def adapt(self):
+    '''!
+    @brief  Update the Gaussian model based on recent measurement.
+
+    In this case, the mean and the variance are updated.  Depending on
+    the run-time options, all means/variances will be updated or only
+    those classified as background.  The latter avoids adapting to
+    foreground elements while still permitting slow change of the 
+    background model.  
+
+    Usually, during the model estimation phase (assuming an empty scene
+    with background elements only) adaptation of all pixels should occur.
+    During deployment, if adaptation is to be performed, then it is usually
+    best to not apply model updating to foreground elements, which are
+    interpreted as fast change elements of the scene.  
+    '''
+
+    if self.config.alpha == 0:
+        return
+
+    if not self.config.adaptall:                # Get foreground pixels.
+      fginds   = np.nonzero(~self.bgI);                          
+      oldmu    = self.mu[fginds,:];             # Save current values. 
+      oldsigma = self.sigma[fginds,:];
+
+    # Update mean and variance. @todo NEED TO FIX.
+    # mu = (1 - alpha) mu + alpha * y = mu - alpha*(mu - y)
+    #
+    np.subtract( self.mu    , self.config.alpha*self.errI, out=self.mu    )
+
+    # sigma = (1 - alpha) sigma + alpha * (mu - y)^2
+    #
+    # @todo     Check that these calculations remain valid!!!
+    np.multiply( self.sigma , (1-self.config.alpha), out=self.sigma )
+    np.multiply( self.sqeI  , self.config.alpha    , out=self.sqeI  )
+    np.add( self.sigma, self.sqeI , out=self.sigma )
+
+    # Impose min sigma constraint.
+    np.maximum(self.sigma, self.config.minSigma, out=self.sigma)
+  
+    if not self.config.adaptall:                # Revert foreground values.
+      self.mu[fginds,:]    = oldmu      
+      self.sigma[fginds,:] = oldsigma
+
+  #
+  def info(self):
+    #tinfo.name = mfilename;
+    #tinfo.version = '0.1;';
+    #tinfo.date = datestr(now,'yyyy/mm/dd');
+    #tinfo.time = datestr(now,'HH:MM:SS');
+    #tinfo.trackparms = bgp;
+    pass
+
+  #=============================== saveTo ==============================
+  #
+  def saveTo(self, fPtr):    # Save given HDF5 pointer. Puts in root.
+    wsds = fPtr.create_group("bgmodel.GaussCone")
+
+    wsds.create_dataset("mu", data=self.mu)
+    wsds.create_dataset("sigma", data=self.sigma)
+
+    self.config.init.imsize = self.imsize.tolist()
+    configStr = self.config.dump()
+    wsds.create_dataset("configuration", data=configStr)
+
+
+  #================== buildAndCalibrateFromConfigRGBD ==================
+  #
+  # @brief  build and calibrate onWorkspace model from an initial config 
+  #         and a camera class streaming camera. Return instantiated and 
+  #         calibrated model.
+  #         
+  # The stream is presumed to be a depth + color stream as obtained from
+  # a Realsense camera.  Code is not as generic as could be.
+  #
+  # @todo   Modify to be a bit more generic.
+  #
+  @staticmethod
+  def buildAndCalibrateFromConfigRGBD(theConfig, theProcessor, \
+                                                 theStream, incVis = False):
+
+    bgModel = bgGaussian( theConfig , theProcessor)
+ 
+    while(True):
+      rgb, dep, success = theStream.get_frames()
+      if not success:
+        print("Cannot get the camera signals. Exiting...")
+        exit()
+
+      bgModel.process(rgb)
+
+      if (incVis):
+        bgS = bgModel.getState()
+        bgD = bgModel.getDebug()
+
+        bgIm = cv2.cvtColor(bgS.bgIm.astype(np.uint8)*255, cv2.COLOR_GRAY2BGR)
+        display.bgr(bgIm, ratio=0.25, window_name="RGB+Depth")
+        #display.rgb_depth(bgIm, bgD.mu, ratio=0.25, window_name="RGB+Depth")
+
+      opKey = cv2.waitKey(1)
+      if opKey == ord('q'):
+        break
+   
+    display.close("RGB+Depth")
+    return bgModel
+
+
+  #================================ load ===============================
+  #
+  @staticmethod
+  def load(fileName):
+    fptr = h5py.File(fileName,"r")
+    theModel = bgConical.loadFrom(fptr)
+
+
+  #============================== loadFrom =============================
+  #
+  @staticmethod
+  def loadFrom(fPtr):
+    gptr = fptr.get("bgmodel.GaussCone")
+
+    muPtr    = gptr.get("mu")
+    sigmaPtr = gptr.get("sigma")
+
+    bgMod = SGM.SGMdebug
+    bgMod.mu    = np.array(muPtr)
+    bgMod.sigma = np.array(sigmaPtr)
+
+    cfgPtr   = gptr.get("configuration")
+    configStr = cfgPtr[()].decode()
+
+    fptr.close()
+
+    theConfig = CfgSGM.load_cfg(configStr)
+
+    #Above line was configCfg but found that gets loaded as proper class.
+    #@todo Delete the lines below once known to work. onWorkspace verified.
+    #theConfig = CfgSGM()
+    #theConfig.merge_from_other_cfg(configCfg)
+
+    theModel = bgConical(theConfig, None, bgMod)
 
     return theModel
 
 #
-#================================ Gaussian ===============================
+#================================ bgGaussian ===============================

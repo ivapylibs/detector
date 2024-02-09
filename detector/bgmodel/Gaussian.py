@@ -80,9 +80,9 @@ class CfgSGM(AlgConfig):
                               default settings.
     '''
 
-    default_dict = dict(tauSigma = 3.5, minSigma = [50.0], alpha = 0.05, \
+    default_dict = dict(tauSigma = 3.5, minSigma = [10.0], alpha = 0.05, \
                         adaptall = False,
-                        init = dict( sigma = [20.0] , imsize = [])  )
+                        init = dict( sigma = [100.0] , imsize = [])  )
     return default_dict
 
   #========================== builtForLearning =========================
@@ -93,6 +93,28 @@ class CfgSGM(AlgConfig):
     learnCfg = CfgSGM();
     learnCfg.alpha = 0.10
     learnCfg.minSigma = [4.0]
+    return learnCfg
+
+  #========================== builtForBlackMat =========================
+  #
+  #
+  @staticmethod
+  def builtForBlackMat():
+    learnCfg = CfgSGM();
+    learnCfg.alpha = 0.10
+    learnCfg.minSigma = [100.0]
+    learnCfg.init.sigma = 5000.0
+    return learnCfg
+
+  #======================== builtForBlackMatHSV ========================
+  #
+  #
+  @staticmethod
+  def builtForBlackMatHSV():
+    learnCfg = CfgSGM();
+    learnCfg.alpha = 0.05
+    learnCfg.minSigma = [1000.0,20000.0,400.0]
+    learnCfg.init.sigma = [2000.0,30000.0,900.0]
     return learnCfg
 
 #================================ Gaussian ===============================
@@ -281,7 +303,7 @@ class bgGaussian(bgImage):
     np.less( self.maxE, self.config.tauSigma, out=self.bgI )
   
     if self.improcessor is not None:
-      self.bgI = bgp.improcessor.post(self.bgI)
+      self.bgI = self.improcessor.post(self.bgI)
   
 
   #============================== correct ==============================
@@ -453,9 +475,10 @@ class bgGaussian(bgImage):
   # @todo   Modify to be a bit more generic.
   #
   @staticmethod
-  def buildAndCalibrateFromConfigRGBD(theConfig, theStream, incVis = False):
+  def buildAndCalibrateFromConfigRGBD(theConfig, theProcessor, \
+                                                 theStream, incVis = False):
 
-    bgModel = bgGaussian( theConfig )
+    bgModel = bgGaussian( theConfig , theProcessor)
  
     while(True):
       rgb, dep, success = theStream.get_frames()

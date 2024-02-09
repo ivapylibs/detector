@@ -40,17 +40,17 @@ d435_configs.merge_from_file('sgm03color.yaml')
 theStream = d435.D435_Runner(d435_configs)
 theStream.start()
 
-theCfg  = detect.CfgSGM.builtForLearning()
+theCfg  = detect.CfgSGM().builtForBlackMat()
 
-#==[2] Calibrate.
+###==[2] Calibrate.
 #
-bgModel = detect.bgGaussian.buildAndCalibrateFromConfigRGBD(theCfg, theStream, True)
+bgModel = detect.bgGaussian.buildAndCalibrateFromConfigRGBD(theCfg, None, theStream, True)
 
 #==[3] Apply to scene.
 #
 bgD = bgModel.getDebug()
 bgMod = bgD.mu.astype(np.uint8)
-display.rgb(bgMod, ratio=0.25, window_name="BG Model")
+display.rgb(bgMod, ratio=0.5, window_name="BG Model")
 print("Displayed the expected image.")
 print("Running as detector on scene w/display in new window.")
 
@@ -63,7 +63,7 @@ while(True):
     bgModel.detect(rgb)
     bgS = bgModel.getState()
 
-    display.binary(bgS.bgIm, ratio=0.25, window_name="Detection")
+    display.binary(bgS.bgIm, ratio=0.5, window_name="Detection")
 
     opKey = cv2.waitKey(1)
     if opKey == ord('q'):

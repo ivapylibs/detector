@@ -13,12 +13,14 @@
 #!    90 columns text.
 #=============================== bgmodelGMM ==============================
 
+from dataclasses import dataclass
 import numpy as np
 import cv2
-from dataclasses import dataclass
+import h5py
 
 from detector.inImage import bgImage
 from detector.Configuration import AlgConfig
+import ivapy.display_cv as display
 
 @dataclass
 class GMMstate:
@@ -75,7 +77,7 @@ class CfgGMM_cv(AlgConfig):
     if (init_dict == None):
       init_dict = CfgGMM_cv.get_default_settings()
 
-    super(CfgSGM,self).__init__(init_dict, key_list, new_allowed)
+    super(CfgGMM_cv,self).__init__(init_dict, key_list, new_allowed)
 
     # self.merge_from_lists(XX)
 
@@ -102,7 +104,7 @@ class CfgGMM_cv(AlgConfig):
     default_dict = dict(history  = 300, NMixtures = 5, 
                         tauSigma = 50.0, minSigma = 25.0, maxSigma = 10000.0,
                         alpha = -1,
-                        init = dict( sigma = [40.0], imsize = [] ),
+                        init = dict( sigma = 40.0, imsize = [] ),
                         detectShadow = False, tauShadow = 0.5 ) 
 
     return default_dict
@@ -249,9 +251,9 @@ class bgmodelGMM_cv(bgImage):
         super().__init__()
         self.config = theConfig
 
-        self.bgSubstractor = cv2.createBackgroundSubtractorMOG2(
+        self.bgSubtractor = cv2.createBackgroundSubtractorMOG2(
             history=self.config.history,
-            varThreshold=self.config.tauVar,
+            varThreshold=self.config.tauSigma,
             detectShadows=self.config.detectShadow 
         )
         self.set("ShadowThreshold", self.config.tauShadow)
@@ -265,9 +267,9 @@ class bgmodelGMM_cv(bgImage):
         self.shadow_mask    = None
         self.fg_mask        = None
 
-        self.bgSubstractor.setVarMin(self.config.minVar) 
-        self.bgSubstractor.setVarMax(self.config.maxVar)
-        self.bgSubstractor.setVarInit(self.init.sigma)
+        self.bgSubtractor.setVarMin(4.0) #self.config.minSigma) 
+        self.bgSubtractor.setVarMax(self.config.maxSigma)
+        self.bgSubtractor.setVarInit(self.config.init.sigma)
 
 
     #=============================== measure ===============================
@@ -303,7 +305,7 @@ class bgmodelGMM_cv(bgImage):
         Overrides the learning rate (alpha) in the configuration by simply
         ignoring it and passing on no learning to the OpenCV implementation.
         """
-        self.detResult = self.bgSubstractor.apply(img, learningRate=0)
+        self.detResult = self.bgSubtractor.apply(img, learningRate=0)
         self.fg_mask   = (self.detResult == 255)
 
         if self.config.detectShadow:
@@ -320,7 +322,7 @@ class bgmodelGMM_cv(bgImage):
         Do not call the other member functions as they do nothing.
         """
 
-        self.detResult = self.bgSubstractor.apply(img, learningRate=self.config.alpha) 
+        self.detResult = self.bgSubtractor.apply(img, learningRate=self.config.alpha) 
         self.fg_mask   = (self.detResult == 255)
 
         if self.config.detectShadow:
@@ -341,7 +343,7 @@ class bgmodelGMM_cv(bgImage):
         det = bgmodelGMM_cv()
         det.set("History", 200)   # will invoke setHistory(200) function from the link
         """
-        eval( "self.bgSubstractor.set" + fname + "(" + str(fval) + ")" )
+        eval( "self.bgSubtractor.set" + fname + "(" + str(fval) + ")" )
 
     
     #=================================== get =================================
@@ -358,26 +360,26 @@ class bgmodelGMM_cv(bgImage):
         det = bgmodelGMM_cv()
         det.get("History")          # will invode getHistory() function from the link
         """
-        fval = eval( "self.bgSubstractor.get" + fname + "()" )
+        fval = eval( "self.bgSubtractor.get" + fname + "()" )
         return fval
 
     #=============================== getState ==============================
     #
-    def getstate(self):
-      """!
-      @brief    Get latest detection result stored in memory.
-      """
-      cState = GMMstate(bgIm = self.getBackgroundImage())
-      return cState
+    def getState(self):
+        """!
+        @brief    Get latest detection result stored in memory.
+        """
+        cState = GMMstate(bgIm = self.detResult, fgIm = self.fg_mask)
+        return cState
 
     #=============================== getDebug ==============================
     #
-    def getstate(self):
-      """!
-      @brief    Get latest detection result stored in memory.
-      """
-      dState = GMMdebug(mu = self.detResult, fgIm = self.fg_mask)
-      return cState
+    def getDebug(self):
+        """!
+        @brief    Get latest detection result stored in memory.
+        """
+        cState = GMMdebug(mu = self.getBackgroundImage(), sigma = None, errIm = None)
+        return cState
 
 #    def getDetectResult(self):
 #        """
@@ -412,7 +414,7 @@ class bgmodelGMM_cv(bgImage):
     
     #=========================== getBackgroundImg ==========================
     #
-    def getBackgroundImg(self):
+    def getBackgroundImage(self):
         """!
         @brief  Get the background image in RGB, based on the background GMM model.
 
@@ -421,7 +423,9 @@ class bgmodelGMM_cv(bgImage):
 
         @return     Background RGB image; bgImg (H, W, 3).
         """
-        return self.bgSubstractor.getBackgroundImage()[:,:,::-1]
+        bgmImage = self.bgSubtractor.getBackgroundImage()
+        print(bgmImage)
+        return self.bgSubtractor.getBackgroundImage()[:,:,::-1]
 
     #=================== buildAndCalibrateFromConfigRGBD ===================
     #
@@ -439,6 +443,12 @@ class bgmodelGMM_cv(bgImage):
     @staticmethod
     def buildAndCalibrateFromConfigRGBD(theConfig, theStream, incVis = False):
   
+        print('\n STEPS to calibrate onWorkspace.')
+        print('\t [1] Make sure workspace is empty.')
+        print('\t [2] Hit enter to continue once scene is prepped.')
+        print('\t [3] Hit "q" to stop adaptation process. Should be short.')
+        input()
+
         bgModel = bgmodelGMM_cv( theConfig )
      
         while(True):
@@ -456,15 +466,15 @@ class bgmodelGMM_cv(bgImage):
             bgIm  = cv2.cvtColor(bgS.bgIm, cv2.COLOR_GRAY2BGR)
             bgMod = bgD.mu.astype(np.uint8)
             #bgIm = cv2.cvtColor(bgS.bgIm.astype(np.uint8)*255, cv2.COLOR_GRAY2BGR)
-            display.rgb(bgIm, bgD.mu, ratio=0.25, window_name="Detection")
-            display.rgb(bgIm, bgD.mu, ratio=0.25, window_name="BG Model")
+            display.rgb(bgIm, ratio=0.25, window_name="Detection")
+            display.rgb(bgMod, ratio=0.25, window_name="BG Model")
     
           opKey = cv2.waitKey(1)
           if opKey == ord('q'):
             break
        
-        display.close_cv("Detection")
-        display.close_cv("BG Model")
+        display.close("Detection")
+        display.close("BG Model")
         return bgModel
 
     #==================== buildAndCalibrateFromConfigRGB ===================
@@ -479,8 +489,14 @@ class bgmodelGMM_cv(bgImage):
     # @todo What about the image processor?? Dump into the config??
     #
     @staticmethod
-    def buildAndCalibrateFromConfigRGBD(theConfig, theStream, incVis = False):
+    def buildAndCalibrateFromConfigRGB(theConfig, theStream, incVis = False):
   
+        print('\n STEPS to calibrate onWorkspace.')
+        print('\t [1] Make sure workspace is empty.')
+        print('\t [2] Hit enter to continue once scene is prepped.')
+        print('\t [3] Hit "q" to stop adaptation process. Should be short.')
+        input()
+
         bgModel = bgmodelGMM_cv( theConfig )
      
         while(True):
@@ -510,21 +526,24 @@ class bgmodelGMM_cv(bgImage):
         return bgModel
     
     
-  #============================== saveModel ==============================
-  #
-  def saveModel(self, fName):
-    """!
-    @brief  Save current MOG2 model to file.
-
-    Uses the native/OpenCV implementation, thus it requires a filename
-    and not a filepointer.  Will save to the specified file.
-
-    @note   This code is untested.  Assumes that OpenCV python API mirrors
-            the actual C++ implementation.
-    """
-    fs = cv2.FileStorage(fName, 1)
-    self.bgSubtractor.write(fs)
-
+    #============================== saveModel ==============================
+    #
+    def saveModel(self, fName):
+        """!
+        @brief  Save current MOG2 model parameters to file.
+    
+        Uses the native/OpenCV implementation, thus it requires a filename
+        and not a filepointer.  Will save to the specified file.
+    
+        @note   This code is untested.  Assumes that OpenCV python API mirrors
+                the actual C++ implementation.
+        """
+        print(fName)
+        print(type(self))
+        print(self.bgSubtractor)
+        fs = cv2.FileStorage(fName, 1)
+        self.bgSubtractor.write(fs)
+  
     #================================ save ===============================
     #
     def save(self, fileName, datFileName = None):    # Save given file.
@@ -534,94 +553,99 @@ class bgmodelGMM_cv(bgImage):
         Opens file, preps for saving, invokes save routine, then closes.
         Usually not overloaded.  Overload the saveTo member function.
         """
+        warning("Saving does not save the raw binary data for the model.")
+
         if (datFileName is None):
-          # @todo   Need to redo.  Make better.
+          # @todo   Need to redo.  Make better. OK for now to confirm save/load.
           datFileName = fileName.replace("hdf5", "dat")
  
         fptr = h5py.File(fileName,"w")
         self.saveTo(fptr, datFileName);
         fptr.close()
 
-  #================================ saveTo ===============================
-  #
-  def saveTo(self, fPtr, fName):
-    """!
-    @brief  Save current MOG2 model to file.
-
-    Uses the native/OpenCV implementation, thus it requires a filename
-    and not a filepointer.  Will save to the specified file. Also stored
-    in the HDF5 file for loading later on.
-
-    @param[in]  fPtr    HDF5 file pointer (opened and ready).
-    @param[in]  fName   Filename to save GMM model to.
-
-    @note   This code is untested.  Assumes that OpenCV python API mirrors
-            the actual C++ implementation.
-    """
-    wsds = fPtr.create_group("bgmodel.GMM_cv")
-
-    self.saveModel(fName)
-    wsds.create_dataset("sourcefile", data=fName)
-
-    configStr = self.config.dump()
-    wsds.create_dataset("configuration", data=configStr)
-
-
-  #============================== loadModel ==============================
-  #
-  def loadModel(self, fName):
-    """!
-    @brief  Load MOG2 model to file and overwrite current model.
-
-    Uses the native/OpenCV implementation, thus it requires a filename
-    and not a filepointer.  Will load from the specified file.
-
-    @note   This code is untested.  Assumes that OpenCV python API mirrors
-            the actual C++ implementation.
-    """
-    fs = cv2.FileStorage(fName, 0)
-    self.bgSubtractor.read(fs)
-
-  #================================ load ===============================
-  #
-  @staticmethod
-  def load(fileName):
-    """!
-    @brief  Load GMM instance from saved file.
-
-    @param[in]  fileName    Source file name.
-
-    @note   This code is untested.
-    """
-
-    fptr = h5py.File(fileName,"r")
-    theModel = bgmodelGMM_cv.loadFrom(fptr)
-
-
-  #============================== loadFrom =============================
-  #
-  @staticmethod
-  def loadFrom(fPtr):
-    """!
-    @brief  Load GMM instance from details saved in HDF5 file.
-
-    @param[in]  fileName    Source file name.
-
-    @note   This code is untested.
-    """
-    gptr = fptr.get("bgmodel.GMM_cv")
-
-    cfgPtr     = gptr.get("configuration")
-    configStr  = cfgPtr[()].decode()
-
-    srcPtr     = gptr.get("sourcefile")
-    srcfileStr = srcPtr[()].decode()
-
-    fptr.close()
-
-    theConfig = CfgGMM_cv.load_cfg(configStr)
-
-    theModel = bgmodelGMM_cv(theConfig, None)
-    theModel.loadModel(srcfileStr)
-
-    return theModel
+    #================================ saveTo ===============================
+    #
+    def saveTo(self, fPtr, fName):
+        """!
+        @brief  Save current MOG2 model to file.
+    
+        Uses the native/OpenCV implementation, thus it requires a filename
+        and not a filepointer.  Will save to the specified file. Also stored
+        in the HDF5 file for loading later on.
+    
+        @param[in]  fPtr    HDF5 file pointer (opened and ready).
+        @param[in]  fName   Filename to save GMM model to.
+    
+        @note   This code is untested.  Assumes that OpenCV python API mirrors
+                the actual C++ implementation.
+        """
+        wsds = fPtr.create_group("bgmodel.GMM_cv")
+    
+        self.saveModel(fName)
+        wsds.create_dataset("sourcefile", data=fName)
+    
+        configStr = self.config.dump()
+        wsds.create_dataset("configuration", data=configStr)
+  
+  
+    #============================== loadModel ==============================
+    #
+    def loadModel(self, fName):
+        """!
+        @brief  Load MOG2 model to file and overwrite current model.
+    
+        Uses the native/OpenCV implementation, thus it requires a filename
+        and not a filepointer.  Will load from the specified file.
+    
+        @note   This code is untested.  Assumes that OpenCV python API mirrors
+                the actual C++ implementation.
+        """
+        fs = cv2.FileStorage(fName, 0)
+        fn = fs.root()
+        self.bgSubtractor.read(fn)
+  
+    #================================ load ===============================
+    #
+    @staticmethod
+    def load(fileName):
+        """!
+        @brief  Load GMM instance from saved file.
+    
+        @param[in]  fileName    Source file name.
+    
+        @note   This code is untested.
+        """
+    
+        warning("Loading does not load the raw binary data for the model.")
+        fptr = h5py.File(fileName,"r")
+        theModel = bgmodelGMM_cv.loadFrom(fptr)
+        return theModel
+    
+  
+    #============================== loadFrom =============================
+    #
+    @staticmethod
+    def loadFrom(fPtr):
+        """!
+        @brief  Load GMM instance from details saved in HDF5 file.
+    
+        @param[in]  fileName    Source file name.
+    
+        @note   This code is untested.
+        """
+        gptr = fPtr.get("bgmodel.GMM_cv")
+        
+        cfgPtr     = gptr.get("configuration")
+        configStr  = cfgPtr[()].decode()
+    
+        srcPtr     = gptr.get("sourcefile")
+        srcfileStr = srcPtr[()].decode()
+    
+        fPtr.close()
+    
+        theConfig = CfgGMM_cv.load_cfg(configStr)
+    
+        theModel = bgmodelGMM_cv(theConfig, None)
+        theModel.loadModel(srcfileStr)
+    
+        return theModel

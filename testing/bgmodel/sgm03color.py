@@ -1,5 +1,5 @@
 #!/usr/bin/python
-#==================================== gmmcv01run ===================================
+#==================================== sgm03color ===================================
 ## @file
 # @brief    Use Realsense camera to collect background model data, then apply for
 #           foreground detection using OpenCV GMM implementation.
@@ -21,7 +21,7 @@
 #
 # NOTE: Formatted for 100 column view. Using 4 space indent.
 #
-#==================================== gmmcv01run ===================================
+#==================================== sgm03color ===================================
 
 
 #==[0]  Setup the environment.
@@ -31,21 +31,20 @@ import cv2
 
 import ivapy.display_cv as display
 import camera.d435.runner2 as d435
-import detector.bgmodel.GMM as detect
+import detector.bgmodel.Gaussian as detect
 
 #==[1]  Instantiation components.
 #
 d435_configs = d435.CfgD435()
-d435_configs.merge_from_file('sgm02depth435.yaml')
+d435_configs.merge_from_file('sgm03color.yaml')
 theStream = d435.D435_Runner(d435_configs)
 theStream.start()
 
-theCfg  = detect.CfgGMM_cv.builtForLearning()
-theCfg.detectShadow = True
+theCfg  = detect.CfgSGM.builtForLearning()
 
 #==[2] Calibrate.
 #
-bgModel = detect.bgmodelGMM_cv.buildAndCalibrateFromConfigRGBD(theCfg, theStream, True)
+bgModel = detect.bgGaussian.buildAndCalibrateFromConfigRGBD(theCfg, theStream, True)
 
 #==[3] Apply to scene.
 #
@@ -64,9 +63,7 @@ while(True):
     bgModel.detect(rgb)
     bgS = bgModel.getState()
 
-    bgIm  = cv2.cvtColor(bgS.bgIm, cv2.COLOR_GRAY2BGR)
-
-    display.rgb(bgIm, ratio=0.25, window_name="Detection")
+    display.binary(bgS.bgIm, ratio=0.25, window_name="Detection")
 
     opKey = cv2.waitKey(1)
     if opKey == ord('q'):
@@ -76,4 +73,4 @@ display.close("Detection")
 display.close("BG Model")
 
 #
-#==================================== gmmcv01run ===================================
+#==================================== sgm03color ===================================

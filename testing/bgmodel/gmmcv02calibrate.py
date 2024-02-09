@@ -30,9 +30,9 @@
 import numpy as np
 import cv2
 
-import camera.utils.display as display
+import ivapy.display_cv as display
 import camera.d435.runner2 as d435
-import detector.bgmodel.inCorner as bgdet
+import detector.bgmodel.GMM as detect
 
 
 #==[1]  Instantiation components.
@@ -42,24 +42,32 @@ d435_configs.merge_from_file('sgm02depth435.yaml')
 theStream = d435.D435_Runner(d435_configs)
 theStream.start()
 
-theCfg  = detct.CfgGMM_cv.builtForLearning()
-bgModel = detect.bgmodelGMM_cv(theCfg)
+theCfg  = detect.CfgGMM_cv.builtForLearning()
+theCfg.detectShadow = True
 
 
 #==[2] Calibrate then save.
 #
-bgModel = GWS.onWorkspace.buildAndCalibrateFromConfigRGBD(theConfig, theStream, True)
-
+bgModel = detect.bgmodelGMM_cv.buildAndCalibrateFromConfigRGBD(theCfg, theStream, True)
+print("Saving model.")
 bgModel.save("gmmcv02model.hdf5")
+print("Done model.")
 
 
-#==[3] Load then apply to live scene.
+#==[3] Load 
 #
 bgModel = None
 bgModel = detect.bgmodelGMM_cv.load("gmmcv02model.hdf5")
 
 
-print("Running as detector on scene.")
+#==[4] Apply to live scene.
+#
+bgD   = bgModel.getDebug()
+bgMod = bgD.mu.astype(np.uint8)
+display.rgb(bgMod, ratio=0.25, window_name="BG Model")
+print("Displayed the expected image.")
+print("Running as detector on scene w/display in new window.")
+
 while(True):
     rgb, dep, success = theStream.get_frames()
     if not success:
@@ -68,17 +76,17 @@ while(True):
 
     bgModel.detect(rgb)
     bgS = bgModel.getState()
-    bgD = bgModel.getDebug()
 
-    bgIm = cv2.cvtColor(bgS.bgIm.astype(np.uint8)*255, cv2.COLOR_GRAY2BGR)
+    bgIm  = cv2.cvtColor(bgS.bgIm, cv2.COLOR_GRAY2BGR)
 
-    display.rgb_depth_cv(bgIm, dep, ratio=0.5, window_name="RGB+Depth")
+    display.rgb(bgIm, ratio=0.25, window_name="Detection")
 
     opKey = cv2.waitKey(1)
     if opKey == ord('q'):
         break
 
-
+display.close("Detection")
+display.close("BG Model")
 
 #
 #================================= gmmcv02calibrate ================================

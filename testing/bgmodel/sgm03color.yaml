@@ -1,0 +1,23 @@
+camera:
+  config:
+    load:  True
+    file:  'sgm03color.json'  
+    ros:   ''
+  depth:
+    use:    True
+    res:    [848, 480]
+    fps:    30
+  color:
+    use:    True
+    res:    [848, 480]
+    fps:    30
+  align:    False
+  ros:
+    enable:     False
+    depth:
+      pub:      False
+      topic:    '/mary/camera/depth'
+    color:
+      pub:      False
+      topic:    '/mary/camera/rgb'
+

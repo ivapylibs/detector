@@ -21,6 +21,7 @@ import h5py
 from detector.inImage import fgImage
 from detector.Configuration import AlgConfig
 import camera.utils.display as display
+#import ivapy.display_cv as display
 
 @dataclass
 class SGMstate:

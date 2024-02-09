@@ -17,7 +17,9 @@
 from dataclasses import dataclass
 import numpy as np
 import h5py
+import cv2
 
+import ivapy.display_cv as display
 from detector.inImage import bgImage
 from detector.Configuration import AlgConfig
 
@@ -142,7 +144,7 @@ class bgGaussian(bgImage):
     @param[in]  bgMod   The model or parameters for the detector.
     @param[in]  bgCfg   The model or parameters for the detector.
     '''
-    super(Gaussian, self).__init__(processor)
+    super(bgGaussian, self).__init__(processor)
 
     # First, set the configuration member field.
     if bgCfg is None:
@@ -205,7 +207,7 @@ class bgGaussian(bgImage):
       return
     
     bigShape = ( np.prod(self.imsize[0:2]), self.imsize[2] )
-    linShape = ( np.prod(self.imsize[0:2]), 1 )
+    linShape = ( np.prod(self.imsize[0:2]) )
 
     self.measI = np.zeros( bigShape )
     self.errI  = np.zeros( bigShape )
@@ -439,7 +441,7 @@ class bgGaussian(bgImage):
       file.write(self.config.dump())
       file.close()
 
-  #==================== buildAndCalibrateFromConfig ====================
+  #================== buildAndCalibrateFromConfigRGBD ==================
   #
   # @brief  build and calibrate onWorkspace model from an initial config 
   #         and a camera class streaming camera. Return instantiated and 
@@ -451,9 +453,9 @@ class bgGaussian(bgImage):
   # @todo   Modify to be a bit more generic.
   #
   @staticmethod
-  def buildAndCalibrateFromConfig(theConfig, theStream, incVis = False):
+  def buildAndCalibrateFromConfigRGBD(theConfig, theStream, incVis = False):
 
-    bgModel = Gaussian( theConfig )
+    bgModel = bgGaussian( theConfig )
  
     while(True):
       rgb, dep, success = theStream.get_frames()
@@ -468,13 +470,14 @@ class bgGaussian(bgImage):
         bgD = bgModel.getDebug()
 
         bgIm = cv2.cvtColor(bgS.bgIm.astype(np.uint8)*255, cv2.COLOR_GRAY2BGR)
-        display.rgb_depth_cv(bgIm, bgD.mu, ratio=0.25, window_name="RGB+Depth")
+        display.bgr(bgIm, ratio=0.25, window_name="RGB+Depth")
+        #display.rgb_depth(bgIm, bgD.mu, ratio=0.25, window_name="RGB+Depth")
 
       opKey = cv2.waitKey(1)
       if opKey == ord('q'):
         break
    
-    display.close_cv("RGB+Depth")
+    display.close("RGB+Depth")
     return bgModel
 
 

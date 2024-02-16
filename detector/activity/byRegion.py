@@ -230,15 +230,22 @@ class imageRegions(fromState):
               No check to see if it wipes out existing states.
 
     If the masked region has no true values, then no new region is
-    added.
+    added.  If multiple slices of masks are given (3rd dimension), then
+    will add each slice.
 
     @param[in]    regMask     Region mask, should match size of internal image.
     """
 
-    if (np.shape(self.imRegions) == np.shape(regMask)):
-      if (regMask.any()):
-        self.lMax += 1
-        self.imRegions[regMask] = self.lMax
+    regSize = np.shape(regMask)
+
+    if (np.shape(self.imRegions) == regSize[0:2]):
+      if (len(regSize) == 3):
+        for ii in range(0,regSize[2]):
+          self.addRegionByMask(regMask[:,:,ii])
+      else:
+        if (regMask.any()):
+          self.lMax += 1
+          self.imRegions[regMask] = self.lMax
 
   #============================== measure ==============================
   #

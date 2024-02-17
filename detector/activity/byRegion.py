@@ -309,6 +309,13 @@ class imageRegions(fromState):
 
     cvdisplay.gray(regIm.astype(np.uint8), ratio = ratio, window_name = window_name)
 
+  #========================== display_close_cv =========================
+  #
+  def display_close_cv(self, window_name = "Activity Regions"):
+
+    cvdisplay.close(window_name = window_name)
+
+
   #---------------------------------------------------------------------
   #------------------------- Save/Load Routines ------------------------
   #---------------------------------------------------------------------

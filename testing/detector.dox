@@ -6,7 +6,7 @@
 All of the test routines for the Detector package.
 
 
-@addtogroup Detector_Testing
+@addtogroup TestDetector
 @{
 @defgroup TestDet_Activity  Activity Detection
 

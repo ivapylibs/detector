@@ -357,7 +357,7 @@ class inCorner(bgImage):
 
       return mI
 
-  #========================= selectRegionFromPoint =========================
+  #======================= selectMaskRegionFromPoint =======================
   #
   def selectMaskRegionFromPoint(self, pt):
     """!
@@ -374,16 +374,50 @@ class inCorner(bgImage):
 
     bgmask = self.getState()
 
-    imSize = np.shape(bgmask.x)
+    return self.selectMaskRegionFromPointAndMask(pt, bgmask.x)
+
+
+  #==================== selectMaskRegionFromPointAndMask ===================
+  #
+  def selectMaskRegionFromPointAndMask(self, pt, mask):
+    """!
+    @brief  Select mask region from model class at given point.
+
+    Permits single and multiple point selections.  Multiple points return
+    multiple mask slices.  Relies on the detector having run and generated
+    a background detection mask.
+
+    @param[in]  pt      Point of interest (given column-wise)
+    @param[in]  mask    Mask.
+
+    @return     A single mask slice or a collection of mask slices.
+    """
+
+    imSize = np.shape(mask)
     ptSize = np.shape(pt)
 
     outMask = np.full( (imSize[0], imSize[1], ptSize[1]) , False, dtype=bool)
 
     for ii in range(0,ptSize[1]):
       ptuple = tuple(np.array(pt[::-1,ii]))
-      outMask[:,:,ii] = morph.flood(bgmask.x, ptuple, connectivity=1)
+      outMask[:,:,ii] = morph.flood(mask, ptuple, connectivity=1)
 
     return outMask
+
+
+  #=============================== saveTo ==============================
+  #
+  def saveTo(self, fPtr):    # Save given HDF5 pointer. Puts in root.
+    gds = fPtr.create_group("bgmodel.inCorner")
+    print("Creating group: bgmodel.inCorner")
+
+    self.bgModel.saveTo(gds)
+
+    #DELETE IF NOT NEEDED.
+    #configStr = self.config.dump()
+    #wsds.create_dataset("configuration", data=configStr)
+
+
 
   #
   #---------------------------------------------------------------------------
@@ -628,6 +662,40 @@ class inCornerEstimator(inCorner):
     self.apply_estimated_margins()
 
 
+  #========================== refineFromFrameRGBD ==========================
+  #
+  # @brief  Refine model using an RGBD frame capture. Return calibrated
+  #         model.
+  #         
+  # The stream is presumed to be a depth + color stream as obtained from
+  # a Realsense camera.
+  #
+  #
+  def refineFromFrameRGBD(self, theFrame, incVis = False):
+
+    # @todo Incomplete.  Should be able to adjust model somehow.
+    #       Maybe that should be elsewhere. With the model class.
+    #
+
+    print("\nSTEPS to refine color BG model.")
+    print("\t [1] NOT IMPLEMENTED.  NEED OTHER KEYPRESS ACTIONS OR IS THERE")
+    print("\t     A PRE-EXISTING FUNCTION THAT DOES IT??? TEST SCRIPT??.")
+    print("\t [2] Hit 'q' to stop adjustment process.")
+
+    while(True):
+      self.process(theFrame.color)
+
+      if (incVis):
+        bgmask = self.getState()
+        display.rgb_binary_cv(theFrame.color, bgmask.x, ratio=0.5, window_name="RGB+Mask")
+
+      opKey = cv2.waitKey(50)       # Wait a little to not overwhelm processing.
+      if opKey == ord('q'):
+        break
+
+    display.close_cv("RGB+Mask")
+
+
   #========================== refineFromStreamRGB ==========================
   #
   # @brief  Refine model using a camera class RGB stream. Return calibrated
@@ -731,6 +799,51 @@ class inCornerEstimator(inCorner):
     print('Deprecated: switch to calibrateFromStreamRGBD')
     calibrateFromStreamRGBD(self, theStream, incVis)
 
+  #======================== maskRegionFromFrameRGBD ========================
+  #
+  # @brief  Use model parameters and frame data to recover largest background
+  #         region in image.  That will generate the mask.
+  #
+  def maskRegionFromFrameRGBD(self, theData, incVis = False):
+
+    print("\nSTEPS to get largest region as mask.")
+    print("\t [1] AGAIN, INCORRECT APPROACH. STICKING TO IT FOR NOW.")
+    print("\t [3] Review and hit 'q' to move on.")
+
+    roiIntersect = None
+    while(True):
+      self.process(theData.color)
+
+      #-- Below is code that attempts to recover largest background
+      #     region.  Performs some logic to remove inconsistent
+      #     detections at the pixel level.
+      #
+      bgmask = self.getState()
+
+      bglabeled = measure.label(bgmask.x, connectivity=2)
+      bgprops   = measure.regionprops_table(bglabeled, properties=['label','area'])
+
+      bigl  = np.argmax(bgprops['area'])
+      bgroi = (bglabeled == bgprops['label'][bigl])
+
+      if roiIntersect is None:
+        roiIntersect = bgroi
+      else:
+        roiIntersect = np.logical_and(roiIntersect, bgroi)
+
+      if (incVis):
+        bgM = cv2.cvtColor(255-roiIntersect.astype(np.uint8)*255, cv2.COLOR_GRAY2BGR)
+        fgI = cv2.bitwise_and(theData.color, bgM)
+
+        display.rgb_binary_cv(fgI, roiIntersect, ratio=0.25, window_name="Region Mask")
+
+      opKey = cv2.waitKey(50)
+      if opKey == ord('q'):
+        break
+      
+    display.close_cv("Region Mask")
+    return roiIntersect
+
   #======================== maskRegionFromStreamRGBD =======================
   #
   # @brief  Use model parameters and iamge stream to recover largest background
@@ -797,18 +910,6 @@ class inCornerEstimator(inCorner):
     #tinfo.time = datestr(now,'HH:MM:SS');
     #tinfo.trackparms = bgp;
     pass
-
-  #=============================== saveTo ==============================
-  #
-  def saveTo(self, fPtr):    # Save given HDF5 pointer. Puts in root.
-    gds = fPtr.create_group("bgmodel.inCorner")
-    print("Creating group: bgmodel.inCorner")
-
-    self.bgModel.saveTo(gds)
-
-    #DELETE IF NOT NEEDED.
-    #configStr = self.config.dump()
-    #wsds.create_dataset("configuration", data=configStr)
 
 
   ##============================== saveCfg ============================== 

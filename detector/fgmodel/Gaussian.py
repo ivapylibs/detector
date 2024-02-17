@@ -195,9 +195,9 @@ class fgGaussian(fgImage):
     # Apply YAML/config defaults if available.
     # Providing a foreground model in fgMode overrides these values.
     if self.config.init.mu is not None:
-      self.mu = np.array(self.config.init.mu)
+      self.mu   = np.array(self.config.init.mu)
     else:
-      self.mu     = None
+      self.mu   = None
 
     if self.config.init.sigma is not None:
       self.sigma  = np.array(self.config.init.sigma)
@@ -277,7 +277,7 @@ class fgGaussian(fgImage):
 
   #============================== measure ==============================
   #
-  # @todo   Need to se NumExpr library for faster numerical expression evaluation.
+  # @todo   Need to see NumExpr library for faster numerical expression evaluation.
   #         See [here](https://github.com/pydata/numexpr).
   #
   # Currently using numpy routines for in-place computation so that memory
@@ -394,6 +394,8 @@ class fgGaussian(fgImage):
       newVals = self.measI[self.fgI,:]
 
       if (np.size(newVals) > 0):
+        # @todo Establish is data is row-wise or column-wise, then document here.
+        #       Should always note expected data organization to prevent problems.
         newMu   = np.mean(newVals, 0)
         newSig  = np.var(newVals, 0)
 
@@ -509,12 +511,63 @@ class fgGaussian(fgImage):
     #tinfo.trackparms = bgp;
     pass
 
+  #========================== estimateFromData =========================
+  #
+  def estimateFromData(self, theData):
+    """!
+    @brief  Use given data to estimate Gaussia foreground model.
+
+    @param[in]  theData     Column-vectors of target data.
+
+    @todo   Establish if should be row or column.
+    """
+    
+    self.mu    = np.mean(theData, axis=1)
+    self.sigma = np.var(theData, axis=1)
+
+    np.maximum(self.sigma, self.config.minSigma, out=self.sigma)
+
+  #======================== estimateFromMaskRGB ========================
+  #
+  def estimateFromMaskRGB(self, theMask, theImage):
+    """!
+    @brief  Extract mask region pixel data from image for Gaussia model
+            estimation.
+
+    @param[in]  theMask     Regions of interest w/binary true values.
+    @param[in]  theImage    Source image to get model data from.
+    """
+
+    masize   = np.shape(theMask)
+    imsize   = np.shape(theImage)
+
+    if any(masize != imsize[0:2]):
+      return
+      # @todo   What to do in case of bad args?
+
+    # Get mask elements from image. Requires reshaping image to have vectorized
+    # data, getting the indices from the mask, then computing the model
+    # statistics. First prep for collecting the vectorized data.
+    vecImage = np.array(theImage, dtype=float, copy=True)
+    vecImage = np.reshape( vecImage, np.append(np.prod(imsize[0:2]), imsize[2]) )
+
+    vecMask  = theMask.flatten()
+
+    # Get vectorized data and send to estimation routine.
+    theData = vecImage[vecMask,:]
+    self.estimateFromData(theData)
+
   #======================== refineFromStreamRGB ========================
   #
-  # @brief  Given an RGB stream, run the estimation process with 
-  #         adaptation on to improve color model.
   #
   def refineFromStreamRGB(self, theStream, incVis = False):
+    """!
+    @brief  Given an RGB stream, run the estimation process with 
+            adaptation on to improve color model.
+    
+    @param[in]  theStream   RGB stream.
+    @param[in]  incVis      Include visualization of refinement processing [False]
+    """
 
     print('STEPS to Refine the Gaussian model.')
     print('\t [1] Hit any key to continue once scene is prepped.')

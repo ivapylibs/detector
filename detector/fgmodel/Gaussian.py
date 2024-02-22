@@ -540,6 +540,9 @@ class fgGaussian(fgImage):
     @todo   Establish if should be row or column.
     """
     
+    if (theData is None) or (theData.size == 0):
+      return
+
     newMu  = np.mean(theData, axis=1)
     newSig = np.var(theData, axis=1)
 

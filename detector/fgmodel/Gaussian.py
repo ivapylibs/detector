@@ -1,4 +1,4 @@
-#================================ Gaussian ===============================
+#================================ fgGaussian ===============================
 #
 # @author   Jun Yang,
 # @author   Patricio A. Vela,   pvela@gatech.edu
@@ -11,7 +11,7 @@
 #
 # Notes:    set tabstop = 4, indent = 2, 85 columns.
 #
-#================================ Gaussian ===============================
+#================================ fgGaussian ===============================
 
 from dataclasses import dataclass
 import numpy as np
@@ -22,6 +22,7 @@ from detector.inImage import fgImage
 from detector.Configuration import AlgConfig
 import camera.utils.display as display
 #import ivapy.display_cv as display
+
 
 @dataclass
 class SGMstate:
@@ -133,9 +134,9 @@ class CfgSGT(AlgConfig):
     return learnCfg
 
 #
-#-------------------------------------------------------------------------
-#================================ Gaussian ===============================
-#-------------------------------------------------------------------------
+#---------------------------------------------------------------------------
+#================================ fgGaussian ===============================
+#---------------------------------------------------------------------------
 #
 
 class fgGaussian(fgImage):
@@ -170,7 +171,7 @@ class fgGaussian(fgImage):
   @todo Redo so that inherits from appearance or some kind of fgmodel class.
   """
 
-  #========================= Gaussian/__init__ =========================
+  #======================== fgGaussian/__init__ ========================
   #
   #
   def __init__(self, bgCfg = None, processor = None, fgMod = None):
@@ -180,7 +181,7 @@ class fgGaussian(fgImage):
     @param[in]  bgMod   The model or parameters for the detector.
     @param[in]  bgCfg   The model or parameters for the detector.
     '''
-    super(Gaussian, self).__init__(processor)
+    super(fgGaussian, self).__init__(processor)
 
     # First, set the configuration member field.
     if bgCfg is None:
@@ -527,6 +528,39 @@ class fgGaussian(fgImage):
 
     np.maximum(self.sigma, self.config.minSigma, out=self.sigma)
 
+  #=========================== updateFromData ==========================
+  #
+  def updateFromData(self, theData, alpha = None):
+    """!
+    @brief  Use given data to update Gaussia foreground model based on learning rate.
+
+    @param[in]  theData     Column-vectors of target data.
+    @param[in]  alpha       [None] Learning rate override: set for value other than internal one.
+
+    @todo   Establish if should be row or column.
+    """
+    
+    newMu  = np.mean(theData, axis=1)
+    newSig = np.var(theData, axis=1)
+
+    if alpha is None:
+      alpha = self.config.alpha
+
+    if self.mu is None:
+      self.mu    = newMu
+    else:
+      self.mu    = self.mu    + alpha*(newMu - self.mu)
+
+
+    if self.sigma is None:
+      self.sigma = newSig
+    else:
+      self.sigma = self.sigma + alpha*(newSig - self.sigma)
+      
+    # Impose min sigma constraint.
+    np.maximum(self.sigma, self.config.minSigma, out=self.sigma)
+
+
   #======================== estimateFromMaskRGB ========================
   #
   def estimateFromMaskRGB(self, theMask, theImage):
@@ -554,8 +588,39 @@ class fgGaussian(fgImage):
     vecMask  = theMask.flatten()
 
     # Get vectorized data and send to estimation routine.
-    theData = vecImage[vecMask,:]
+    theData = np.transpose(vecImage[vecMask,:])
     self.estimateFromData(theData)
+
+  #========================= updateFromMaskRGB =========================
+  #
+  def updateFromMaskRGB(self, theMask, theImage, alpha = None):
+    """!
+    @brief  Extract mask region pixel data from image for Gaussia model
+            update/adaptation.
+
+    @param[in]  theMask     Regions of interest w/binary true values.
+    @param[in]  theImage    Source image to get model data from.
+    @param[in]  alpha       [None] Learning rate override: set for value other than internal one.
+    """
+
+    masize   = np.shape(theMask)
+    imsize   = np.shape(theImage)
+
+    if (masize != imsize[0:2]):
+      return
+      # @todo   What to do in case of bad args?
+
+    # Get mask elements from image. Requires reshaping image to have vectorized
+    # data, getting the indices from the mask, then computing the model
+    # statistics. First prep for collecting the vectorized data.
+    vecImage = np.array(theImage, dtype=float, copy=True)
+    vecImage = np.reshape( vecImage, np.append(np.prod(imsize[0:2]), imsize[2]) )
+
+    vecMask  = theMask.flatten()
+
+    # Get vectorized data and send to estimation routine.
+    theData = np.transpose(vecImage[vecMask,:])
+    self.updateFromData(theData)
 
   #======================== refineFromStreamRGB ========================
   #
@@ -693,7 +758,7 @@ class fgGaussian(fgImage):
 
     theSetup = CfgSGT()
     theSetup.merge_from_file(fileName)
-    fgDetector = Gaussian(theSetup)
+    fgDetector = fgGaussian(theSetup)
     return fgDetector
 
   #============================ buildFromCfg ===========================
@@ -705,7 +770,7 @@ class fgGaussian(fgImage):
     @brief  Instantiate from stored configuration file (YAML).
     '''
 
-    fgDetector = Gaussian(theConfig, processor, fgMod)
+    fgDetector = fgGaussian(theConfig, processor, fgMod)
     return fgDetector
 
   #================================ load ===============================
@@ -716,7 +781,7 @@ class fgGaussian(fgImage):
     @brief  Load Gaussian instance specification from HDF5 file.
     """
     fptr = h5py.File(fileName,"r")
-    theModel = Gaussian.loadFrom(fptr)
+    theModel = fgGaussian.loadFrom(fptr)
     fptr.close()
     return theModel
 
@@ -740,8 +805,8 @@ class fgGaussian(fgImage):
       print("No foreground Gaussian model; Returning None.")
       theConfig = None
 
-    theModel = Gaussian(theConfig)
+    theModel = fgGaussian(theConfig)
     return theModel
 
 #
-#================================ Gaussian ===============================
+#================================ fgGaussian ===============================

@@ -726,6 +726,9 @@ class fgGaussian(fgImage):
   #=============================== saveTo ==============================
   #
   def saveTo(self, fPtr):    # Save given HDF5 pointer. Puts in root.
+    self.config.init.mu    = self.mu.tolist()
+    self.config.init.sigma = self.sigma.tolist()
+
     fPtr.create_dataset("ForegroundGaussian", data=self.config.dump())
 
   #============================ saveConfig =============================
@@ -784,6 +787,7 @@ class fgGaussian(fgImage):
     @brief  Load Gaussian instance specification from HDF5 file.
     """
     fptr = h5py.File(fileName,"r")
+    keyList = list(fptr.keys())
     theModel = fgGaussian.loadFrom(fptr)
     fptr.close()
     return theModel

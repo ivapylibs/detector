@@ -256,12 +256,16 @@ class imageRegions(fromState):
     @param[in]  zsig  The 2D pixel coords / 3D pixel coords + depth value.
     """
     if not self.isInit:
-      self.x = 0
+      self.z = 0
+      return
+
+    if zsig is None:
+      self.z = 0
       return
 
     # Map coordinates takes in (i,j). Map zsig from (x,y) to (i,j).
-    zmeas  = np.flipud(zsig.tMeas)
-    self.x = scipy.ndimage.map_coordinates(self.imRegions, zmeas, order = 0)
+    zmeas  = np.flipud(zsig)
+    self.z = scipy.ndimage.map_coordinates(self.imRegions, zmeas, order = 0)
 
   #===================== specifyRegionsFromImageRGB ====================
   #
@@ -291,11 +295,17 @@ class imageRegions(fromState):
     #         Right now just closes/opens window.
 
 
+  #============================ stringState ============================
+  #
+  def stringState(self):
+
+    return str(self.z)
+
   #============================= printState ============================
   #
   def printState(self):
 
-    print("State: " + str(self.x))
+    print("State: " + self.stringState())
 
   #============================= display_cv ============================
   #

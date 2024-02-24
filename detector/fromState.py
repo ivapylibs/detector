@@ -62,14 +62,15 @@ class fromState(Base):
 
   def detect(self, x):
     self.predict()
-    self.measure(x)
+    self.measure(x.tMeas)
     self.correct()
 
   def process(self, x):
     self.predict()
-    self.measure(x)
-    self.correct()
-    self.adapt()
+    if x.haveObs:
+      self.measure(x.tMeas)
+      self.correct()
+      self.adapt()
 
   def getState(self):
     state = DetectorState(x=self.z)

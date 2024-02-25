@@ -174,11 +174,11 @@ class imageRegions(fromState):
     @param[in]    imRegions   Label-type image.
     """
 
+    self.imRegions = imRegions
+    self.lMax      = np.max(imRegions)
+
     if not self.isInit: 
-      self.initRegions(imRegions)
-    else
-      self.imRegions = imRegions
-      self.lMax      = np.max(imRegions)
+      self.isInit = True
 
 
   #============================ emptyRegions ===========================

@@ -8,15 +8,16 @@
 # known region/zone with a given label.  Whether these zones are mutually exclusive
 # (disjoint regions) or not is up to the designer.
 # 
-# For now just coding up bare minimum needed.
+# **For now just coding up bare minimum needed.**
 # 
 # @ingroup  Detector_Activity
 # @note     Yes, this will be the bare minimum and needs to be expanded based on usage.
 #           There are many ways to define regions and to utilize them as activity
-#           states or status flags.  Since I aim to instantiate in one specific
-#           way at the momemt, that is what will be coded.
+#           states or status flags.  Currently, the aim is to instantiate in one
+#           specific way, hence that is what will be coded.
 
 #=================================== byRegion ==================================
+
 # 
 # @author     Patricio A. Vela,       pvela@gatech.edu
 # @date       2023/12/15
@@ -27,21 +28,25 @@
 
 
 #======================== Environment / API Dependencies =======================
+#
 import numpy as np
 import h5py
 
-from detector.base import Base
-from detector.fromState import fromState
-import ivapy.display_cv as cvdisplay
 import scipy
 import scipy.ndimage
 import skimage.draw as skidraw
+
+from detector.fromState import fromState
+import ivapy.display_cv as cvdisplay
 import ivapy.Configuration
 
 #-------------------------------------------------------------------------------
 #==================================== Planar ===================================
 #-------------------------------------------------------------------------------
 
+
+#==================================== Planar ===================================
+#
 
 class Planar(fromState):
   """!
@@ -50,13 +55,15 @@ class Planar(fromState):
   """
 
   def __init__(self):
-    pass
+    print("The class has been defined but not populated with code.")
+    print("It only has empty stubs. Code up prior to using.")
+    super(Planar, self).__init__()
 
   #============================== process ==============================
   #
   def process(self, signal):
     """
-    Process the new income signal
+    @brief  Process the new income signal. Check if in a region of interest.
     """
     self.predict()
     self.measure(signal)
@@ -85,17 +92,16 @@ class Planar(fromState):
 
 
 #-------------------------------------------------------------------------------
-#=============================== byRegion.imageRegions ==============================
+#============================ byRegion.imageRegions ============================
 #-------------------------------------------------------------------------------
 
 # @todo     Eventually may want to create configuration class that specifies how
-#           to build an imageRegions instance. Parses fields is particular order
+#           to build an imageRegions instance. Parses fields in particular order
 #           and reconstructs based on field entries.  
 #
 
-#=================================== imageRegions ===================================
+#================================= imageRegions ================================
 #
-
 class imageRegions(fromState):
   """!
   @ingroup  Detector_Activity
@@ -119,14 +125,21 @@ class imageRegions(fromState):
   # @todo     Should this class employ a configuration? I think so.
   #           Or maybe just have static factory method using configuration?
   #           Or should the configuration have the factory method? Both?
+  #           Also noted above before class declaration.
 
   #========================= imageRegions / __init__ ========================
   #
-  def __init__(self, imRegions = None):
-    super(imageRegions,self).__init__()
+  def __init__(self, imRegions = None, processor = None):
+    """!
+    @brief  Constructor for imageRegions class.
 
-    self.isInit = False
-    self.lMax   = 0
+    @param[in]  imRegions   If the regions are known already, provide them.
+    """
+    super(imageRegions,self).__init__(processor)
+
+    self.isInit     = False     #< Flag specifying initialization state.
+    self.lMax       = 0         #< Max label associated to image regions.
+    self.imRegions  = None      #< Image regions array.
 
     if (imRegions is not None):
       self.setRegions(imRegions)
@@ -146,30 +159,6 @@ class imageRegions(fromState):
     self.isInit = True
 
 
-  #============================ emptyRegions ===========================
-  #
-  def emptyRegions(self):
-    """!
-    @brief    Delete regions image if exists and return to uninitialized state.
-    """
-
-    self.imRegions = None
-    self.isInit    = False
-    self.lMax   = 0
-
-  #============================ wipeRegions ============================
-  #
-  def wipeRegions(self):
-    """!
-    @brief    Clear the regions image.  There will be no regions of interest
-              assigned.
-    """
-
-    if self.isInit:
-      self.imRegions.fill(0)
-
-    self.lMax   = 0
-
   #============================= setRegions ============================
   #
   def setRegions(self, imRegions):
@@ -186,9 +175,36 @@ class imageRegions(fromState):
     @param[in]    imRegions   Label-type image.
     """
 
-    self.imRegions = imRegions
-    self.lMax      = np.max(imRegions)
-    self.isInit    = True
+    if not self.isInit: 
+      self.initRegions(imRegions)
+    else
+      self.imRegions = imRegions
+      self.lMax      = np.max(imRegions)
+
+
+  #============================ emptyRegions ===========================
+  #
+  def emptyRegions(self):
+    """!
+    @brief    Delete regions image if exists and return to uninitialized state.
+    """
+
+    self.imRegions = None
+    self.isInit    = False
+    self.lMax      = 0
+
+  #============================ wipeRegions ============================
+  #
+  def wipeRegions(self):
+    """!
+    @brief    Clear the regions image.  There will be no regions of interest
+              assigned. Remains initialized is it was to being with.
+    """
+
+    if self.isInit:
+      self.imRegions.fill(0)
+
+    self.lMax   = 0
 
   #========================= addRegionByPolygon ========================
   #
@@ -298,18 +314,36 @@ class imageRegions(fromState):
   #============================ stringState ============================
   #
   def stringState(self):
+    """!
+    @brief  Convert current region detection state to string.
+
+    @return Region detection state string.
+    """
 
     return str(self.z)
+
+  #---------------------------------------------------------------------
+  #----------------------- State Output Routines -----------------------
+  #---------------------------------------------------------------------
 
   #============================= printState ============================
   #
   def printState(self):
+    """!
+    @brief  Print current region detection state (as string).
+    """
 
     print("State: " + self.stringState())
 
-  #============================= display_cv ============================
+  #========================= regions_display_cv ========================
   #
-  def display_cv(self, ratio = 1, window_name = "Activity Regions"):
+  def regions_display_cv(self, ratio = 1, window_name = "Activity Regions"):
+    """!
+    @brief  Display the region image to see labels.
+
+    @param[in]  ratio           Display scaling.
+    @param[in]  window_name     Window name to use.
+    """
 
     if (self.lMax > 0):
       rho    = 254/self.lMax
@@ -317,11 +351,17 @@ class imageRegions(fromState):
     else:
       regIm = self.imRegions
 
+    # @todo     Need cast to other than uint8 if lMax > 127.  Add code when needed.
     cvdisplay.gray(regIm.astype(np.uint8), ratio = ratio, window_name = window_name)
 
   #========================== display_close_cv =========================
   #
-  def display_close_cv(self, window_name = "Activity Regions"):
+  def regions_close_cv(self, window_name = "Activity Regions"):
+    """!
+    @brief  Close the region image window.
+
+    @param[in]  window_name     Window name to use.
+    """
 
     cvdisplay.close(window_name = window_name)
 
@@ -374,7 +414,7 @@ class imageRegions(fromState):
   @staticmethod
   def loadFrom(fptr, relpath="activity.byRegion"):    
     """!
-    @brief  Empty method for loading internal information from HDF5 file.
+    @brief  Inner method for loading internal information from HDF5 file.
 
     Load data from given HDF5 pointer. Assumes in root from current file
     pointer location.

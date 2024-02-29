@@ -491,7 +491,7 @@ class imageRegions(fromState):
 #================================ imageOccupancy ===============================
 #
 
-class imageOccupancy(fromState):
+class imageOccupancy(inImage):
   """!
   @ingroup  Detector_Activity
   @brief    Activity states depend on having true image values lying in specific
@@ -510,10 +510,12 @@ class imageOccupancy(fromState):
   #===================== imageOccupancy / __init__ =====================
   #
   def __init__(self, imRegions = None):
-    super(imageRegions,self).__init__()
+    super(imageOccupancy,self).__init__()
 
-    self.imRegions = None   #< Image regions of interest (along 3rd dimension)
-    self.isInit = False     #< Is instance initialized?
+    self.imRegions  = None      #< Image regions of interest (along 3rd dimension)
+    self.isInit     = False     #< Is instance initialized?
+    self.tau        = 0         #< Area threshold(s) for region(s).
+    self.z          = None      #< Occupancy status.
 
     if (imRegions is not None):
       self.setRegions(imRegions)
@@ -555,8 +557,6 @@ class imageOccupancy(fromState):
       imsize = np.shape(self.imRegions)
       self.initRegions(imsize[0:2])
       
-
-
   #============================= setRegions ============================
   #
   def setRegions(self, imRegions):
@@ -606,11 +606,11 @@ class imageOccupancy(fromState):
         regPoly = np.hstack((regPoly, np.array(np.transpose([regPoly[:,-1]]))))
 
       regMask = skidraw.polygon2mask(np.shape(self.imRegions), np.transpose(regPoly))
-      self.addRegionByMask(regMask)
+      self.addRegionMask(regMask)
 
-  #========================== addRegionByMask ==========================
+  #=========================== addRegionMask ===========================
   #
-  def addRegionByMask(self, regMask):
+  def addRegionMask(self, regMask):
     """!
     @brief    Provide a masked region to use for defining a new state.
               Outer context should parse properly is overlaps with other states.
@@ -629,9 +629,9 @@ class imageOccupancy(fromState):
     if (np.shape(self.imRegions) == regSize[0:2]):
       self.imRegions = np.concatenate( (self.imRegions, regMask), axis=2, dtype='bool')
 
-  #======================== replaceRegionByMask ========================
+  #========================= replaceRegionMask =========================
   #
-  def replaceRegionByMask(self, regMask, iSlice):
+  def replaceRegionMask(self, regMask, iSlice):
     """!
     @brief  Provide a replacement masked region for an existing region
             specification.
@@ -650,30 +650,35 @@ class imageOccupancy(fromState):
       elif (iSlice == 0):
         self.imRegions[:,:,iSlice] = regMask
 
-  # IAMHERE!!!
-
   #============================== measure ==============================
   #
-  def measure(self, zsig):
+  def measure(self, I):
     """
-    @brief  Compare signal to expected image region states. 
+    @brief  Compare input binary mask image to image mask regions.
 
-    @param[in]  zsig  The 2D pixel coords / 3D pixel coords + depth value.
+    @param[in]  I   Input image. If not binary, then improcessor should binarize.
     """
     if not self.isInit:
       self.x = 0
       return
 
-    # Map coordinates takes in (i,j). Map zsig from (x,y) to (i,j).
-    zmeas  = np.flipud(zsig.tMeas)
-    self.x = scipy.ndimage.map_coordinates(self.imRegions, zmeas, order = 0)
+    if self.processor is not None:
+      self.Ip = self.processor.apply(I)
+    else:
+      self.Ip = I
+
+    zMeas = np.logical_and(self.imRegions, self.Ip)
+
+    zCount1 = np.count_nonzero(zMeas, axis = 0)
+    zCount2 = np.sum(zCount1, axis = 0)
+    self.z = zCount2 > self.tau
 
   #===================== specifyRegionsFromImageRGB ====================
   #
   def specifyPolyRegionsFromImageRGB(self, theImage, doClear = False):
     """!
     @brief    Given an image, get user input as polygons that define the
-              different regions.  If some regions lie interior to others,
+              different occupancy regions.  If some regions lie interior to others,
               then they should be given after.  Order matters.
 
     Overrides any existing specification.
@@ -692,31 +697,26 @@ class imageOccupancy(fromState):
       polyReg = cvdisplay.getline_rgb(theImage, isClosed = True)
       self.addRegionByPolygon(polyReg)
 
-    # @todo   Maybe keep visualizing/displaying the regions as more get added.
-    #         Right now just closes/opens window.
-
-
   #============================= printState ============================
   #
   def printState(self):
 
-    print("State: " + str(self.x))
+    print("State: " + str(self.z))
 
   #============================= display_cv ============================
   #
-  def display_cv(self, ratio = 1, window_name = "Activity Regions"):
+  def display_cv(self, ratio = 1, window_name = "Occupancy Regions"):
 
-    if (self.lMax > 0):
-      rho    = 254/self.lMax
-      regIm  = self.imRegions*rho
-    else:
-      regIm = self.imRegions
+    if not self.isInit:
+      return
+
+    regIm = np.sum(self.imRegions, axis=2)
 
     cvdisplay.gray(regIm.astype(np.uint8), ratio = ratio, window_name = window_name)
 
   #========================== display_close_cv =========================
   #
-  def display_close_cv(self, window_name = "Activity Regions"):
+  def display_close_cv(self, window_name = "Occupancy Regions"):
 
     cvdisplay.close(window_name = window_name)
 
@@ -733,13 +733,17 @@ class imageOccupancy(fromState):
 
     Save data to given HDF5 pointer. Puts in root.
 
+    Default reference is "activity.byRegion/imOccupancy".  If that's not correct, then
+    need to overload the relpath. Name of source data cannot be changed (from
+    "imOccupancy").
+
     @param[in]  fPtr        HDF5 file pointer.
     @param[in]  relpath     Group name relative to current HDF5 path.
     """
     actds = fPtr.create_group(relpath)
 
     if (self.imRegions is not None):
-      actds.create_dataset("imRegions", data=self.imRegions)
+      actds.create_dataset("imOccupancy", data=self.imRegions)
 
 
   #================================ load ===============================
@@ -758,9 +762,9 @@ class imageOccupancy(fromState):
     """
     fptr = h5py.File(fileName,"r")
     if relpath is not None:
-      theInstance = imageRegions.loadFrom(fptr, relpath);
+      theInstance = imageOccupancy.loadFrom(fptr, relpath);
     else:
-      theInstance = imageRegions.loadFrom(fptr)
+      theInstance = imageOccupancy.loadFrom(fptr)
     fptr.close()
     return theInstance
 
@@ -772,13 +776,17 @@ class imageOccupancy(fromState):
     @brief  Empty method for loading internal information from HDF5 file.
 
     Load data from given HDF5 pointer. Assumes in root from current file
-    pointer location.
+    pointer location. 
+
+    Default reference is "activity.byRegion/imOccupancy".  If that's not correct, then
+    need to overload the relpath. Name of source data cannot be changed (from
+    "imOccupancy").
     """
     gptr = fptr.get(relpath)
 
     keyList = list(gptr.keys())
-    if ("imRegions" in keyList):
-      regionsPtr = gptr.get("imRegions")
+    if ("imOccupancy" in keyList):
+      regionsPtr = gptr.get("imOccupancy")
       imRegions  = np.array(regionsPtr)
     else:
       imRegions  = None
@@ -795,29 +803,32 @@ class imageOccupancy(fromState):
   #
   def calibrateFromPolygonMouseInputOverImageRGB(theImage, theFile, initRegions = None):
     """!
-    @brief  Calibrate a region detector by requesting closed polygon input from user.
+    @brief  Calibrate a region occupancy detector by requesting closed polygon input
+            from user.
 
     Calibration routines save the information for loading in the future.  They
     do not return an instantiated object.
 
     This version has two modes, one of which is to specify from scratch.  Another
-    takes a pre-existing activity region image (basically a label image).  Recall
-    that there is no check to see if user input is wiping out a previously
-    existing or previously enetered activity region.
+    takes a pre-existing region (or multiple, possibly overlapping). 
     """
 
+    # Process initRegions if provided, else initialize as None.
     imsize      = np.shape(theImage)
     if (initRegions is not None) and (imsize[0:2] == np.shape(initRegions)):
       pass
     else:
-      initRegions = np.zeros( imsize[0:2] , dtype='int' )
+      initRegions = None
 
-    theDetector = imageRegions(initRegions)
+    # Instantiate class and get region specifications from user.
+    theDetector = imageOccupancy(initRegions)
     theDetector.specifyPolyRegionsFromImageRGB(theImage)
 
+    # Display final outcome.
     theDetector.display_cv();
     cvdisplay.wait()
 
+    # Save data for loading at later time.
     theDetector.save(theFile)
 
   #---------------------------------------------------------------------
@@ -826,7 +837,7 @@ class imageOccupancy(fromState):
 
   def buildFromPolygons(imsize, thePolygons):
     """!
-    @brief  Construct an imageRegions instance with provided polygon regions.
+    @brief  Construct an imageOccupancy instance with provided polygon regions.
 
     @param[in]  imsize      The image size.
     @param[in]  thePolygons List of polygons as column array of coordinates.
@@ -834,7 +845,7 @@ class imageOccupancy(fromState):
     @return     Instantiated object.
     """
 
-    actDet = imageRegions(np.zeros(imsize))
+    actDet = imageOccupancy(np.zeros(imsize, dtype='bool'))
     for poly in thePolygons:
       actDet.addRegionByPolygon(poly)
 

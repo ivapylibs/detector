@@ -36,6 +36,7 @@ import scipy.ndimage
 import skimage.draw as skidraw
 
 from detector.fromState import fromState
+from detector.inImage import inImage
 import ivapy.display_cv as cvdisplay
 import ivapy.Configuration
 
@@ -605,7 +606,9 @@ class imageOccupancy(inImage):
       if (any(regPoly[:,0] != regPoly[:,-1])):
         regPoly = np.hstack((regPoly, np.array(np.transpose([regPoly[:,-1]]))))
 
-      regMask = skidraw.polygon2mask(np.shape(self.imRegions), np.transpose(regPoly))
+      occShape = np.shape(self.imRegions)
+      regMask = skidraw.polygon2mask(occShape[0:2], np.transpose(regPoly))
+
       self.addRegionMask(regMask)
 
   #=========================== addRegionMask ===========================
@@ -623,11 +626,14 @@ class imageOccupancy(inImage):
     @param[in]    regMask     Region mask, should match size of internal image.
     """
 
+    occSize = np.shape(self.imRegions)
     regSize = np.shape(regMask)
 
-    # @todo     Double check this dimensions test.
-    if (np.shape(self.imRegions) == regSize[0:2]):
-      self.imRegions = np.concatenate( (self.imRegions, regMask), axis=2, dtype='bool')
+    if (occSize[0:2] == regSize[0:2]):
+      if (len(occSize) == 2):
+        self.imRegions = np.dstack( (self.imRegions, regMask))
+      else:
+        self.imRegions = np.concatenate( (self.imRegions, regMask[:,:,np.newaxis]), axis=2, dtype='bool')
 
   #========================= replaceRegionMask =========================
   #
@@ -645,7 +651,7 @@ class imageOccupancy(inImage):
 
     if (curSize[0:2] == regSize[0:2]):
       if (len(curSize) == 3):
-        if (iSlice >= 0) and (iSlice <= curSize[2])
+        if (iSlice >= 0) and (iSlice <= curSize[2]):
           self.imRegions[:,:,iSlice] = regMask
       elif (iSlice == 0):
         self.imRegions[:,:,iSlice] = regMask
@@ -659,7 +665,7 @@ class imageOccupancy(inImage):
     @param[in]  I   Input image. If not binary, then improcessor should binarize.
     """
     if not self.isInit:
-      self.x = 0
+      self.z = None
       return
 
     if self.processor is not None:
@@ -667,7 +673,14 @@ class imageOccupancy(inImage):
     else:
       self.Ip = I
 
-    zMeas = np.logical_and(self.imRegions, self.Ip)
+
+    regSize = np.shape(self.imRegions)
+
+    zMeas = np.full_like(self.imRegions, False, dtype='bool')
+    if (len(regSize) == 2):
+      np.logical_and(self.imRegions, self.Ip, out=zMeas)
+    else:
+      np.logical_and(self.imRegions, self.Ip[:,:,np.newaxis], out=zMeas)
 
     zCount1 = np.count_nonzero(zMeas, axis = 0)
     zCount2 = np.sum(zCount1, axis = 0)
@@ -710,9 +723,15 @@ class imageOccupancy(inImage):
     if not self.isInit:
       return
 
-    regIm = np.sum(self.imRegions, axis=2)
+    regsize = np.shape(self.imRegions)
+    if (len(regsize) == 3):
+      regIm = np.sum(self.imRegions, axis=2)
+      vScale = np.floor(255 / regsize[2])
+    else:
+      regIm = self.imRegions
+      vScale = 255
 
-    cvdisplay.gray(regIm.astype(np.uint8), ratio = ratio, window_name = window_name)
+    cvdisplay.gray(vScale * regIm.astype(np.uint8), ratio = ratio, window_name = window_name)
 
   #========================== display_close_cv =========================
   #

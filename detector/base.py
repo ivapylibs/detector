@@ -65,7 +65,7 @@ class Base(object):
         @brief  Instantiate a detector Base activity class object.
         """
 
-        self.x = None
+        self.x = None       #< Detection state.
         pass
 
     #---------------------------------------------------------------------
@@ -242,6 +242,8 @@ class Base(object):
 
         Save data to given HDF5 pointer. Puts in root.
         """
+
+        warning("Detector.Base:saveTo -- Should not be here!")
         # Not sure what goes here.  Leaving empty.
         # Maybe eventually save the info strings / structure / dict.
         pass
@@ -256,6 +258,7 @@ class Base(object):
         Load data from given HDF5 pointer. Assumes in root from current file
         pointer location.
         """
+        warning("Detector.Base:loadFrom -- Should not be here!")
         return Base()
 
 

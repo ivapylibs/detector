@@ -37,7 +37,7 @@ class fgAppearance(fgImage):
     self._appMod = appMod       #< The appearance model.
     self.fgIm = fgIm
 
-  # =========================== getForeground ===========================
+  #================================ getForeground ================================
   #
   # @brief  Get the foregound class as binary image.
   #
@@ -48,7 +48,7 @@ class fgAppearance(fgImage):
     fgI = self.fgIm
     return fgI
 
-  # =========================== getBackground ===========================
+  #================================ getBackground ================================
   #
   # @brief  Get the backgound class as binary image.
   #
@@ -59,12 +59,23 @@ class fgAppearance(fgImage):
     bgI = ~np.array(self.fgIm).astype('bool')
     return bgI
 
-  #============================== getState =============================
+  #=================================== getState ==================================
   #
   # @brief      Returns the detection mask.
   #
   def getState(self):
     state = DetectorState(self.fgIm)
     return state
+
+  #============================= displayForeground_cv ============================
+  #
+  # @brief  Display the foreground mask using OpenCV routine.
+  #
+  def displayForeground_cv(self, ratio = None, window_name = "Foreground"):
+
+    import ivapy.display_cv as display
+
+    display.binary(self.fgIm, ratio, window_name)
+
 #
-#=============================== detector/appearance =============================== 
+#================================ detector/appearance ================================

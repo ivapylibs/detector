@@ -773,7 +773,7 @@ class inCornerEstimator(inCorner):
   def refineFromRGBDStream(self, theStream, incVis = False):
 
     print('Deprecated and will be deleted soon.  Change to refineFromStreamRGBD')
-    refineFromStreamRGBD(self, theStream, incVis)
+    self.refineFromStreamRGBD(theStream, incVis)
 
 
   #======================== calibrateFromStreamRGBD ========================
@@ -899,7 +899,7 @@ class inCornerEstimator(inCorner):
   # old version with other name.  To be removed.
   def maskRegionFromRGBDStream(self, theStream, incVis = False):
     print('Deprecated.  Switch to maskRegionFromStreamRGBD')
-    maskRegionFromStreamRGBD(self, theStream, incVis)
+    self.maskRegionFromStreamRGBD(theStream, incVis)
 
   #================================== info =================================
   #

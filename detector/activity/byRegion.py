@@ -460,7 +460,7 @@ class imageRegions(fromState):
     theDetector = imageRegions(initRegions)
     theDetector.specifyPolyRegionsFromImageRGB(theImage)
 
-    theDetector.display_cv();
+    theDetector.regions_display_cv();
     cvdisplay.wait()
 
     theDetector.save(theFile)

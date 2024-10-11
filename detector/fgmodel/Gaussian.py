@@ -307,6 +307,10 @@ class fgGaussian(fgImage):
     # sqeI = (mu - measI).^2 / sigma  (in Matlab paraphrasing).
     # Apply operations wih broadcasting to avoid memory re-allocation.
     # Store outcomes since they get used in the adapt routine.
+    #DEBUG:TYPE
+    #print(type(self.measI))
+    #print(type(self.mu))
+    #print(type(self.errI))
     np.subtract( self.measI, self.mu, out=self.errI )
     np.square  ( self.errI , out=self.sqeI )
     np.divide  ( self.sqeI , self.sigma, out=self.nrmE )
@@ -661,12 +665,12 @@ class fgGaussian(fgImage):
     if (incVis):
       display.close_cv("Output")
 
-  #======================== refineFromRGBDStream =======================
+  #======================== refineFromStreamRGBD =======================
   #
   # @brief  Given an RGBD stream, run the estimation process with 
   #         adaptation on to improve color model.
   #
-  def refineFromRGBDStream(self, theStream, incVis = False):
+  def refineFromStreamRGBD(self, theStream, incVis = False):
 
     print('STEPS to Refine the Gaussian model.')
     print('\t [1] Hit any key to continue once scene is prepped.')
@@ -691,6 +695,11 @@ class fgGaussian(fgImage):
   
     if (incVis):
       display.close_cv("Output")
+
+  def refineFromRGBDStream(self, theStream, incVis = False):
+
+    print("This invocation is deprecated. Use refineFromStreamRGBD")
+    self.refineFromStreamRGBD(theStream, incVis)
 
   #========================== testOnRGBDStream =========================
   #

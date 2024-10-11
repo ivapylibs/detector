@@ -269,7 +269,7 @@ class bgGaussian(bgImage):
       return
     
     bigShape = ( np.prod(self.imsize[0:2]), self.imsize[2] )
-    linShape = ( np.prod(self.imsize[0:2]) )
+    linShape = ( np.prod(self.imsize[0:2]), 1 )
 
     self.measI = np.zeros( bigShape )
     self.errI  = np.zeros( bigShape )

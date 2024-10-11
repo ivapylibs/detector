@@ -171,7 +171,8 @@ class onWorkspace(bgGaussian):
         self._setsize_(np.array(np.shape(I)))
 
     self.measI = np.array(I, dtype=float, copy=True)
-    display.depth_cv(self.measI)
+    #DEBUG:DISPLAY
+    #display.depth_cv(self.measI)
     self.measI = np.reshape(self.measI, 
                             np.append(np.prod(self.imsize[0:2]), self.imsize[2]) )
 

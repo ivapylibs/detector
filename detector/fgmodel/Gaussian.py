@@ -19,7 +19,7 @@ import cv2
 import h5py
 
 from detector.inImage import fgImage
-from detector.Configuration import AlgConfig
+from ivapy.Configuration import AlgConfig
 import camera.utils.display as display
 #import ivapy.display_cv as display
 

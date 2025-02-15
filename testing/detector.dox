@@ -12,7 +12,14 @@ All of the test routines for the Detector package.
 
 @brief  Suite of activity detection testing and API showcase scripts. 
 
-
 Subset of test routines in the Detector package for activity detection/recognition.
+
+
+@defgroup   TestDet_FG  Foreground Detection
+@brief      Suite of test scripts for foreground detection methods.
+
+@defgroup   TestDet_BG  Background Detection
+@brief      Suite of test scripts for background detection methods.
+
 @}
 */

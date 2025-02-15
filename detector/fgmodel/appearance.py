@@ -1,20 +1,22 @@
 #=============================== detector/appearance ===============================
 #
+# @package  detector.fgmodel.appearance
+#
 # Appearance-based object detection from image stream. Augment basic approach with
 # an appearance model that aims to identify foreground regions of the image
-#   
-#=============================== detector/appearance ===============================
-
-# 
-# @author   Patricio A. Vela,   pvela@gatech.edu
-#           Yunzhi Lin,             yunzhi.lin@gatech.edu
-# @date     2021/07/03 [created]
-#           2021/07/10 [modified]
 #
-#!NOTE:
-#!  Indent is 2 spaces.
-#!  Tab is 4 spaces with conversion.
-#!  80 columns with margin at 6
+# @ingroup  Detector_FGModel
+#   
+# @author   Patricio A. Vela,   pvela@gatech.edu
+# @author   Yunzhi Lin,             yunzhi.lin@gatech.edu
+#
+# @date     2021/07/10 [modified]
+# @date     2021/07/03 [created]
+#
+# NOTE:
+#   Indent is 2 spaces.
+#   Tab is 4 spaces with conversion.
+#   80 columns with margin at 6
 #
 #=============================== detector/appearance =============================== 
 from detector.inImage import fgImage
@@ -59,6 +61,14 @@ class fgAppearance(fgImage):
     bgI = ~np.array(self.fgIm).astype('bool')
     return bgI
 
+  #================================== emptyState =================================
+  #
+  # @brief      Returns the detection mask.
+  #
+  def emptyState(self):
+    state = DetectorState()
+    return state
+
   #=================================== getState ==================================
   #
   # @brief      Returns the detection mask.
@@ -74,7 +84,6 @@ class fgAppearance(fgImage):
   def displayForeground_cv(self, ratio = None, window_name = "Foreground"):
 
     import ivapy.display_cv as display
-
     display.binary(self.fgIm, ratio, window_name)
 
 #

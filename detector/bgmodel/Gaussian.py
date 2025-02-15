@@ -7,7 +7,7 @@
 # @date     2012/07/07      [taken Matlab version]
 # @date     2023/06/08      [converted to python]
 #
-# Version   1.0
+# @ingroup  Detector_BGModel
 #
 # Notes:    set tabstop = 4, indent = 2, 85 columns.
 #

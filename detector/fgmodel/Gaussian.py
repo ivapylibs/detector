@@ -1,15 +1,18 @@
 #================================ fgGaussian ===============================
+##
+# @package  detector.fgmodel.fgGaussian
+# @brief    Gaussian foreground modeling for detecting simple objects.
+#
+# @ingroup  Detector_FGModel
 #
 # @author   Jun Yang,
 # @author   Patricio A. Vela,   pvela@gatech.edu
 #
-# @date     2009/07/XX      [original Matlab]
-# @date     2012/07/07      [taken Matlab version]
 # @date     2023/06/08      [converted to python]
+# @date     2012/07/07      [taken Matlab version]
+# @date     2009/07/XX      [original Matlab]
 #
-# Version   1.0
-#
-# Notes:    set tabstop = 4, indent = 2, 85 columns.
+#! NOTES: set tabstop = 4, indent = 2, 85 columns.
 #
 #================================ fgGaussian ===============================
 

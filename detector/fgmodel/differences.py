@@ -81,7 +81,7 @@ class CfgDifferences(AlgConfig):
   #
   @staticmethod
   def builtForLearning():
-    matCfg = CfgDifferences();
+    matCfg = CfgDifferences()
     matCfg.tauDiff = 10
     matCfg.minArea = 20
     return matCfg
@@ -182,11 +182,11 @@ class fgDifferences(fgAppearance):
     if self.imsize is None:
         self._setsize_(np.array(np.shape(I)))
 
-    self.measI = np.array(I, dtype=float, copy=True)
+    self.measI = np.array(I, dtype=np.uint8, copy=True)
 
     # Step 2: frame difference
     if (self.lastI is None):
-      self.lastI = I
+      self.lastI = self.measI
       self.labelI = np.zeros(self.imsize[0:2])
       self.fgIm   = np.zeros(self.imsize[0:2], dtype=bool)
     else:

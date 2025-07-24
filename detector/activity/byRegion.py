@@ -401,11 +401,13 @@ class imageRegions(fromState):
     @param[in]  relpath     The hdf5 (relative) path name to use for loading.
                             Usually class has default, this is to override.
     """
+    print(fileName)
     fptr = h5py.File(fileName,"r")
     if relpath is not None:
       theInstance = imageRegions.loadFrom(fptr, relpath);
     else:
       theInstance = imageRegions.loadFrom(fptr)
+
     fptr.close()
     return theInstance
 
@@ -785,6 +787,8 @@ class imageOccupancy(inImage):
     else:
       theInstance = imageOccupancy.loadFrom(fptr)
     fptr.close()
+    print('Testing!')
+    print(theInstance)
     return theInstance
 
   #============================== loadFrom =============================
@@ -804,6 +808,7 @@ class imageOccupancy(inImage):
     gptr = fptr.get(relpath)
 
     keyList = list(gptr.keys())
+    print(keylist)
     if ("imOccupancy" in keyList):
       regionsPtr = gptr.get("imOccupancy")
       imRegions  = np.array(regionsPtr)

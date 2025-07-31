@@ -1,6 +1,6 @@
 #=================================== byRegion ==================================
 ##
-# @package  byRegion
+# @package  detector.activity.byRegion
 # @brief    Activities defined by regions.  Signal must lie in a region to trigger
 #           associated state.
 # 
@@ -15,13 +15,12 @@
 #           usage.  There are many ways to define regions and to utilize them as
 #           activity states or status flags.  Since I aim to instantiate in one
 #           specific way at the momemt, that is what will be coded.
-
-#=================================== byRegion ==================================
+#
 # 
 # @author     Patricio A. Vela,       pvela@gatech.edu
 # @date       2023/12/15
 # 
-# NOTE: 90 columns, 2 space indent, wrap margin at 5.
+#! NOTE: 90 columns, 2 space indent, wrap margin at 5.
 #
 #=================================== byRegion ==================================
 

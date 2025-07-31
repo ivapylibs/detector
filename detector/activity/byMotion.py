@@ -1,12 +1,9 @@
 #=========================== detector/activity/byMotion ============================
 ## 
-# @package  byMotion
+# @package  detector.activity.byMotion
 # @brief    Implements activity detectors based on movement (or lack of).
 #
 # @ingroup  Detector_Activity
-
-#=========================== detector/activity/byMotion ============================
-# 
 #
 # @author   Patricio A. Vela,   pvela@gatech.edu
 # @date     2023/08/10          [created]

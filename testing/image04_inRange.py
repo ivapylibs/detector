@@ -40,7 +40,7 @@ depth_frames_raw = np.load(cpath+"/data/depth_raw.npz",allow_pickle=True,fix_imp
 N = depth_frames_raw.shape[0]
 
 # Pick up one of the frames with a hand hovering on the tabletop
-Image = depth_frames_raw[60]
+Image = depth_frames_raw[-1]
 
 #==[2] Instantiate inImage detector with an image processor that does
 #      the thresholding.

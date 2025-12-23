@@ -5,6 +5,7 @@ import numpy as np
 import cv2
 import mediapipe as mp
 from perceiver.perceiver.types import Detections
+from skimage.draw import polygon
 
 @dataclass
 class HandOutput:
@@ -43,7 +44,7 @@ class MediaPipeHandsDetector:
         self._mask_dilate_iter = dilate_iter
         self._mask_dilate_ks = dilate_ks
         self._last_mask = None
-
+        self._tip_idx = np.array([4, 8, 12, 16, 20])
 
         self._prev_hands = []
 
@@ -59,10 +60,7 @@ class MediaPipeHandsDetector:
         for next-frame masking.
         """
         # 1) Choose input frame (mask only if configured and we have prior hands)
-        if self.mask_mode != "none" and len(self._prev_hands) > 0:
-            frame_in = self._apply_mask(frame_bgr)
-        else:
-            frame_in = frame_bgr
+        frame_in = frame_bgr
 
         # 2) MediaPipe expects RGB
         frame_rgb = cv2.cvtColor(frame_in, cv2.COLOR_BGR2RGB)
@@ -122,6 +120,11 @@ class MediaPipeHandsDetector:
                 # Store the HandOutput object itself (so getattr works in the masker)
                 curr_hands.append(h)
         self._prev_hands = curr_hands
+        
+        current_mask = None
+        if self.mask_mode in ("palm", "hand"):
+            current_mask = self._build_polygon_mask(frame_bgr.shape, curr_hands, self.mask_mode)
+        self._last_mask = current_mask
 
         return [left, right]
 
@@ -232,6 +235,8 @@ class MediaPipeHandsDetector:
 
         H, W = frame_bgr.shape[:2]
         meta = {
+            "image_height": H,
+            "image_width": W,
             "timestamp": timestamp,
             "source": "mediapipe_hands",
             "mask_mode": self.mask_mode,     # "none" | "palm" | "hand"
@@ -240,6 +245,57 @@ class MediaPipeHandsDetector:
             "num_detected": len(items),
             # (optional) you can stash debug like "used_mask": self._last_mask is not None
         }
+        if self.mask_mode != "none" and self._last_mask is not None:
+            meta["mask"] = self._last_mask
 
         return Detections(items=items, meta=meta)
+    
+    
+    def _build_polygon_mask(self, frame_shape, hand_outputs, mask_mode) -> Optional[np.ndarray]:
+        if len(frame_shape) == 3:
+            H, W = frame_shape[:2]
+        else:
+            H, W = frame_shape
+
+        mask = np.zeros((H, W), dtype=bool)
+
+        if mask_mode == "palm":
+            polygon_idx = self._palm_idx
+        elif mask_mode == "hand":
+            polygon_idx = np.concatenate([self._palm_idx, self._tip_idx])
+        else:
+            # No masking requested
+            return None
+
+        for h in hand_outputs:
+            if (
+                getattr(h, "present", False)
+                and isinstance(h.landmarks, np.ndarray)
+                and h.landmarks.shape == (21, 3)
+                and np.all(np.isfinite(h.landmarks))
+            ):
+              # All landmarks in pixel coords, then select the subset
+                pts_norm = h.landmarks                          # (21, 3)
+                pts_px_all = self._landmarks_to_px(
+                    pts_norm, W, H, mirror=self._mask_mirror
+                )                                               # (21, 2)
+                pts_px = pts_px_all[polygon_idx]                # (M, 2)
+
+                if pts_px.shape[0] < 3:
+                    continue
+
+                # Convex hull to order boundary points
+                hull = cv2.convexHull(pts_px)                   # (K, 1, 2) or (K, 2)
+                hull = hull.reshape(-1, 2)                      # (K, 2)
+
+                rs = hull[:, 1]  # y / rows
+                cs = hull[:, 0]  # x / cols
+
+                rr, cc = polygon(rs, cs, shape=(H, W))
+                mask[rr, cc] = True
+
+        if mask.any():
+            return mask
+        else:
+            return None
 

@@ -1,10 +1,11 @@
 # detector/detector/mediapipe_hands.py
+from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional, List
 import numpy as np
 import cv2
 import mediapipe as mp
-from perceiver.perceiver.types import Detections
+from perceiver.types import Detections
 from skimage.draw import polygon
 
 @dataclass
@@ -206,7 +207,7 @@ class MediaPipeHandsDetector:
             return cv2.bitwise_and(frame, frame, mask=mask)
         
 
-    def detect_struct(self, frame_bgr, timestamp: float | None = None) -> Detections:
+    def detect_struct(self, frame_bgr, timestamp: Optional[float] = None) -> Detections:
         """
         Structured detector API:
         - Calls the existing detect() to reuse masking + MediaPipe logic.

@@ -2,9 +2,14 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional, List
+import time
 import numpy as np
 import cv2
 import mediapipe as mp
+#Tasks API specific
+from mediapipe.tasks.python import BaseOptions
+from mediapipe.tasks.python.vision import HandLandmarker, HandLandmarkerOptions, RunningMode
+
 from perceiver.types import Detections
 from skimage.draw import polygon
 
@@ -30,14 +35,40 @@ def make_hand_nan(label: str) -> HandOutput:
     )
 
 class MediaPipeHandsDetector:
-    def __init__(self, max_hands=2, det_conf=0.5, track_conf=0.5, mask_mode: str = "none", mirror: bool = False, use_tips: bool = True, dilate_iter: int = 2, dilate_ks: int = 7):
-        self._mp = mp.solutions.hands.Hands(
-            max_num_hands=max_hands,
-            min_detection_confidence=det_conf,
-            min_tracking_confidence=track_conf,
-            static_image_mode=False,
-            model_complexity=1,
+    def __init__(self, max_hands=2, det_conf=0.5, track_conf=0.5, mask_mode: str = "none", mirror: bool = False, use_tips: bool = True, dilate_iter: int = 2, dilate_ks: int = 7, backend: str = "solutions", model_path: Optional[str] = None, presence_conf: Optional[float] = None, running_mode: str = "video"):
+        self._backend = str(backend).lower()
+        print(f"[MediaPipeHandsDetector] backend={self._backend}")
+        if self._backend == "solutions":
+            self._mp = mp.solutions.hands.Hands(
+                max_num_hands=max_hands,
+                min_detection_confidence=det_conf,
+                min_tracking_confidence=track_conf,
+                static_image_mode=False,
+                model_complexity=1,
         )
+            self._running_mode = "video"
+        elif self._backend == "tasks":
+            if model_path is None or not model_path.strip():
+                raise ValueError("model_path must be set when backend='tasks'.")
+            
+            mode = (running_mode or "video").lower()
+            if mode != "video":
+                raise ValueError("running_mode must be 'video' for tasks backend.")
+            mp_mode = RunningMode.VIDEO
+            base_options = BaseOptions(model_asset_path=model_path)
+            options = HandLandmarkerOptions(
+                base_options=base_options,
+                running_mode=mp_mode,
+                num_hands=max_hands,
+                min_hand_detection_confidence=det_conf,
+                min_hand_presence_confidence=det_conf if presence_conf is None else float(presence_conf),
+                min_tracking_confidence=track_conf,
+            )
+            self._mp = HandLandmarker.create_from_options(options)
+            self._running_mode = mode
+        else:
+            raise ValueError(f"Unknown backend '{backend}'. Use 'solutions' or 'tasks'.")
+        
         self._palm_idx = np.array([0, 1, 5, 9, 13, 17], dtype=np.int64)
         self.mask_mode = mask_mode
         self._mask_mirror = mirror
@@ -51,9 +82,10 @@ class MediaPipeHandsDetector:
 
 
     def close(self):
-        self._mp.close()
+        if hasattr(self._mp, "close"):
+            self._mp.close()
 
-    def detect(self, frame_bgr) -> List[HandOutput]:
+    def detect(self, frame_bgr, timestamp: Optional[float] = None) -> List[HandOutput]:
         """
         Run MediaPipe Hands on either the raw frame or a hand-masked frame
         (if mask_mode is active and we have previous landmarks), then return
@@ -65,26 +97,59 @@ class MediaPipeHandsDetector:
 
         # 2) MediaPipe expects RGB
         frame_rgb = cv2.cvtColor(frame_in, cv2.COLOR_BGR2RGB)
-        res = self._mp.process(frame_rgb)
+        if self._backend == "solutions":
+            res = self._mp.process(frame_rgb)
+            mp_landmarks = res.multi_hand_landmarks
+            mp_handedness = res.multi_handedness
+        else:
+            mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame_rgb)
+            if self._running_mode == "video":
+                timestamp_ms = self._timestamp_to_ms(timestamp)
+                res = self._mp.detect_for_video(mp_image, timestamp_ms)
+            
+            mp_landmarks = res.hand_landmarks
+            mp_handedness = res.handedness
 
         # 3) Default outputs if no hands
         left, right = make_hand_nan("left"), make_hand_nan("right")
-        if not res.multi_hand_landmarks:
+        if not mp_landmarks:
             # clear cache so next frame won’t try masking
             self._prev_hands = []
             return [left, right]
 
         # 4) Collect candidates
         cands: List[HandOutput] = []
-        for lm, handed in zip(res.multi_hand_landmarks, res.multi_handedness):
-            pts = np.array([[p.x, p.y, p.z] for p in lm.landmark], dtype=np.float32)  # (21,3)
+        for i, lm in enumerate(mp_landmarks):
+            handed = mp_handedness[i] if (mp_handedness and i < len(mp_handedness)) else None
+            if self._backend == "solutions":
+                if handed is None:
+                    continue
+                lm_points = lm.landmark
+                handed_label = handed.classification[0].label.lower()
+                score = float(handed.classification[0].score)
+            else:
+                if not handed or len(handed) == 0:
+                    continue
+                lm_points = lm
+                cat = handed[0]
+                if hasattr(cat, "category_name") and cat.category_name:
+                    handed_label = cat.category_name
+                elif hasattr(cat, "display_name") and cat.display_name:
+                    handed_label = cat.display_name
+                else:
+                    handed_label = None
+
+                if handed_label is None:
+                    continue
+                handed_label = handed_label.lower()
+                score = float(cat.score)
+            pts = np.array([[p.x, p.y, p.z] for p in lm_points], dtype=np.float32)  # (21,3)
             palm = pts[self._palm_idx, :]
             fingers = np.delete(pts, self._palm_idx, axis=0)
-            lab = handed.classification[0].label.lower()  # "left" / "right"
-            score = float(handed.classification[0].score)
             cen = palm[:, :2].mean(axis=0) if np.all(np.isfinite(palm)) else None
-
-            cands.append(HandOutput(lab, True, score, pts, palm, fingers, cen))
+            if handed_label not in {"left", "right"}:
+                continue
+            cands.append(HandOutput(handed_label, True, score, pts, palm, fingers, cen))
 
         # 5) Pick best two by score and place into (left, right)
         cands.sort(key=lambda h: h.score, reverse=True)
@@ -213,7 +278,7 @@ class MediaPipeHandsDetector:
         - Calls the existing detect() to reuse masking + MediaPipe logic.
         - Returns Detections(items=[...], meta={...}) per Phase-1 API.
         """
-        left, right = self.detect(frame_bgr)
+        left, right = self.detect(frame_bgr, timestamp=timestamp)
 
         items = []
         
@@ -300,3 +365,10 @@ class MediaPipeHandsDetector:
         else:
             return None
 
+    def _timestamp_to_ms(self, timestamp: Optional[float]) -> int:
+        if timestamp is None:
+            return int(time.time() * 1000)
+        if isinstance(timestamp, (int, np.integer)):
+            return int(timestamp)
+        else :
+            return int(float(timestamp) * 1000)

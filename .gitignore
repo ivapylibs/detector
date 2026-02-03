@@ -111,3 +111,8 @@ testing/figs
 *.sw?
 
 *.hdf5
+__pycache__/
+*.pyc
+.DS_Store
+*.jsonl
+*.log

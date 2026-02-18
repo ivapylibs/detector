@@ -1,6 +1,6 @@
 #=================================== byRegion ==================================
 ##
-# @package  byRegion
+# @package  detector.activity.byRegion
 # @brief    Activities defined by regions.  Signal must lie in a region to trigger
 #           associated state.
 # 
@@ -15,13 +15,12 @@
 #           usage.  There are many ways to define regions and to utilize them as
 #           activity states or status flags.  Since I aim to instantiate in one
 #           specific way at the momemt, that is what will be coded.
-
-#=================================== byRegion ==================================
+#
 # 
 # @author     Patricio A. Vela,       pvela@gatech.edu
 # @date       2023/12/15
 # 
-# NOTE: 90 columns, 2 space indent, wrap margin at 5.
+#! NOTE: 90 columns, 2 space indent, wrap margin at 5.
 #
 #=================================== byRegion ==================================
 
@@ -401,11 +400,13 @@ class imageRegions(fromState):
     @param[in]  relpath     The hdf5 (relative) path name to use for loading.
                             Usually class has default, this is to override.
     """
+    print(fileName)
     fptr = h5py.File(fileName,"r")
     if relpath is not None:
       theInstance = imageRegions.loadFrom(fptr, relpath);
     else:
       theInstance = imageRegions.loadFrom(fptr)
+
     fptr.close()
     return theInstance
 
@@ -785,6 +786,8 @@ class imageOccupancy(inImage):
     else:
       theInstance = imageOccupancy.loadFrom(fptr)
     fptr.close()
+    print('Testing!')
+    print(theInstance)
     return theInstance
 
   #============================== loadFrom =============================
@@ -804,6 +807,7 @@ class imageOccupancy(inImage):
     gptr = fptr.get(relpath)
 
     keyList = list(gptr.keys())
+    print(keylist)
     if ("imOccupancy" in keyList):
       regionsPtr = gptr.get("imOccupancy")
       imRegions  = np.array(regionsPtr)

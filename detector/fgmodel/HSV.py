@@ -94,6 +94,16 @@ class CfgHSV(AlgConfig):
     learnCfg.upper = [[180, 255, 255], [10, 255, 255]]
 
     return learnCfg
+  
+  #=========================== builtForOrangeGlove ========================
+  #
+  @staticmethod
+  def builtForOrangeGlove(minArea = 500, initModel = None):
+    learnCfg = CfgHSV()
+    learnCfg.lower = [[0, 100, 100]]
+    learnCfg.upper = [[20, 255, 255]]
+
+    return learnCfg
 
 #
 #---------------------------------------------------------------------------

@@ -1,14 +1,12 @@
+from detector.fgmodel.targetMagenta import targetMagenta
 import numpy as np
 from detector.fgmodel.appearance import fgAppearance
+import cv2
 
 # Struct for tModel
 class TModel(object):
-    def __init__(self, R=None, T=None, tau=None, classify=None, vectorize=None):
-        self.R = R
-        self.T = T
-        self.tau = tau
-        self.classify = classify
-        self.vectorize = vectorize
+    def __init__(self, tau=None):
+        self.threshold = tau  
 
 class targetDot(fgAppearance):
     '''!
@@ -39,42 +37,42 @@ class targetDot(fgAppearance):
         else:
             pI = I
 
-        im = np.asarray(pI)
+       # Segment out the white region using thresholding 
+       
+        gray = cv2.cvtColor(pI, cv2.COLOR_RGB2GRAY)
+        _, thresh = cv2.threshold(gray, self._appMod.threshold, 255, cv2.THRESH_BINARY)
 
-        # Convert RGB image to grayscale. If already single-channel, keep as is.
-        if im.ndim == 3 and im.shape[2] >= 3:
-            gray = 0.2989 * im[:, :, 0] + 0.5870 * im[:, :, 1] + 0.1140 * im[:, :, 2]
-        elif im.ndim == 2:
-            gray = im
-        else:
-            raise ValueError("Unsupported image shape for targetDot.measure")
+        mask_filled = thresh.copy()
 
-        gray = np.asarray(gray, dtype=np.float32)
-        if gray.max() <= 1.0:
-            gray = gray * 255.0
+        # 2. Fill holes using findContours and drawContours
+        contours, hierarchy = cv2.findContours(mask_filled, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
 
-        # False near black/white ends, True in the middle band.
-        self.fgIm = self._appMod.classify(gray)
+        for i in range(len(contours)):
+            # External contours are the piece; internal are the holes
+            # We fill everything white to create a solid object
+            cv2.drawContours(mask_filled, contours, i, 255, -1)
 
+        
+        # 3. Subtract original mask from filled mask to get just the hole
+        just_the_hole = cv2.subtract(mask_filled, thresh)
+
+        kernel = np.ones((3,3), np.uint8)
+        just_the_hole = cv2.morphologyEx(just_the_hole, cv2.MORPH_OPEN, kernel)
+
+        # cv2.imshow("hole", just_the_hole)
+        # cv2.waitKey(0)
+
+        self.fgIm = just_the_hole.astype(bool)
 
     def calib(tau):
-        tModel= TModel()
-        tModel.R = None
-        tModel.T = None
-
-        # tau is tolerance from both grayscale spectrum ends [0, 255].
-        # Pixels in [0, tau] and [255 - tau, 255] are background (False).
-        # Pixels in (tau, 255 - tau) are foreground (True).
-        tModel.tau = float(np.clip(tau, 0.0, 127.0))
-        tModel.classify = lambda g: np.logical_and(g > tModel.tau, g < (255.0 - tModel.tau))
-        tModel.vectorize = False
+        tModel= TModel(tau=tau)
         return tModel
 
 
     def build_model(threshold):
         tModel = targetDot.calib(threshold)
-        dotDet = targetDot(tModel)
-        return dotDet
+        magentaDet = targetDot(tModel)
+        return magentaDet
     
     
 

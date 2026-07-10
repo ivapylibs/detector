@@ -15,6 +15,5 @@ setup(
         "matplotlib",
         "scipy",
         "opencv-contrib-python",
-        "improcessor @ git+https://github.com/ivapylibs/improcessor.git",
     ],
 )

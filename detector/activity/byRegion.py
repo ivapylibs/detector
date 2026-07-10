@@ -309,6 +309,34 @@ class imageRegions(fromState):
     # @todo   Maybe keep visualizing/displaying the regions as more get added.
     #         Right now just closes/opens window.
 
+  #======================= specifyRegionsFromMask ======================
+  #
+  def specifyRegionsFromMask(self, theMask, doClear = False):
+    """!
+    @brief    Given an image, get user input as point clicks that select 
+              mask regions.  
+
+    Regions should be non-intersecting so that the masks are unique
+    regions.  This prevents regions within regions from being specified
+    as it overrides any existing specification.
+
+
+    @note   Written, no debugged/tested. 2026/07/06 - PAV.
+
+    @param[in]  theImage     The source image to provide region context.
+    @param[in]  doClear     Optional: clear existing imregions?
+    """
+
+    if (doClear) or (self.imRegions is None) \
+                 or (np.shape(theMask)[0:2] != np.shape(self.imRegions)):
+
+      self.initRegions(np.shape(theMask))
+
+    regPoint = display.getpts_binary(theMask)
+    regMask  = inImage.selectMaskRegionFromPointAndMask(regPoint, theMask)
+
+    self.addRegionsByMask(regMask)
+
 
   #============================ stringState ============================
   #
@@ -528,6 +556,8 @@ class imageOccupancy(inImage):
     """!
     @brief    Initialize regions by providing target image dimensions.
               There will be no regions of interest assigned.
+
+    Acceptable to pass in a 2D or 3D image size.  Only first two dims taken.
 
     @param[in]    imsize  The image dimensions/shape.  Only first two important.
     """

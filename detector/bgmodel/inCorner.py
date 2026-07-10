@@ -377,34 +377,6 @@ class inCorner(bgImage):
     return self.selectMaskRegionFromPointAndMask(pt, bgmask.x)
 
 
-  #==================== selectMaskRegionFromPointAndMask ===================
-  #
-  def selectMaskRegionFromPointAndMask(self, pt, mask):
-    """!
-    @brief  Select mask region from model class at given point.
-
-    Permits single and multiple point selections.  Multiple points return
-    multiple mask slices.  Relies on the detector having run and generated
-    a background detection mask.
-
-    @param[in]  pt      Point of interest (given column-wise)
-    @param[in]  mask    Mask.
-
-    @return     A single mask slice or a collection of mask slices.
-    """
-
-    imSize = np.shape(mask)
-    ptSize = np.shape(pt)
-
-    outMask = np.full( (imSize[0], imSize[1], ptSize[1]) , False, dtype=bool)
-
-    for ii in range(0,ptSize[1]):
-      ptuple = tuple(np.array(pt[::-1,ii]))
-      outMask[:,:,ii] = morph.flood(mask, ptuple, connectivity=1)
-
-    return outMask
-
-
   #=============================== saveTo ==============================
   #
   def saveTo(self, fPtr):    # Save given HDF5 pointer. Puts in root.

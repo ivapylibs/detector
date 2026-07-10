@@ -55,6 +55,7 @@ class targetDot(fgAppearance):
 
         # False near black/white ends, True in the middle band.
         self.fgIm = self._appMod.classify(gray)
+        print("count of true ", np.count_nonzero(self.fgIm))
 
 
     def calib(tau):

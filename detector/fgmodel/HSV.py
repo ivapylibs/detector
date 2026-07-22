@@ -1,14 +1,14 @@
 #================================ fgHSV ===============================
 ##
 # @package  detector.fgmodel.fgHSV
-# @brief    HSV foreground modeling for detecting simple objects.
+# @brief    HSV foreground modeling for detecting simple objects using
+#           hard-coded HSV intervals (defines box in HSV space).
 #
 # @ingroup  Detector_FGModel
 #
+# @date     2026/02/17
 # @author   Nihit Agarwal       nagarwal90@gatech.edu
 #
-# @date     2026/02/17
-
 #
 #! NOTES: set tabstop = 4, indent = 2, 85 columns.
 #
@@ -140,7 +140,7 @@ class fgHSV(fgImage):
     self.upper = np.array(fgCfg.upper)
     self.lower = np.array(fgCfg.lower)
 
-    # Set the processor
+    # Set the processor.  2027/07/22 - PAV - As coded, not used.
     self.improcessor = processor
 
     # Set the foreground image
@@ -183,12 +183,11 @@ class fgHSV(fgImage):
       else:
         total_mask = cv2.add(total_mask, mask)
 
-
+    # Removes small dots
     kernel = np.ones((5,5), np.uint8)
-    mask = cv2.morphologyEx(total_mask, cv2.MORPH_OPEN, kernel) # Removes small dots
+    mask = cv2.morphologyEx(total_mask, cv2.MORPH_OPEN, kernel) 
 
     self.fgI =  mask
-
 
   #============================== correct ==============================
   #
@@ -275,7 +274,7 @@ class fgHSV(fgImage):
   #=============================== saveTo ==============================
   #
   def saveTo(self, fPtr):    # Save given HDF5 pointer. Puts in root.
-    self.config.lower    = self.lower.tolist()
+    self.config.lower = self.lower.tolist()
     self.config.upper = self.upper.tolist()
 
     fPtr.create_dataset("ForegroundHSVModel", data=self.config.dump())

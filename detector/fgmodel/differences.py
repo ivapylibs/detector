@@ -182,7 +182,7 @@ class fgDifferences(fgAppearance):
     if self.imsize is None:
         self._setsize_(np.array(np.shape(I)))
 
-    self.measI = np.array(I, dtype=np.uint8, copy=True)
+    self.measI = np.array(I, dtype=I.dtype, copy=True)
 
     # Step 2: frame difference
     if (self.lastI is None):
@@ -190,7 +190,7 @@ class fgDifferences(fgAppearance):
       self.labelI = np.zeros(self.imsize[0:2])
       self.fgIm   = np.zeros(self.imsize[0:2], dtype=bool)
     else:
-      diff = cv2.absdiff(I, self.lastI)
+      diff = cv2.absdiff(self.measI, self.lastI)
 
       if (self.imsize[2] > 1):          # Use an Linf difference.
         diff = np.max(diff, axis=2) 
